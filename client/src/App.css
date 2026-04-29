@@ -31,6 +31,10 @@ h1 {
   width: 50%;
 }
 
+.hero-texts p {
+  width: 75%;
+}
+
 .boton-primario {
   background-color: #4A5947;
   color: white !important;

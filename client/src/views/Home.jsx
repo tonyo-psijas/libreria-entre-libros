@@ -8,7 +8,7 @@ export const Home = () => {
         <>
             <HeroComponent />
             <div className='container'>
-                <div className="row g-4">
+                <div className="row g-4 py-5">
                     {
                     libros.result.map((libro) => (
                         <div

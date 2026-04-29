@@ -18,5 +18,33 @@ export const libros = {
                 "autor": "Rachel Reid",
                 "imagen": "https://feriachilenadellibro.cl/wp-content/uploads/2026/04/9789566393788-9.jpg"
             },
+            {
+                "id_libro": 3,
+                "titulo": "Juego de Tronos",
+                "precio": 25600,
+                "autor": "Geroge R.R. Martin",
+                "imagen": "https://hips.hearstapps.com/vader-prod.s3.amazonaws.com/1691597763-917izhhQjIL.jpg"
+            },
+            {
+                "id_libro": 4,
+                "titulo": "Proyecto Hail Mary",
+                "precio": 20000,
+                "autor": "Andy Weir",
+                "imagen": "https://www.penguinlibros.com/cl/3496027/proyecto-hail-mary.jpg"
+            },
+            {
+                "id_libro": 5,
+                "titulo": "Mi Nombre es Emilia Del Valle",
+                "precio": 15990,
+                "autor": "Isabel Allende",
+                "imagen": "https://www.penguinlibros.com/cl/4613032/mi-nombre-es-emilia-del-valle.jpg"
+            },
+            {
+                "id_libro": 6,
+                "titulo": "El Convento",
+                "precio": 14990,
+                "autor": "Kamila González",
+                "imagen": "https://www.planetadelibros.cl/usuaris/libros/fotos/448/original/portada_el-convento__202512291934.jpg"
+            }
         ]
 }
