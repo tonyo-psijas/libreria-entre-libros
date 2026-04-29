@@ -5,7 +5,7 @@ function ProductCard({id_libro, imagen, titulo, autor, precio}) {
             <p>{autor}</p>
             <h2>{titulo}</h2>
             <p>${precio}</p>
-            <button>Agregar</button>
+            <button class='btn btn-dark'>Agregar</button>
         </div>
     )
 }

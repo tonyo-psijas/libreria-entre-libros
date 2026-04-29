@@ -1,24 +1,19 @@
 import './App.css'
 import { libros } from './mock_data/products'
-import ProductCard from './components/ProductCard'
+import ProductCard from './components/productCard'
+import { NavbarComponent } from './components/Navbar'
+import { Route, Routes } from 'react-router-dom'
+import { Home } from './views/Home'
 
 function App() {
   console.log(libros)
 
   return (
     <>
-      {
-        libros.result.map((libro) => (
-          <ProductCard
-            key={libro.id_libro}
-            imagen={libro.imagen}
-            id_libro={libro.id_libro}
-            titulo={libro.titulo}
-            autor={libro.autor}
-            precio={libro.precio}
-          />
-        ))
-      }
+      <NavbarComponent />
+        <Routes>
+          <Route path='/' element={<Home />} />
+        </Routes>
     </>
   )
 }
