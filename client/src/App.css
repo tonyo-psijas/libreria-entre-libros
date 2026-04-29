@@ -2,6 +2,35 @@ header {
   background-color: white;;
 }
 
+h1 {
+  font-family: "Playfair Display", serif;
+}
+
+.text-secondary {
+  color: #6B705C;
+  font-weight: 300;
+}
+
+.hero {
+  background-image: url("./assets/images/hero-image.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: top center;
+  min-height: 500px;
+  padding-block: 5rem;
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.hero-texts {
+  width: 50%;
+}
+
 .boton-primario {
   background-color: #4A5947;
   color: white !important;
@@ -75,4 +104,51 @@ header button {
 
 .card-price {
   color: #E37217;
+}
+
+
+@media (max-width: 1199px) {
+
+  .hero-texts {
+    width: 30%;
+  }
+
+}
+
+@media (max-width: 991px) {
+
+  .hero-texts {
+    width: 40%;
+  }
+
+  .hero {
+    background-position: 40% top;
+
+  }
+}
+
+@media (max-width: 767px) {
+
+  .hero-texts {
+    width: 50%;
+  }
+
+  .hero {
+    background-position: 40% top;
+
+  }
+}
+
+@media (max-width: 575px) {
+
+  .hero-texts {
+    width: 100%;
+  }
+
+  .hero {
+    background-image: url("./assets/images/hero-mobile.png");
+    background-position: center 70%;
+    min-height: 500px;
+    padding-block: 1rem;
+  }
 }
