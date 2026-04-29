@@ -10,6 +10,10 @@ header {
   padding-inline: 1.5rem;
 }
 
+.boton-primario i {
+  color: white;
+}
+
 .boton-primario:hover {
   background-color: #2B3528;
 }
@@ -43,6 +47,32 @@ header button {
   margin: 0;
 }
 
+.product-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .card-image {
-  max-width: 150px;
+  width: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.autor-name-card {
+  text-transform: uppercase;
+  color: #6B705C;
+  font-weight: 300;
+  font-size: medium;
+  margin-bottom: 0;
+}
+
+.card-price {
+  color: #E37217;
 }

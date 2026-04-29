@@ -1,11 +1,15 @@
 function ProductCard({id_libro, imagen, titulo, autor, precio}) {
     return (
-        <div key={id_libro}>
-            <img src={imagen} alt={titulo} class="card-image"/>
-            <p>{autor}</p>
-            <h2>{titulo}</h2>
-            <p>${precio}</p>
-            <button class='btn btn-dark'>Agregar</button>
+        <div key={id_libro} className="product-card">
+            <img src={imagen} alt={titulo} class="card-image img-fluid mb-2"/>
+            <div className="card-body">
+                <p className="autor-name-card">{autor}</p>
+                <h5 className="card-title">{titulo}</h5>
+                <p className="card-price fw-semibold fs-5">${Number(precio).toLocaleString('es-CL')}</p>
+            </div>
+            <button class='btn boton-agregar boton-primario'>
+                Agregar <i class="fa-solid fa-basket-shopping"></i>
+            </button>
         </div>
     )
 }
