@@ -177,15 +177,21 @@
 
 **Response:**
 ```json
-[
-    {
-        "id_libro": "...",
-        "titulo": "...",
-        "precio": 0.00,
-        "autor": "...",
-        "imagen": "..."
-    }
-]
+{
+    "cantidad_libros": 24,
+    "prev_page": null,
+    "next_page": "/?page=2",
+    "result":
+        [
+            {
+                "id_libro": "...",
+                "titulo": "...",
+                "precio": 0.00,
+                "autor": "...",
+                "imagen": "..."
+            }
+        ]
+}
 ```
 
 
