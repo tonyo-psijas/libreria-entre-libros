@@ -7,8 +7,8 @@ function ProductCard({id_libro, imagen, titulo, autor, precio}) {
                 <h5 className="card-title">{titulo}</h5>
                 <p className="card-price fw-semibold fs-5">${Number(precio).toLocaleString('es-CL')}</p>
             </div>
-            <button class='btn boton-agregar boton-primario'>
-                Agregar <i class="fa-solid fa-basket-shopping"></i>
+            <button className='btn boton-agregar boton-primario'>
+                Agregar <i className="fa-solid fa-basket-shopping"></i>
             </button>
         </div>
     )

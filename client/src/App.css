@@ -2,6 +2,10 @@ header {
   background-color: white;;
 }
 
+.logo {
+  max-width: 120px;
+}
+
 h1 {
   font-family: "Playfair Display", serif;
 }
@@ -51,6 +55,18 @@ h1 {
   background-color: #2B3528;
 }
 
+.boton-secundario {
+  background-color: white;
+  border: #2B3528 1px solid;
+  color: #2B3528;
+  border-radius: 50px;
+  padding-inline: 1.5rem;
+}
+
+.boton-secundario:hover {
+  background-color: #D4D9C7;
+}
+
 header .navbar-brand,
 header .nav-link,
 header .nav-item,
@@ -58,7 +74,7 @@ header button {
   color: #2B3528 !important;
 }
 
-.search-group {
+.search-group, .form-input {
   background-color: #F1F2ED;
   border: #D4D9C7 solid 0.5px;
   border-radius: 50px;
@@ -110,6 +126,40 @@ header button {
   color: #E37217;
 }
 
+.profile-navbar {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 20px;
+}
+
+.profile-link {
+  text-decoration: none;
+  color: #6B705C;
+}
+
+.active {
+  font-weight: 600;
+  color: #2B3528
+}
+
+.profile-content {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 20px;
+}
+
+.link-editar, .link-editar i {
+  text-decoration: none;
+  color: #E37217;
+  font-weight: 500;
+  font-size: medium;
+}
+
+.link-editar:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 
 @media (max-width: 1199px) {
 
@@ -155,4 +205,5 @@ header button {
     min-height: 500px;
     padding-block: 1rem;
   }
+
 }

@@ -1,6 +1,6 @@
 import React from 'react'
 import { libros } from '../mock_data/products'
-import ProductCard from '../components/ProductCard'
+import ProductCard from '../components/productCard'
 import { HeroComponent } from '../components/HeroComponent'
 
 export const Home = () => {

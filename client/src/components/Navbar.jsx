@@ -1,5 +1,6 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
+import logo from '../assets/images/entre-libros-logo.png'
 
 export const NavbarComponent = () => {
   return (
@@ -9,9 +10,9 @@ export const NavbarComponent = () => {
         <div className="container">
 
           {/* LOGO */}
-          <a className="navbar-brand" href="#">
-            Navbar
-          </a>
+          <NavLink to="/" className="navbar-brand">
+            <img className='img-fluid logo' src={logo} alt="" />
+          </NavLink>
 
           {/* SEARCHBAR (queda fuera del collapse) */}
           <div className="nav-search flex-grow-1 mx-5 d-none d-md-block">
