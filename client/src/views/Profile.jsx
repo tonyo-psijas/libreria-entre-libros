@@ -60,14 +60,7 @@ export const Profile = () => {
                         {/* Encabezado */}
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <h4 className="fw-semibold mb-0">Mi cuenta</h4>
-                            {/* {!editando && (
-                                <button
-                                    className="btn boton-primario boton-agregar"
-                                    onClick={() => setEditando(true)}
-                                >
-                                    <i className="fa-regular fa-pen-to-square"></i> Editar
-                                </button>
-                            )} */}
+                            
                         </div>
 
 

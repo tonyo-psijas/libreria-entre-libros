@@ -47,7 +47,7 @@ h1 {
   padding-inline: 1.5rem;
 }
 
-.boton-primario i {
+.boton-primario i, .boton-primario span {
   color: white;
 }
 
@@ -126,6 +126,16 @@ header button {
   color: #E37217;
 }
 
+.item-libro {
+  padding-block: 1rem;
+}
+
+.item-libro img {
+  max-width: 100px;
+  height: auto;
+  border-radius: 10px;
+}
+
 .profile-navbar {
   background-color: white;
   padding: 1rem;
@@ -139,7 +149,7 @@ header button {
 
 .active {
   font-weight: 600;
-  color: #2B3528
+  color: #2B3528;
 }
 
 .profile-content {
@@ -150,12 +160,19 @@ header button {
 
 .link-editar, .link-editar i {
   text-decoration: none;
-  color: #E37217;
+  color: rgb(35, 107, 231);
   font-weight: 500;
   font-size: medium;
 }
 
-.link-editar:hover {
+.link-eliminar, .link-eliminar i {
+  text-decoration: none;
+  color: red;
+  font-weight: 500;
+  font-size: medium;
+}
+
+.link-editar:hover, .link-eliminar:hover {
   text-decoration: underline;
   cursor: pointer;
 }
@@ -191,6 +208,7 @@ header button {
     background-position: 40% top;
 
   }
+
 }
 
 @media (max-width: 575px) {
@@ -204,6 +222,10 @@ header button {
     background-position: center 70%;
     min-height: 500px;
     padding-block: 1rem;
+  }
+
+  .boton-primario {
+    padding-inline: .5rem;
   }
 
 }
