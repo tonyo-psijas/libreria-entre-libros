@@ -7,7 +7,7 @@ const mockUsuario = {
     apellido: 'González',
     email: 'maria.gonzalez@email.com',
     telefono: '+56 9 1234 5678',
-    contraseña: '12345678'
+    password: ''
 }
 
 export const Profile = () => {
@@ -130,6 +130,35 @@ export const Profile = () => {
                                         disabled={!editando}
                                     />
                                 </div>
+
+                                {editando && (
+                                    <>
+                                        <div className="col-12 col-sm-6">
+                                            <label className="form-label">Nueva contraseña</label>
+                                            <input
+                                                type="password"
+                                                className="form-control form-input"
+                                                name="password"
+                                                value={formData.password}
+                                                onChange={handleChange}
+                                                placeholder="Ingresa una nueva contraseña"
+                                            />
+                                        </div>
+                                
+                                        <div className="col-12 col-sm-6">
+                                            <label className="form-label">Confirmar nueva contraseña</label>
+                                            <input
+                                                type="password"
+                                                className="form-control form-input"
+                                                name="confirmPassword"
+                                                value={formData.confirmPassword || ''}
+                                                onChange={handleChange}
+                                                placeholder="Confirma tu nueva contraseña"
+                                            />
+                                        </div>
+                                    </>
+                                    
+                                )}
 
                                 {!editando && (
                                     <a className='link-editar' onClick={() => setEditando(true)} >
