@@ -154,7 +154,9 @@ header button {
 
 .profile-content {
   background-color: white;
-  padding: 1.5rem;
+  padding-inline: 1.5rem;
+  padding-top: 1.5rem;
+  padding-bottom: 0.8rem;
   border-radius: 20px;
 }
 
@@ -176,7 +178,6 @@ header button {
   text-decoration: underline;
   cursor: pointer;
 }
-
 
 @media (max-width: 1199px) {
 
