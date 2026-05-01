@@ -1,3 +1,9 @@
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 header {
   background-color: white;;
 }
@@ -11,7 +17,7 @@ h1 {
 }
 
 .text-secondary {
-  color: #6B705C;
+  color: #6B705C !important;
   font-weight: 300;
 }
 
@@ -182,6 +188,39 @@ header button {
 .ver-mas, .ver-mas i {
   color: #2B3528;
   text-decoration: none;
+}
+
+footer {
+  padding-top: 2rem;
+  padding-bottom: 0.1rem;
+  background-color: #2B3528;
+}
+
+footer a,
+footer p,
+footer span,
+footer li {
+  color: white !important;
+}
+
+.rrss-footer {
+  flex-wrap: wrap;
+}
+
+.rrss-footer a, .rrss-footer i {
+  color: white;
+}
+
+.rrss-footer img {
+  max-width: 20px;
+}
+
+.logo-footer {
+  max-width: 150px;
+}
+
+.g-5, .gx-5 {
+  --bs-gutter-x: 1rem;
 }
 
 @media (max-width: 1199px) {

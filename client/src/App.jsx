@@ -8,6 +8,7 @@ import { Catalogo } from './views/Catalogo'
 import { Carrito } from './views/Carrito'
 import { Favoritos } from './views/Favoritos'
 import { Gallery } from './views/Gallery'
+import { FooterComponent } from './components/FooterComponent'
 
 function App() {
 
@@ -22,39 +23,46 @@ function App() {
   }
 
   return (
-    <>
+    <div className='app-layout'>
       <NavbarComponent user={user} />
-        <Routes>
 
-          <Route path='/' element={<Home />} />
+        <main>
 
-          <Route
-            path='/perfil'
-            element={user ? <Profile user={user} /> : <Navigate to={"/"} />}
-          />
+          <Routes>
 
-          <Route
-            path='/carrito'
-            element={user ? <Carrito /> : <Navigate to={"/"} />}
-          />
+            <Route path='/' element={<Home />} />
 
-          <Route
-            path='/favoritos'
-            element={user ? <Favoritos /> : <Navigate to={"/"} />}
-          />
+            <Route
+              path='/perfil'
+              element={user ? <Profile user={user} /> : <Navigate to={"/"} />}
+            />
 
-          <Route
-            path='/libros'
-            element={user ? <Gallery /> : <Navigate to={"/"} />}
-          />
+            <Route
+              path='/carrito'
+              element={user ? <Carrito /> : <Navigate to={"/"} />}
+            />
 
-          <Route path='/catalogo'
-          element={user && user.role === "admin" ? <Catalogo user={user} /> : <Navigate to={"/"} />} />
+            <Route
+              path='/favoritos'
+              element={user ? <Favoritos /> : <Navigate to={"/"} />}
+            />
 
-          <Route path='*' element={<h1>404 Not Found</h1>} />
+            <Route
+              path='/libros'
+              element={user ? <Gallery /> : <Navigate to={"/"} />}
+            />
 
-        </Routes>
-    </>
+            <Route path='/catalogo'
+            element={user && user.role === "admin" ? <Catalogo user={user} /> : <Navigate to={"/"} />} />
+
+            <Route path='*' element={<h1>404 Not Found</h1>} />
+
+          </Routes>
+
+        </main>
+        
+      <FooterComponent />
+    </div>
   )
 }
 

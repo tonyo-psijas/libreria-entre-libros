@@ -11,11 +11,11 @@ export const NavbarComponent = ({ user }) => {
 
           {/* LOGO */}
           <NavLink to="/" className="navbar-brand">
-            <img className='img-fluid logo' src={logo} alt="" />
+            <img className='img-fluid logo' src={logo} alt="logo-header" />
           </NavLink>
 
           {/* SEARCHBAR (queda fuera del collapse) */}
-          <div className="nav-search flex-grow-1 mx-5 d-none d-md-block">
+          <div className="nav-search flex-grow-1 px-3 d-none d-md-block">
             <form className="d-flex w-100 search-group" role="search">
               <input
                 className="form-control nav-searchbar"
