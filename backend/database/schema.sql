@@ -8,7 +8,8 @@ CREATE TABLE cliente (
   email VARCHAR(100) UNIQUE,
   password_hash TEXT,
   fecha_registro DATE DEFAULT CURRENT_DATE,
-  estado BOOLEAN DEFAULT true
+  estado BOOLEAN DEFAULT true,
+  rol VARCHAR(20) DEFAULT 'cliente'
 );
 
 CREATE TABLE editorial (
