@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { libros } from '../mock_data/products'
+import { librosMock } from '../mock_data/mockData'
 import { ProfileNavComponent } from '../components/ProfileNav'
 
 
@@ -55,7 +55,7 @@ export const Catalogo = ({ user }) => {
 
 
                         {
-                        libros.result.map((libro) => (
+                        librosMock.result.map((libro) => (
                             <>
                                 <hr className='divider'/>
                                 <div
@@ -75,11 +75,11 @@ export const Catalogo = ({ user }) => {
                                             <h5 className='fw-semibold'>{libro.titulo}</h5>
                                             <p className='mb-0'>
                                                 Autor: {" "}
-                                                <span className='fw-semibold'>{libro.autor}</span>
+                                                <span className='fw-semibold'>{libro.autores.map(autor => autor.nombre).join(", ")}</span>
                                             </p>
                                             <p className='mb-0'>
                                                 Categorías: {" "}
-                                                <span className='fw-semibold'>{libro.categorias}</span>
+                                                <span className='fw-semibold'>{libro.generos.map(genero => genero.nombre).join(", ")}</span>
                                             </p>
                                             <p className='mb'>
                                                 Stock: {" "}

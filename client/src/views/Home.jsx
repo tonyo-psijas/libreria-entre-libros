@@ -1,12 +1,12 @@
 import React from 'react'
-import { libros } from '../mock_data/products'
+import { librosMock } from '../mock_data/mockData'
 import ProductCard from '../components/productCard'
 import { HeroComponent } from '../components/HeroComponent'
 import { Link } from 'react-router-dom'
 
 export const Home = () => {
     // Ordena por los más recientes primero y toma solo 6
-    const ultimosLibros = [...libros.result]
+    const ultimosLibros = [...librosMock.result]
         .sort((a, b) => b.id_libro - a.id_libro)
         .slice(0, 6)
 
@@ -38,7 +38,7 @@ export const Home = () => {
                                 imagen={libro.imagen}
                                 id_libro={libro.id_libro}
                                 titulo={libro.titulo}
-                                autor={libro.autor}
+                                autor={libro.autores.map(autor => autor.nombre).join(", ")}
                                 precio={libro.precio}
                             />
                         </div>

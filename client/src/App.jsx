@@ -1,5 +1,5 @@
 import './App.css'
-import { libros } from './mock_data/products'
+
 import { NavbarComponent } from './components/Navbar'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { Home } from './views/Home'
@@ -10,7 +10,6 @@ import { Favoritos } from './views/Favoritos'
 import { Gallery } from './views/Gallery'
 
 function App() {
-  console.log(libros)
 
   const user = {
     id: 1,

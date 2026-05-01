@@ -104,7 +104,7 @@ header button {
 
 .card-image {
   width: 100%;
-  object-fit: contain;
+  object-fit: cover;
   border-radius: 10px;
 }
 
@@ -190,6 +190,7 @@ header button {
     width: 30%;
   }
 
+
 }
 
 @media (max-width: 991px) {
@@ -202,6 +203,7 @@ header button {
     background-position: 40% top;
 
   }
+
 }
 
 @media (max-width: 767px) {
@@ -212,8 +214,8 @@ header button {
 
   .hero {
     background-position: 40% top;
-
   }
+
 
 }
 

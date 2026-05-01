@@ -1,4 +1,19 @@
+import { useCart } from '../context/CartContext'
+
 function ProductCard({id_libro, imagen, titulo, autor, precio}) {
+
+    const { agregarAlCarrito } = useCart()
+
+    const handleAgregar = () => {
+        agregarAlCarrito({
+            id_libro,
+            imagen,
+            titulo,
+            autor,
+            precio,
+        })
+    }
+
     return (
         <div key={id_libro} className="product-card">
             <img src={imagen} alt={titulo} class="card-image img-fluid mb-2"/>
@@ -7,7 +22,10 @@ function ProductCard({id_libro, imagen, titulo, autor, precio}) {
                 <h5 className="card-title">{titulo}</h5>
                 <p className="card-price fw-semibold fs-5">${Number(precio).toLocaleString('es-CL')}</p>
             </div>
-            <button className='btn boton-agregar boton-primario'>
+            <button
+                className='btn boton-agregar boton-primario'
+                onClick={handleAgregar}
+            >
                 Agregar <i className="fa-solid fa-basket-shopping"></i>
             </button>
         </div>
