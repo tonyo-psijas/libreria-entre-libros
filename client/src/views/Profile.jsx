@@ -1,18 +1,17 @@
 import React, { useState } from 'react'
 import { ProfileNavComponent } from '../components/ProfileNav'
 
-// Datos mock del usuario — después vendrán del backend/AuthContext
-const mockUsuario = {
-    nombre: 'María',
-    apellido: 'González',
-    email: 'maria.gonzalez@email.com',
-    telefono: '+56 9 1234 5678',
-    password: ''
-}
 
-export const Profile = () => {
+export const Profile = ({ user }) => {
     // useState para manejar los datos del formulario
-    const [formData, setFormData] = useState(mockUsuario)
+    const [formData, setFormData] = useState({
+        nombre: user?.nombre || '',
+        apellido: user?.apellido || '',
+        email: user?.email || '',
+        telefono: user?.telefono || '',
+        password: '',
+        confirmPassword: ''
+    })
 
     // useState para controlar si el formulario está en modo edición
     const [editando, setEditando] = useState(false)
@@ -38,7 +37,15 @@ export const Profile = () => {
     }
 
     const handleCancelar = () => {
-        setFormData(mockUsuario) // revertir cambios
+        setFormData({
+            nombre: user?.nombre || '',
+            apellido: user?.apellido || '',
+            email: user?.email || '',
+            telefono: user?.telefono || '',
+            password: '',
+            confirmPassword: ''
+        })
+    
         setEditando(false)
     }
 
@@ -50,7 +57,7 @@ export const Profile = () => {
                 <div className="col-12 col-md-3">
 
                     {/* Navegación del perfil */}
-                    <ProfileNavComponent />
+                    <ProfileNavComponent user={user} />
                 </div>
 
                 {/* CONTENIDO PRINCIPAL */}
@@ -201,7 +208,7 @@ export const Profile = () => {
                             </div>
                             <br />
 
-                            <button className='btn boton-primario mt-3'>
+                            <button className='btn boton-primario mt-3 mb-2'>
                                     Cerrar sesión
                             </button>
                         </form>

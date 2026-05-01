@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { libros } from '../mock_data/products'
 import { ProfileNavComponent } from '../components/ProfileNav'
 
-export const Catalogo = () => {
+
+export const Catalogo = ({ user }) => {
 
     return (
         <div className='container py-5'>
@@ -12,7 +13,7 @@ export const Catalogo = () => {
                 <div className="col-12 col-md-3">
 
                     {/* Navegación del perfil */}
-                    <ProfileNavComponent />
+                    <ProfileNavComponent user={user}/>
                 </div>
 
                 {/* CONTENIDO PRINCIPAL */}

@@ -179,6 +179,11 @@ header button {
   cursor: pointer;
 }
 
+.ver-mas, .ver-mas i {
+  color: #2B3528;
+  text-decoration: none;
+}
+
 @media (max-width: 1199px) {
 
   .hero-texts {

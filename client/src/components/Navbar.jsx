@@ -2,7 +2,7 @@ import React from 'react'
 import { NavLink } from 'react-router-dom'
 import logo from '../assets/images/entre-libros-logo.png'
 
-export const NavbarComponent = () => {
+export const NavbarComponent = ({ user }) => {
   return (
     <header>
       {/* NAVBAR SUPERIOR */}
@@ -48,17 +48,47 @@ export const NavbarComponent = () => {
 
           {/* LOGIN / REGISTER DESKTOP */}
           <ul className="navbar-nav d-none d-md-flex flex-row align-items-center gap-3">
-            <li className="nav-item">
-              <NavLink to="/login" className="nav-link">
-                INGRESAR
-              </NavLink>
-            </li>
+            {!user ? (
+              <>
+                <li className="nav-item">
+                  <NavLink to="/login" className="nav-link">
+                    INGRESAR
+                  </NavLink>
+                </li>
 
-            <li className="nav-item">
-              <NavLink to="/register" className="nav-link">
-                CREAR CUENTA
-              </NavLink>
-            </li>
+                <li className="nav-item">
+                  <NavLink to="/register" className="nav-link">
+                    CREAR CUENTA
+                  </NavLink>
+                </li>
+              </>
+
+              ) : (
+              <>
+                <li className="nav-item">
+                  <NavLink to="/perfil" className="nav-link boton-micuenta">
+                    MI CUENTA <i className="fa-light fa-user fs-5"></i>
+                  </NavLink>
+                </li>
+
+                <ul className='d-flex list-unstyled'>
+                  <li className="nav-item">
+                    <NavLink to="/favoritos" className="nav-link boton-favoritos">
+                      <i className="fa-sharp fa-light fa-heart fs-5"></i>
+                    </NavLink>
+                  </li>
+
+                  <li className="nav-item">
+                    <NavLink to="/carrito" className="nav-link boton-carrito">
+                      <i className="fa-light fa-basket-shopping fs-5"></i>
+                    </NavLink>
+                  </li>
+
+                </ul>
+
+                
+              </>
+            )}
           </ul>
         </div>
       </nav>
@@ -134,20 +164,45 @@ export const NavbarComponent = () => {
             </form>
           </div>
 
-          {/* LOGIN / REGISTER */}
+          {/* LOGIN / REGISTER MOBILE */}
           <ul className="navbar-nav mb-3">
-            <li className="nav-item">
-              <NavLink to="/login" className="nav-link">
-                INGRESAR
-              </NavLink>
-            </li>
+            {!user ? (
+              <>
+                <li className="nav-item">
+                  <NavLink to="/login" className="nav-link">
+                    INGRESAR
+                  </NavLink>
+                </li>
 
-            <li className="nav-item">
-              <NavLink to="/register" className="nav-link">
-                CREAR CUENTA
-              </NavLink>
-            </li>
+                <li className="nav-item">
+                  <NavLink to="/register" className="nav-link">
+                    CREAR CUENTA
+                  </NavLink>
+                </li>
+              </>
+            ) : (
+              <>
+                <li className="nav-item">
+                  <NavLink to="/perfil" className="nav-link boton-micuenta">
+                    MI CUENTA <i className="fa-light fa-user fs-5"></i>
+                  </NavLink>
+                </li>
+
+                <li className="nav-item">
+                  <NavLink to="/favoritos" className="nav-link boton-favoritos">
+                    FAVORITOS <i className="fa-sharp fa-light fa-heart fs-5"></i>
+                  </NavLink>
+                </li>
+
+                <li className="nav-item">
+                  <NavLink to="/carrito" className="nav-link boton-carrito">
+                    CARRITO <i className="fa-light fa-basket-shopping fs-5"></i>
+                  </NavLink>
+                </li>
+              </>
+            )}
           </ul>
+          
 
           <hr className='divider'/>
 
