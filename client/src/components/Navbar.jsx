@@ -1,6 +1,6 @@
-import React from 'react'
-import { NavLink } from 'react-router-dom'
-import logo from '../assets/images/entre-libros-logo.png'
+import React from "react";
+import { NavLink } from "react-router-dom";
+import logo from "../assets/images/entre-libros-logo.png";
 
 export const NavbarComponent = ({ user }) => {
   return (
@@ -8,10 +8,9 @@ export const NavbarComponent = ({ user }) => {
       {/* NAVBAR SUPERIOR */}
       <nav className="navbar navbar-expand-md navbar-superior">
         <div className="container">
-
           {/* LOGO */}
           <NavLink to="/" className="navbar-brand">
-            <img className='img-fluid logo' src={logo} alt="logo-header" />
+            <img className="img-fluid logo" src={logo} alt="logo-header" />
           </NavLink>
 
           {/* SEARCHBAR (queda fuera del collapse) */}
@@ -57,13 +56,12 @@ export const NavbarComponent = ({ user }) => {
                 </li>
 
                 <li className="nav-item">
-                  <NavLink to="/register" className="nav-link">
+                  <NavLink to="/registro" className="nav-link">
                     CREAR CUENTA
                   </NavLink>
                 </li>
               </>
-
-              ) : (
+            ) : (
               <>
                 <li className="nav-item">
                   <NavLink to="/perfil" className="nav-link boton-micuenta">
@@ -71,9 +69,12 @@ export const NavbarComponent = ({ user }) => {
                   </NavLink>
                 </li>
 
-                <ul className='d-flex list-unstyled'>
+                <ul className="d-flex list-unstyled">
                   <li className="nav-item">
-                    <NavLink to="/favoritos" className="nav-link boton-favoritos">
+                    <NavLink
+                      to="/favoritos"
+                      className="nav-link boton-favoritos"
+                    >
                       <i className="fa-sharp fa-light fa-heart fs-5"></i>
                     </NavLink>
                   </li>
@@ -83,10 +84,7 @@ export const NavbarComponent = ({ user }) => {
                       <i className="fa-light fa-basket-shopping fs-5"></i>
                     </NavLink>
                   </li>
-
                 </ul>
-
-                
               </>
             )}
           </ul>
@@ -139,12 +137,8 @@ export const NavbarComponent = ({ user }) => {
       </nav>
 
       {/* COLLAPSE MOBILE */}
-      <div
-        className="collapse navbar-collapse d-md-none"
-        id="mobileNavbar"
-      >
+      <div className="collapse navbar-collapse d-md-none" id="mobileNavbar">
         <div className="container">
-
           {/* SEARCHBAR MOBILE */}
           <div className="nav-search my-3">
             <form className="d-flex w-100 search-group" role="search">
@@ -190,7 +184,8 @@ export const NavbarComponent = ({ user }) => {
 
                 <li className="nav-item">
                   <NavLink to="/favoritos" className="nav-link boton-favoritos">
-                    FAVORITOS <i className="fa-sharp fa-light fa-heart fs-5"></i>
+                    FAVORITOS{" "}
+                    <i className="fa-sharp fa-light fa-heart fs-5"></i>
                   </NavLink>
                 </li>
 
@@ -202,9 +197,8 @@ export const NavbarComponent = ({ user }) => {
               </>
             )}
           </ul>
-          
 
-          <hr className='divider'/>
+          <hr className="divider" />
 
           {/* NAVLINKS INFERIORES */}
           <ul className="navbar-nav pb-3">
@@ -244,9 +238,8 @@ export const NavbarComponent = ({ user }) => {
               </NavLink>
             </li>
           </ul>
-
         </div>
       </div>
     </header>
-  )
-}
+  );
+};
