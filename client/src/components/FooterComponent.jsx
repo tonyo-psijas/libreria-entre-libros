@@ -8,7 +8,7 @@ import iconoTwitter from '../assets/images/icono-x.png'
 
 export const FooterComponent = () => {
   return (
-    <footer>
+    <footer className='mt-5'>
       <div className="container">
 
         <div className="row g-5 g-sm-4">
@@ -104,7 +104,7 @@ export const FooterComponent = () => {
         <br />
         <hr className='divider'/>
         <p className='text-center text-secondary fw-light mt-2'>Todos los derechos reservados © 2026</p>
-        
+
       </div>
   
     </footer>

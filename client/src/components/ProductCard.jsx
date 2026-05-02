@@ -1,6 +1,6 @@
 import { useCart } from '../context/CartContext'
 
-function ProductCard({id_libro, imagen, titulo, autor, precio}) {
+function ProductCard({id_libro, imagen, titulo, autor, precio, descuento = false, precio_original = null}) {
 
     const { agregarAlCarrito } = useCart()
 
@@ -20,7 +20,23 @@ function ProductCard({id_libro, imagen, titulo, autor, precio}) {
             <div className="card-body">
                 <p className="autor-name-card">{autor}</p>
                 <h5 className="card-title">{titulo}</h5>
-                <p className="card-price fw-semibold fs-5">${Number(precio).toLocaleString('es-CL')}</p>
+
+                {descuento ? (
+                    <div className="d-flex align-items-center gap-2 mb-3">
+                        <p className="precio-original mb-0">
+                            ${Number(precio_original).toLocaleString('es-CL')}
+                        </p>
+
+                        <p className="card-price fw-semibold fs-5 mb-0">
+                            ${Number(precio).toLocaleString('es-CL')}
+                        </p>
+                    </div>
+                ) : (
+                    <p className="card-price fw-semibold fs-5">
+                        ${Number(precio).toLocaleString('es-CL')}
+                    </p>
+                )}
+
             </div>
             <button
                 className='btn boton-agregar boton-primario'

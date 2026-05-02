@@ -112,6 +112,7 @@ header button {
   width: 100%;
   object-fit: cover;
   border-radius: 10px;
+  height: 300px;
 }
 
 .card-body {
@@ -130,6 +131,20 @@ header button {
 
 .card-price {
   color: #E37217;
+}
+
+.precio-original {
+  text-decoration: line-through;
+  color: #6B705C;
+  font-weight: 300;
+  font-size: 0.95rem;
+}
+
+.img-descuento {
+  min-width: 100%;
+  max-height: 450px;
+  object-fit: cover;
+  border-radius: 20px;
 }
 
 .item-libro {
@@ -223,10 +238,30 @@ footer li {
   --bs-gutter-x: 1rem;
 }
 
+.page-link {
+  color: #4A5947;
+}
+
+.active>.page-link, .page-link.active {
+  background-color: #4A5947;
+  border-color: #4A5947;
+}
+
+@media (max-width: 1399px) {
+
+  .card-image {
+    height: 270px;
+  }
+}
+
 @media (max-width: 1199px) {
 
   .hero-texts {
     width: 30%;
+  }
+
+  .card-image {
+    height: 210px;
   }
 
 
@@ -240,7 +275,10 @@ footer li {
 
   .hero {
     background-position: 40% top;
+  }
 
+  .card-image {
+    height: 330px;
   }
 
 }
@@ -255,6 +293,9 @@ footer li {
     background-position: 40% top;
   }
 
+  .card-image {
+    height: 250px;
+  }
 
 }
 
@@ -275,4 +316,15 @@ footer li {
     padding-inline: .5rem;
   }
 
+  .card-image {
+    height: auto;
+  }
+
+}
+
+@media (max-width: 455px) {
+
+  .img-descuento {
+    max-height: 350px;
+  }
 }

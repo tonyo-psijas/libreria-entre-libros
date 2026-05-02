@@ -81,6 +81,7 @@ export const authMock = {
         precio: 19990,
         stock: 12,
         editorial: "Debolsillo",
+        descuento: false,
         autores: [
           {
             id_autor: 1,
@@ -107,6 +108,7 @@ export const authMock = {
         precio: 14990,
         stock: 8,
         editorial: "Debolsillo",
+        descuento: false,
         autores: [
           {
             id_autor: 2,
@@ -133,6 +135,7 @@ export const authMock = {
         precio: 9990,
         stock: 20,
         editorial: "Planeta",
+        descuento: false,
         autores: [
           {
             id_autor: 3,
@@ -158,7 +161,8 @@ export const authMock = {
         descripcion: "El libro que definió la ciencia ficción moderna, adaptada al cine por Denis Villeneuve. En el desértico planeta Arrakis, el agua es el bien más preciado y llorar a los muertos, el símbolo de máxima prodigalidad. Pero algo hace de Arrakis una pieza estratégica para los intereses del Emperador, las Grandes Casas y la Cofradía, los tres grandes poderes de la galaxia. Arrakis es el único origen conocido de la melange, preciosa especia y uno de los bienes más codiciados del universo.",
         precio: 24000,
         stock: 24,
-        editorial: "Planeta",
+        editorial: "Debolsillo",
+        descuento: false,
         autores: [
             {
                 id_autor: 4,
@@ -181,6 +185,7 @@ export const authMock = {
         precio: 20000,
         stock: 19,
         editorial: "Nova",
+        descuento: false,
         autores: [
           {
             id_autor: 8,
@@ -202,7 +207,8 @@ export const authMock = {
         descripcion: "San Francisco, 1866: una monja irlandesa, embarazada y abandonada por un aristócrata chileno tras una apasionada relación, da a luz a una niña a la que llama Emilia del Valle. Criada por su cariñoso padrastro, Emilia se convertirá en una joven brillante de gran personalidad, autónoma e independiente, que desafiará las normas sociales de su tiempo para profesar su verdadera pasión y vocación: la escritura.",
         precio: 15990,
         stock: 22,
-        editorial: "Nova",
+        editorial: "Plaza & Janés",
+        descuento: false,
         autores: [
           {
             id_autor: 6,
@@ -218,7 +224,108 @@ export const authMock = {
         imagen: "https://www.penguinlibros.com/cl/4613032/mi-nombre-es-emilia-del-valle.jpg"
       },
 
-    ],
+      {
+        id_libro: 7,
+        titulo: "El Resplandor",
+        descripcion: "Danny tenía cinco años, y a esa edad poco niños saben que los espejos invierten las imágenes y menos aún saben diferenciar entre realidad y fantasía. Pero Danny tenía pruebas de que sus fantasías relacionadas con el resplandor del espejo acabarían cumpliéndose: REDRUM... MURDER, asesinato.",
+        precio: 21000,
+        stock: 26,
+        editorial: "Debolsillo",
+        descuento: true,
+        autores: [
+          {
+            id_autor: 5,
+            nombre: "Stephen King"
+          }
+        ],
+        generos: [
+            {
+                id_genero: 5,
+                nombre: "Terror"
+            }
+        ],
+        imagen: "https://www.tiposinfames.com/media/img/portadas/9788490328729.jpg"
+      },
+
+      {
+        id_libro: 8,
+        titulo: "El Viejo y el Mar",
+        descripcion: "Una de las historias más grandes jamás contadas. El viejo y el mar es uno de los relatos más bellos que jamás se han escrito. En la cúspide de su maestría, Hemingway alumbró una historia en cuya sencillez vibra una inagotable emoción: en Cuba, un viejo pescador, ya en el crepúsculo de su vida, pobre y sin suerte, cansado de regresar cada día sin pesca, emprende una última y arriesgada travesía. Cuando al fin logre dar con una gran pieza, tendrá que luchar contra ella denodadamente. Y el regreso a puerto, con el acoso de los elementos y los tiburones, se convierte en una última prueba.",
+        precio: 13800,
+        stock: 31,
+        editorial: "Debolsillo",
+        descuento: true,
+        autores: [
+          {
+                id_autor: 11,
+                nombre: "Ernest Hemingway"
+          }
+        ],
+        generos: [
+            {
+                id_genero: 8,
+                nombre: "Clásicos Universales"
+            }
+        ],
+        imagen: "https://www.penguinlibros.com/cl/55133/viejo-y-el-mar-el.jpg"
+      },
+
+      {
+        id_libro: 9,
+        titulo: "Cuentos de Terror",
+        descripcion: "Edgar Allan Poe dejó un legado literario que se convertiría en un punto de referencia constante para todas las artes y que aflora en autores tan variados como Baudelaire, Dostoievski, Cortázar o Stephen King. Este volumen incluye dieciséis de sus mejores relatos; títulos como «La caída de la Casa Usher», «Los crímenes de la calle Morgue» o «La carta robada» son considerados piezas maestras de la literatura universal.",
+        precio: 18000,
+        stock: 31,
+        editorial: "Planeta",
+        descuento: true,
+        autores: [
+          {
+                id_autor: 13,
+                nombre: "Edgar Allan Poe"
+          }
+        ],
+        generos: [
+            {
+                id_genero: 5,
+                nombre: "Terror"
+            },
+            {
+                id_genero: 8,
+                nombre: "Clásicos Universales"
+            }
+        ],
+        imagen: "https://www.planetadelibros.cl/usuaris/libros/fotos/429/original/428384_portada___202510281802.jpg"
+      },
+
+      {
+        id_libro: 10,
+        titulo: "El Extranjero",
+        descripcion: "Publicada originalmente en 1942, El extranjero es la primera novela de Albert Camus y una de sus obras más emblemáticas. Ahora con nueva traducción al español de María Teresa Gallego Urrutia y Amaya García Gallego, este libro capital para la cultura del siglo XX transcurre en Argelia y narra la anodina vida de Meursault, un joven oficinista que vive en perpetua apatía. Cuando recibe la noticia del fallecimiento de su madre, la encaja con la mayor impasibilidad. Obligado a abandonar la capital y viajar para asistir al funeral, Meursault desea que la ceremonia sea breve para regresar a su casa. Esa indiferencia existencial marca sus días, avanzando sin reaccionar a la muerte de su madre, al afecto de su amada y ni tan siquiera a un crimen que cometerá con idéntica desidia, incapaz de ver el alcance moral de sus actos.",
+        precio: 12500,
+        stock: 19,
+        editorial: "Penguin Random House",
+        descuento: true,
+        autores: [
+            {
+                id_autor: 12,
+                nombre: "Albert Camus"
+            },
+        ],
+        generos: [
+            {
+                id_genero: 8,
+                nombre: "Clásicos Universales"
+            }
+        ],
+        imagen: "https://www.penguinlibros.com/cl/1780237/el-extranjero.jpg"
+      },
+
+    ].map(libro => ({
+        ...libro,
+        precio_original: libro.precio,
+        precio: libro.descuento ? libro.precio / 2 : libro.precio
+      })),
+
     message: "Libro creado"
   };
   
@@ -263,6 +370,18 @@ export const authMock = {
       {
         id_autor: 10,
         nombre: "Cormac McCarthy"
+      },
+      {
+        id_autor: 11,
+        nombre: "Ernest Hemingway"
+      },
+      {
+        id_autor: 12,
+        nombre: "Albert Camus"
+      },
+      {
+        id_autor: 13,
+        nombre: "Edgar Allan Poe"
       }
     ]
   };
