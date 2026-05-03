@@ -65,7 +65,7 @@ export const DetalleLibro = () => {
     <div className="container mt-5">
       <div className="book-detail-content">
         <div className="row">
-          <div className="col-12 col-md-4 col-lg-3 mb-4">
+          <div className="col-12 col-md-4 col-lg-3 mb-3">
             <img
               src={libro.imagen}
               alt={libro.titulo}

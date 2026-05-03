@@ -185,6 +185,10 @@ header button {
   border-radius: 20px;
 }
 
+.profile-navbar .form-select {
+  border: white;
+}
+
 .profile-link {
   text-decoration: none;
   color: #6b705c;

@@ -1,95 +1,60 @@
 import React from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 
 export const ProfileNavComponent = ({ user }) => {
+    const navigate = useNavigate()
+    const location = useLocation()
+
+    // Links base para todos los usuarios
+    const links = [
+        { to: '/perfil', label: 'Mi perfil' },
+        { to: '/favoritos', label: 'Favoritos' },
+        { to: '/historial-compras', label: 'Historial de compras' },
+    ]
+
+    // Links solo para admin
+    const linksAdmin = [
+        { to: '/historial-ventas', label: 'Historial de ventas' },
+        { to: '/catalogo', label: 'Catálogo' },
+        { to: '/gestion-de-usuarios', label: 'Gestión de usuarios' },
+    ]
+
+    const todosLosLinks = user?.role === 'admin'
+        ? [...links, ...linksAdmin]
+        : links
+
     return (
         <div className='profile-navbar'>
-            <ul className="nav flex-column gap-3">
 
-                <li className="nav-item">
-                    <NavLink
-                        to="/perfil"
-                        className={({ isActive }) =>
-                            isActive
-                                ? 'profile-link active'
-                                : 'profile-link'
-                        }
-                    >
-                        Mi perfil
-                    </NavLink>
-                </li>
+            {/* DESPLEGABLE — solo visible en mobile (< 768px) */}
+            <select
+                className="form-select d-md-none"
+                value={location.pathname}
+                onChange={(e) => navigate(e.target.value)}
+            >
+                {todosLosLinks.map(link => (
+                    <option key={link.to} value={link.to}>
+                        {link.label}
+                    </option>
+                ))}
+            </select>
 
-                <li className="nav-item">
-                    <NavLink
-                        to="/favoritos"
-                        className={({ isActive }) =>
-                            isActive
-                                ? 'profile-link active'
-                                : 'profile-link'
-                        }
-                    >
-                        Favoritos
-                    </NavLink>
-                </li>
-
-                <li className="nav-item">
-                    <NavLink
-                        to="/historial-compras"
-                        className={({ isActive }) =>
-                            isActive
-                                ? 'profile-link active'
-                                : 'profile-link'
-                        }
-                    >
-                        Historial de compras
-                    </NavLink>
-                </li>
-
-                {/* SOLO ADMIN */}
-                {user?.role === "admin" && (
-                    <>
-                        <li className="nav-item">
-                            <NavLink
-                                to="/historial-ventas"
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? 'profile-link active'
-                                        : 'profile-link'
-                                }
-                            >
-                                Historial de ventas
-                            </NavLink>
-                        </li>
-
-                        <li className="nav-item">
-                            <NavLink
-                                to="/catalogo"
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? 'profile-link active'
-                                        : 'profile-link'
-                                }
-                            >
-                                Catálogo
-                            </NavLink>
-                        </li>
-
-                        <li className="nav-item">
-                            <NavLink
-                                to="/gestion-de-usuarios"
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? 'profile-link active'
-                                        : 'profile-link'
-                                }
-                            >
-                                Gestión de usuarios
-                            </NavLink>
-                        </li>
-                    </>
-                )}
-
+            {/* MENÚ VERTICAL — solo visible en desktop (>= 768px) */}
+            <ul className="nav flex-column gap-3 d-none d-md-flex">
+                {todosLosLinks.map(link => (
+                    <li key={link.to} className="nav-item">
+                        <NavLink
+                            to={link.to}
+                            className={({ isActive }) =>
+                                isActive ? 'profile-link active' : 'profile-link'
+                            }
+                        >
+                            {link.label}
+                        </NavLink>
+                    </li>
+                ))}
             </ul>
+
         </div>
     )
 }
