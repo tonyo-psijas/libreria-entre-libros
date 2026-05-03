@@ -23,7 +23,7 @@ export const Login = () => {
     <div className="container py-5">
       <div className="row justify-content-center">
         <div className="col-12 col-md-6 col-lg-5">
-          <div className="card shadow-sm border-0 p-4">
+          <div className="card shadow-sm border-0 p-4 login-register">
             <h2 className="text-center fw-semibold mb-4">Iniciar sesión</h2>
 
             {error && (
@@ -39,7 +39,7 @@ export const Login = () => {
                 </label>
                 <input
                   type="email"
-                  className="form-control"
+                  className="form-control form-input fw-light"
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -54,11 +54,11 @@ export const Login = () => {
                 </label>
                 <input
                   type="password"
-                  className="form-control"
+                  className="form-control form-input fw-light"
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Ingrese su contraseña"
                   required
                 />
               </div>

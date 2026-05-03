@@ -58,7 +58,7 @@ export const Registro = () => {
     <div className="container py-5">
       <div className="row justify-content-center">
         <div className="col-12 col-md-8 col-lg-6">
-          <div className="card shadow-sm border-0 p-4">
+          <div className="card shadow-sm border-0 p-4 login-register">
             <h2 className="text-center fw-semibold mb-4">Crear cuenta</h2>
 
             {error && (
@@ -75,7 +75,7 @@ export const Registro = () => {
                   </label>
                   <input
                     type="text"
-                    className="form-control"
+                    className="form-control form-input"
                     id="nombre"
                     name="nombre"
                     value={formData.nombre}
@@ -90,7 +90,7 @@ export const Registro = () => {
                   </label>
                   <input
                     type="text"
-                    className="form-control"
+                    className="form-control form-input"
                     id="apellido"
                     name="apellido"
                     value={formData.apellido}
@@ -106,7 +106,7 @@ export const Registro = () => {
                 </label>
                 <input
                   type="email"
-                  className="form-control"
+                  className="form-control form-input"
                   id="email"
                   name="email"
                   value={formData.email}
@@ -121,7 +121,7 @@ export const Registro = () => {
                 </label>
                 <input
                   type="tel"
-                  className="form-control"
+                  className="form-control form-input"
                   id="telefono"
                   name="telefono"
                   value={formData.telefono}
@@ -136,7 +136,7 @@ export const Registro = () => {
                 </label>
                 <input
                   type="password"
-                  className="form-control"
+                  className="form-control form-input"
                   id="password"
                   name="password"
                   value={formData.password}
@@ -151,7 +151,7 @@ export const Registro = () => {
                 </label>
                 <input
                   type="password"
-                  className="form-control"
+                  className="form-control form-input"
                   id="confirmPassword"
                   name="confirmPassword"
                   value={formData.confirmPassword}

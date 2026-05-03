@@ -80,8 +80,14 @@ header button {
   color: #2B3528 !important;
 }
 
-.search-group, .form-input {
+.search-group {
   background-color: #F1F2ED;
+  border: #D4D9C7 solid 0.5px;
+  border-radius: 50px;
+}
+
+.form-input {
+  background-color: #f8f9f5;
   border: #D4D9C7 solid 0.5px;
   border-radius: 50px;
 }
@@ -103,6 +109,14 @@ header button {
 }
 
 .product-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.product-card-link {
+  text-decoration: none;
+  color: inherit;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -173,7 +187,11 @@ header button {
   color: #2B3528;
 }
 
-.profile-content {
+.login-register {
+  border-radius: 20px;
+}
+
+.profile-content, .book-detail-content {
   background-color: white;
   padding-inline: 1.5rem;
   padding-top: 1.5rem;
