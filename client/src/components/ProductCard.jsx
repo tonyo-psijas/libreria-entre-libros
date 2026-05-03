@@ -1,56 +1,102 @@
-import { useCart } from '../context/CartContext'
-import { Link } from 'react-router-dom'
+import { useCart } from "../context/CartContext";
+import { Link } from "react-router-dom";
+import { useFavorites } from "../context/FavoritesContext";
 
-function ProductCard({id_libro, imagen, titulo, autor, precio, descuento = false, precio_original = null}) {
+function ProductCard({
+  id_libro,
+  imagen,
+  titulo,
+  autor,
+  precio,
+  descuento = false,
+  precio_original = null,
+}) {
+  const { agregarAlCarrito } = useCart();
+  const { esFavorito, toggleFavorito } = useFavorites();
 
-    const { agregarAlCarrito } = useCart()
+  const handleAgregar = (e) => {
+    e.preventDefault(); // 👈 Evita que navegue al Link
+    e.stopPropagation(); // 👈 Detiene la propagación del evento
+    agregarAlCarrito({
+      id_libro,
 
-    const handleAgregar = () => {
-        agregarAlCarrito({
-            id_libro,
-            imagen,
-            titulo,
-            autor,
-            precio,
-        })
-    }
+      imagen,
+      titulo,
+      autor,
+      precio,
+    });
+  };
 
-    return (
+  const handleToggleFavorito = (e) => {
+    e.preventDefault(); // 👈 Evita que navegue al Link
+    e.stopPropagation(); // 👈 Detiene la propagación del evento
+    const libro = { id_libro, imagen, titulo, autor, precio };
+    toggleFavorito(libro);
+  };
 
-        <Link to={`/libro/${id_libro}`} className='product-card-link'>
-            <div key={id_libro} className="product-card">
-                <img src={imagen} alt={titulo} class="card-image img-fluid mb-2"/>
-                <div className="card-body">
-                    <p className="autor-name-card">{autor}</p>
-                    <h5 className="card-title">{titulo}</h5>
+  return (
+    <div className="product-card-wrapper position-relative">
+      <button
+        onClick={handleToggleFavorito}
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "10px",
+          background: "white",
+          border: "none",
+          borderRadius: "50%",
+          width: "32px",
+          height: "32px",
+          cursor: "pointer",
+          zIndex: 10,
+          boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <i
+          className={`fa-heart ${esFavorito(id_libro) ? "fa-solid" : "fa-regular"}`}
+          style={{
+            color: esFavorito(id_libro) ? "#dc3545" : "#888",
+            fontSize: "18px",
+          }}
+        ></i>
+      </button>
 
-                    {descuento ? (
-                        <div className="d-flex align-items-center gap-2 mb-3">
-                            <p className="precio-original mb-0">
-                                ${Number(precio_original).toLocaleString('es-CL')}
-                            </p>
+      <Link to={`/libro/${id_libro}`} className="product-card-link">
+        <div key={id_libro} className="product-card">
+          <img src={imagen} alt={titulo} class="card-image img-fluid mb-2" />
+          <div className="card-body">
+            <p className="autor-name-card">{autor}</p>
+            <h5 className="card-title">{titulo}</h5>
 
-                            <p className="card-price fw-semibold fs-5 mb-0">
-                                ${Number(precio).toLocaleString('es-CL')}
-                            </p>
-                        </div>
-                    ) : (
-                        <p className="card-price fw-semibold fs-5">
-                            ${Number(precio).toLocaleString('es-CL')}
-                        </p>
-                    )}
+            {descuento ? (
+              <div className="d-flex align-items-center gap-2 mb-3">
+                <p className="precio-original mb-0">
+                  ${Number(precio_original).toLocaleString("es-CL")}
+                </p>
 
-                </div>
-                <button
-                    className='btn boton-agregar boton-primario'
-                    onClick={handleAgregar}
-                >
-                    Agregar <i className="fa-solid fa-basket-shopping"></i>
-                </button>
-            </div>
-        </Link>
-        
-    )
+                <p className="card-price fw-semibold fs-5 mb-0">
+                  ${Number(precio).toLocaleString("es-CL")}
+                </p>
+              </div>
+            ) : (
+              <p className="card-price fw-semibold fs-5">
+                ${Number(precio).toLocaleString("es-CL")}
+              </p>
+            )}
+          </div>
+          <button
+            className="btn boton-agregar boton-primario"
+            onClick={handleAgregar}
+          >
+            Agregar <i className="fa-solid fa-basket-shopping"></i>
+          </button>
+        </div>
+      </Link>
+    </div>
+  );
 }
 
 export default ProductCard;

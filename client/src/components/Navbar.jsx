@@ -1,8 +1,13 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import logo from "../assets/images/entre-libros-logo.png";
+import { useFavorites } from "../context/FavoritesContext";
+import { useCart } from "../context/CartContext";
 
 export const NavbarComponent = ({ user }) => {
+  const { totalFavoritos } = useFavorites();
+  const { totalItems } = useCart();
+
   return (
     <header>
       {/* NAVBAR SUPERIOR */}
@@ -73,15 +78,27 @@ export const NavbarComponent = ({ user }) => {
                   <li className="nav-item">
                     <NavLink
                       to="/favoritos"
-                      className="nav-link boton-favoritos"
+                      className="nav-link boton-favoritos position-relative"
                     >
                       <i className="fa-sharp fa-light fa-heart fs-5"></i>
+                      {totalFavoritos > 0 && (
+                        <span className="favoritos-badge">
+                          {totalFavoritos}
+                        </span>
+                      )}
                     </NavLink>
                   </li>
 
                   <li className="nav-item">
-                    <NavLink to="/carrito" className="nav-link boton-carrito">
+                    <NavLink
+                      to="/carrito"
+                      className="nav-link boton-carrito position-relative"
+                    >
+                      {" "}
                       <i className="fa-light fa-basket-shopping fs-5"></i>
+                      {totalItems > 0 && (
+                        <span className="carrito-badge">{totalItems}</span>
+                      )}
                     </NavLink>
                   </li>
                 </ul>
@@ -185,13 +202,28 @@ export const NavbarComponent = ({ user }) => {
                 <li className="nav-item">
                   <NavLink to="/favoritos" className="nav-link boton-favoritos">
                     FAVORITOS{" "}
-                    <i className="fa-sharp fa-light fa-heart fs-5"></i>
+                    <i className="fa-sharp fa-light fa-heart fs-5 position-relative">
+                      {" "}
+                      {totalFavoritos > 0 && (
+                        <span className="favoritos-badge-mobile">
+                          {totalFavoritos}
+                        </span>
+                      )}
+                    </i>
                   </NavLink>
                 </li>
 
                 <li className="nav-item">
                   <NavLink to="/carrito" className="nav-link boton-carrito">
-                    CARRITO <i className="fa-light fa-basket-shopping fs-5"></i>
+                    CARRITO{" "}
+                    <i className="fa-light fa-basket-shopping fs-5 position-relative">
+                      {" "}
+                      {totalItems > 0 && (
+                        <span className="carrito-badge-mobile">
+                          {totalItems}
+                        </span>
+                      )}
+                    </i>
                   </NavLink>
                 </li>
               </>
