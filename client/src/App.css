@@ -116,8 +116,14 @@ header button {
 }
 
 .product-card-link {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
   text-decoration: none;
   color: inherit;
+}
+
+.product-card-wrapper {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -132,6 +138,7 @@ header button {
 
 .card-body {
   display: flex;
+  flex-grow: 1;
   flex-direction: column;
   gap: 0.2rem;
 }
@@ -316,6 +323,7 @@ footer li {
   .card-image {
     height: 250px;
   }
+
 }
 
 @media (max-width: 575px) {
@@ -337,6 +345,7 @@ footer li {
   .card-image {
     height: auto;
   }
+
 }
 
 @media (max-width: 455px) {
@@ -408,4 +417,17 @@ footer li {
   font-weight: 400;
   min-width: 16px;
   text-align: center;
+}
+
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .favoritos-grid .card-image {
+      max-height: 210px;
+  }
+}
+
+@media (min-width: 576px) and (max-width: 767px) {
+  .favoritos-grid .card-image {
+      max-height: 210px;
+  }
 }

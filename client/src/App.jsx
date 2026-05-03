@@ -52,7 +52,7 @@ function App() {
           <Route path="/libro/:id" element={<DetalleLibro />} />
           <Route
             path="/favoritos"
-            element={user ? <Favoritos /> : <Navigate to={"/login"} />}
+            element={user ? <Favoritos user={user} /> : <Navigate to={"/login"} />}
           />
 
           <Route

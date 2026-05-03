@@ -1,6 +1,6 @@
 import React from 'react'
 import { librosMock } from '../mock_data/mockData'
-import ProductCard from '../components/productCard'
+import ProductCard from '../components/ProductCard'
 import { HeroComponent } from '../components/HeroComponent'
 import { Link } from 'react-router-dom'
 import discountImg from '../assets/images/discount-img.png'
