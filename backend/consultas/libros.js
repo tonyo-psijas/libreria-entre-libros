@@ -19,6 +19,62 @@ const getLibros = async () => {
     return rows;
 };
 
+// RUTA GET /libros con filtros
+const filtrarLibros = async ({ titulo, autor, genero }) => {
+    const { rows } = await pool.query(`
+        SELECT DISTINCT
+            l.id_libro,
+            l.titulo,
+            l.precio,
+            l.descuento,
+            TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
+            l.imagen,
+            l.stock,
+            e.nombre AS editorial
+        FROM libro l
+        LEFT JOIN editorial e ON l.id_editorial = e.id_editorial
+        LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
+        LEFT JOIN autor a ON la.id_autor = a.id_autor
+        LEFT JOIN libro_genero lg ON l.id_libro = lg.id_libro
+        LEFT JOIN genero g ON lg.id_genero = g.id_genero
+        WHERE l.activo = true
+        AND ($1::TEXT IS NULL OR LOWER(l.titulo) LIKE LOWER('%' || $1 || '%'))
+        AND ($2::TEXT IS NULL OR LOWER(a.nombre) LIKE LOWER('%' || $2 || '%'))
+        AND ($3::TEXT IS NULL OR LOWER(g.nombre) LIKE LOWER('%' || $3 || '%'))
+        ORDER BY l.titulo ASC
+    `, [
+        titulo || null,
+        autor || null,
+        genero || null
+    ]);
+
+    return rows;
+};
+
+// RUTA GET /libros/buscar-isbn/:isbn
+const getLibroByIsbn = async (isbn) => {
+    const { rows } = await pool.query(`
+        SELECT 
+            id_libro,
+            titulo,
+            isbn,
+            descripcion,
+            precio,
+            descuento,
+            stock,
+            formato,
+            id_editorial,
+            fecha_publicacion,
+            numero_paginas,
+            imagen,
+            activo
+        FROM libro
+        WHERE isbn = $1
+    `, [isbn]);
+
+    return rows[0];
+};
+
 // RUTA GET /libros/:id
 const getLibroById = async (id) => {
     const { rows } = await pool.query(`
@@ -61,6 +117,7 @@ const crearLibro = async (libro) => {
         isbn,
         descripcion,
         precio,
+        descuento = 0,
         formato,
         stock,
         id_editorial,
@@ -71,17 +128,17 @@ const crearLibro = async (libro) => {
 
     const { rows } = await pool.query(`
         INSERT INTO libro (
-            titulo, isbn, descripcion, precio, formato,
-            stock, id_editorial, fecha_publicacion,
-            numero_paginas, imagen
+            titulo, isbn, descripcion, precio, descuento, formato,
+            stock, id_editorial, fecha_publicacion, numero_paginas, imagen
         )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
         RETURNING *
     `, [
         titulo,
         isbn,
         descripcion,
         precio,
+        descuento,
         formato,
         stock,
         id_editorial,
@@ -94,24 +151,102 @@ const crearLibro = async (libro) => {
 };
 
 const agregarAutorLibro = async (id_libro, id_autor) => {
-    await pool.query(
-        "INSERT INTO libro_autor (id_libro, id_autor) VALUES ($1,$2)",
-        [id_libro, id_autor]
-    );
+    await pool.query(`
+        INSERT INTO libro_autor (id_libro, id_autor)
+        VALUES ($1, $2)
+        ON CONFLICT DO NOTHING
+    `, [id_libro, id_autor]);
 };
 
 const agregarGeneroLibro = async (id_libro, id_genero) => {
-    await pool.query(
-        "INSERT INTO libro_genero (id_libro, id_genero) VALUES ($1,$2)",
-        [id_libro, id_genero]
-    );
+    await pool.query(`
+        INSERT INTO libro_genero (id_libro, id_genero)
+        VALUES ($1, $2)
+        ON CONFLICT DO NOTHING
+    `, [id_libro, id_genero]);
 };
 
+// RUTA PUT /libros/isbn/:isbn (actualizar libro por ISBN)
+const actualizarLibroPorIsbn = async (isbn, precio, stock, descuento) => {
+    const { rows } = await pool.query(`
+        UPDATE libro
+        SET 
+            precio = $1,
+            stock = $2,
+            descuento = $3,
+            activo = true
+        WHERE isbn = $4
+        RETURNING *
+    `, [precio, stock, descuento, isbn]);
+
+    return rows[0];
+};
+
+const desactivarLibro = async (id) => {
+    const { rows } = await pool.query(`
+        SELECT id_libro, titulo, stock, activo
+        FROM libro 
+        WHERE id_libro = $1
+    `, [id]);
+
+    if (rows.length === 0) return null;
+
+    const libro = rows[0];
+
+    if (libro.activo === false) {
+        throw {
+            code: 400,
+            message: "El libro ha sido desactivado con exito"
+        };
+    }
+
+    if (libro.stock > 0) {
+        throw {
+            code: 400,
+            message: `No se puede desactivar un libro con stock disponible: ${libro.stock} unidades. Actualice el stock y vuelva a ejecutar la desactivación.`
+        };
+    }
+
+    const result = await pool.query(`
+        UPDATE libro
+        SET activo = false
+        WHERE id_libro = $1
+        RETURNING *
+    `, [id]);
+
+    return result.rows[0];
+};
+
+const actualizarLibro = async (id, datos) => {
+    const { precio, stock, descuento } = datos;
+
+    const { rows } = await pool.query(`
+        UPDATE libro
+        SET
+            precio = COALESCE($1, precio),
+            stock = COALESCE($2, stock),
+            descuento = COALESCE($3, descuento)
+        WHERE id_libro = $4
+        RETURNING *
+    `, [
+        precio ?? null,
+        stock ?? null,
+        descuento ?? null,
+        id
+    ]);
+
+    return rows[0];
+};
+
+    
 module.exports = {
     getLibros,
     getLibroById,
     updateDescuento,
+    actualizarLibro,
     crearLibro,
-    agregarAutorLibro,
-    agregarGeneroLibro
+    actualizarLibroPorIsbn,
+    desactivarLibro,
+    filtrarLibros,
+    getLibroByIsbn
 };

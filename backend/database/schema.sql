@@ -52,6 +52,8 @@ CREATE TABLE libro (
   fecha_publicacion DATE,
   numero_paginas INT,
   imagen VARCHAR(255),
+  descuento INT DEFAULT 0 CHECK (descuento >= 0 AND descuento <= 100),
+  activo BOOLEAN DEFAULT true,
 
   FOREIGN KEY (id_editorial) REFERENCES editorial(id_editorial)
 );
@@ -145,4 +147,22 @@ CREATE TABLE envio (
 
   FOREIGN KEY (id_pedido) REFERENCES pedido(id_pedido),
   FOREIGN KEY (id_empresa_envio) REFERENCES empresa_envio(id_empresa_envio)
+);
+
+CREATE TABLE carrito (
+  id_carrito SERIAL PRIMARY KEY,
+  id_cliente INT NOT NULL,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON DELETE CASCADE
+);
+
+CREATE TABLE carrito_detalle (
+  id_carrito_detalle SERIAL PRIMARY KEY,
+  id_carrito INT NOT NULL,
+  id_libro INT NOT NULL,
+  cantidad INT DEFAULT 1,
+
+  FOREIGN KEY (id_carrito) REFERENCES carrito(id_carrito) ON DELETE CASCADE,
+  FOREIGN KEY (id_libro) REFERENCES libro(id_libro)
 );
