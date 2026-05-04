@@ -8,6 +8,8 @@ import { Catalogo } from "./views/Catalogo";
 import { Carrito } from "./views/Carrito";
 import { Favoritos } from "./views/Favoritos";
 import { Gallery } from "./views/Gallery";
+import { Promociones } from "./views/Promociones";
+import { ComicsMangas } from "./views/ComicsMangas";
 import { FooterComponent } from "./components/FooterComponent";
 
 import Login from "./views/Login";
@@ -57,6 +59,8 @@ function App() {
           <Route path="/registro" element={<Registro />} />
           <Route path="/libro/:id" element={<DetalleLibro />} />
           <Route path="/libros" element={<Gallery />} />
+          <Route path="/promociones" element={<Promociones />} />
+          <Route path="/comics-&-mangas" element={<ComicsMangas />} />
 
           {/* 🟡 RUTAS PROTEGIDAS (requieren login) */}
           <Route

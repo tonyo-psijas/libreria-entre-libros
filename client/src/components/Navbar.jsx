@@ -154,7 +154,7 @@ export const NavbarComponent = () => {
             </li>
 
             <li className="nav-item">
-              <NavLink to="/comics-mangas" className="nav-link">
+              <NavLink to="/comics-&-mangas" className="nav-link">
                 Comics & Mangas
               </NavLink>
             </li>
@@ -297,7 +297,7 @@ export const NavbarComponent = () => {
             </li>
 
             <li className="nav-item">
-              <NavLink to="/comics-mangas" className="nav-link">
+              <NavLink to="/comics-&-mangas" className="nav-link">
                 Comics & Mangas
               </NavLink>
             </li>

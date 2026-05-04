@@ -45,6 +45,11 @@ h1 {
   width: 75%;
 }
 
+.section-header {
+  background-color: white;
+  padding-block: 4rem;
+}
+
 .boton-primario {
   background-color: #4a5947;
   color: white !important;

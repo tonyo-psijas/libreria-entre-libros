@@ -1,80 +1,110 @@
+// Promociones.jsx
+
 import React, { useState, useMemo } from 'react'
 import { librosMock, generosMock } from '../mock_data/mockData'
 import ProductCard from '../components/ProductCard'
 
 const LIBROS_POR_PAGINA = 24
-const ID_COMICS_MANGAS = 14 // id_genero de "Comics & Mangas" en el mock
+const ID_COMICS_MANGAS = 14
 
-export const Gallery = () => {
-
+export const Promociones = () => {
     const [busqueda, setBusqueda] = useState('')
     const [ordenamiento, setOrdenamiento] = useState('recientes')
     const [generoSeleccionado, setGeneroSeleccionado] = useState('')
     const [paginaActual, setPaginaActual] = useState(1)
 
-    // Géneros disponibles, excluyendo Comics & Mangas
-    const generos = generosMock.data.filter(g => g.id_genero !== ID_COMICS_MANGAS)
+    // géneros disponibles excluyendo Comics & Mangas
+    const generos = generosMock.data.filter(
+        g => g.id_genero !== ID_COMICS_MANGAS
+    )
 
-    // Filtrado y ordenamiento con useMemo para no recalcular en cada render
     const librosFiltrados = useMemo(() => {
         let resultado = librosMock.result
 
-        // 1. Excluir Comics & Mangas
+        // SOLO libros con descuento
+        resultado = resultado.filter(libro => libro.descuento)
+
+        // excluir Comics & Mangas
         resultado = resultado.filter(libro =>
             !libro.generos.some(g => g.id_genero === ID_COMICS_MANGAS)
         )
 
-        // 2. Filtrar por búsqueda (título o autor)
+        // búsqueda
         if (busqueda.trim()) {
             const query = busqueda.toLowerCase()
+
             resultado = resultado.filter(libro =>
                 libro.titulo.toLowerCase().includes(query) ||
-                libro.autores.some(a => a.nombre.toLowerCase().includes(query))
+                libro.autores.some(a =>
+                    a.nombre.toLowerCase().includes(query)
+                )
             )
         }
 
-        // 3. Filtrar por género
+        // filtro por género
         if (generoSeleccionado) {
             resultado = resultado.filter(libro =>
-                libro.generos.some(g => g.id_genero === parseInt(generoSeleccionado))
+                libro.generos.some(
+                    g => g.id_genero === parseInt(generoSeleccionado)
+                )
             )
         }
 
-        // 4. Ordenar
+        // ordenamiento
         switch (ordenamiento) {
             case 'precio-asc':
                 resultado = [...resultado].sort((a, b) => a.precio - b.precio)
                 break
+
             case 'precio-desc':
                 resultado = [...resultado].sort((a, b) => b.precio - a.precio)
                 break
+
             case 'alfabetico':
-                resultado = [...resultado].sort((a, b) => a.titulo.localeCompare(b.titulo))
+                resultado = [...resultado].sort((a, b) =>
+                    a.titulo.localeCompare(b.titulo)
+                )
                 break
+
             case 'recientes':
             default:
-                resultado = [...resultado].sort((a, b) => b.id_libro - a.id_libro)
+                resultado = [...resultado].sort((a, b) =>
+                    b.id_libro - a.id_libro
+                )
                 break
         }
 
         return resultado
     }, [busqueda, ordenamiento, generoSeleccionado])
 
-    // Paginación
-    const totalPaginas = Math.ceil(librosFiltrados.length / LIBROS_POR_PAGINA)
-    const indiceInicio = (paginaActual - 1) * LIBROS_POR_PAGINA
-    const librosPaginados = librosFiltrados.slice(indiceInicio, indiceInicio + LIBROS_POR_PAGINA)
+    const totalPaginas = Math.ceil(
+        librosFiltrados.length / LIBROS_POR_PAGINA
+    )
 
-    // Al cambiar cualquier filtro, volver a página 1
-    const handleOrdenamiento = (e) => { setOrdenamiento(e.target.value); setPaginaActual(1) }
-    const handleGenero = (e) => { setGeneroSeleccionado(e.target.value); setPaginaActual(1) }
+    const indiceInicio = (paginaActual - 1) * LIBROS_POR_PAGINA
+
+    const librosPaginados = librosFiltrados.slice(
+        indiceInicio,
+        indiceInicio + LIBROS_POR_PAGINA
+    )
+
+    const handleOrdenamiento = (e) => {
+        setOrdenamiento(e.target.value)
+        setPaginaActual(1)
+    }
+
+    const handleGenero = (e) => {
+        setGeneroSeleccionado(e.target.value)
+        setPaginaActual(1)
+    }
 
     return (
         <>
             <div className="section-header">
                 <div className="container">
                     <h1>
-                        Libros <i className="fa-light fa-book-open"></i>
+                        Promociones {" "}
+                        <i class="fa-light fa-badge-percent"></i>
                     </h1>
                 </div>
             </div>
