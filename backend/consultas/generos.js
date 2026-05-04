@@ -1,23 +1,27 @@
 const { pool } = require("../database/db");
 
-const obtenerOCrearGenero = async (nombre) => {
-    const { rows } = await pool.query(`
-        SELECT id_genero 
-        FROM genero 
-        WHERE LOWER(nombre) = LOWER($1)
-    `, [nombre]);
+const getGeneros = async () => {
+  const { rows } = await pool.query(`
+    SELECT id_genero, nombre
+    FROM genero
+    ORDER BY nombre ASC
+  `);
 
-    if (rows.length > 0) {
-        return rows[0].id_genero;
-    }
-
-    const result = await pool.query(`
-        INSERT INTO genero (nombre)
-        VALUES ($1)
-        RETURNING id_genero
-    `, [nombre]);
-
-    return result.rows[0].id_genero;
+  return rows;
 };
 
-module.exports = { obtenerOCrearGenero };
+const obtenerOCrearGenero = async (nombre) => {
+  const { rows } = await pool.query(`
+    INSERT INTO genero (nombre)
+    VALUES ($1)
+    ON CONFLICT (nombre) DO UPDATE SET nombre = EXCLUDED.nombre
+    RETURNING id_genero
+  `, [nombre]);
+
+  return rows[0].id_genero;
+};
+
+module.exports = {
+  getGeneros,
+  obtenerOCrearGenero,
+};

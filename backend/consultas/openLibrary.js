@@ -1,5 +1,5 @@
 const axios = require("axios");
-const normalizarFecha = require("../utils/normalizarFecha");
+const normalizarFecha = require("../utilitis/normalizar_fecha.js");
 
 const buscarLibroOpenLibrary = async (isbn) => {
     const url = `https://openlibrary.org/isbn/${isbn}.json`;

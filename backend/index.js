@@ -2,32 +2,53 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const { getHealth } = require("./database/db.js");
-const {
-  getLibros,
-  getLibroById,
-  updateDescuento,
-} = require("./consultas/libros.js");
-const { filtrarLibros, getLibroByIsbn } = require("./consultas/libros.js");
-const { crearLibro } = require("./consultas/libros.js");
 const { obtenerOCrearEditorial } = require("./consultas/editoriales");
 const { obtenerOCrearAutor } = require("./consultas/autores.js");
-const { obtenerOCrearGenero } = require("./consultas/generos.js");
-const { desactivarLibro, actualizarLibro } = require("./consultas/libros.js");
+const { getGeneros, obtenerOCrearGenero } = require("./consultas/generos.js");
 const { buscarLibroGoogleBooks } = require("./consultas/googleBooks.js");
 const { buscarLibroOpenLibrary } = require("./consultas/openLibrary.js");
 const { traducirTexto } = require("./consultas/traductor.js");
 const {
+  getLibros,
+  getLibroById,
+  updateDescuento,
+  filtrarLibros,
+  getLibroByIsbn,
+  buscarLibros,
+  crearLibro,
+  desactivarLibro,
+  actualizarLibro,
+  agregarAutorLibro,
+  agregarGeneroLibro,
+  getPreventas
+} = require("./consultas/libros.js");
+const { 
   getCarrito,
   agregarLibroCarrito,
   actualizarCantidadCarrito,
   eliminarLibroCarrito,
-  vaciarCarrito,
+  vaciarCarrito
 } = require("./consultas/carrito.js");
 const {
   getFavoritos,
   agregarFavorito,
   eliminarFavorito,
 } = require("./consultas/favoritos.js");
+const {
+  getDireccionesCliente,
+  crearDireccion,
+  actualizarDireccion,
+  eliminarDireccion,
+} = require("./consultas/direcciones.js");
+const {
+  getEmpresasEnvio,
+  crearEmpresaEnvio,
+} = require("./consultas/empresasEnvio.js");
+const {
+  crearPedidoDesdeCarrito,
+  getPedidosCliente,
+  getDetallePedido,
+} = require("./consultas/pedidos.js");
 
 getHealth();
 
@@ -45,7 +66,9 @@ api.get("/", (req, res) => {
   res.send("API libreria funcionando");
 });
 
+//Ruta Get para obtener todos los libros activos
 api.get("/libros", async (req, res) => {
+  console.log("GET /libros");
   try {
     const libros = await getLibros();
     res.json(libros);
@@ -58,7 +81,36 @@ api.get("/libros", async (req, res) => {
   }
 });
 
+// Ruta GET para buscar libros del Navbar del frontend
+api.get("/libros/buscar", async (req, res) => {
+  console.log("GET /libros/buscar", req.query);
+  const { q } = req.query;
+
+  try {
+    if (!q || q.trim() === "") {
+      return res.status(400).json({
+        message: "Debes enviar un término de búsqueda",
+      });
+    }
+
+    const libros = await buscarLibros(q.trim());
+
+    res.json({
+      cantidad: libros.length,
+      data: libros,
+    });
+  } catch (error) {
+    console.error("❌ Error en GET /libros/buscar:", error);
+    res.status(500).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
+// Ruta GET para filtrar libros por título, autor o género
 api.get("/libros/filtros", async (req, res) => {
+  console.log("GET /libros/filtros", req.query);
   const { titulo, autor, genero } = req.query;
 
   try {
@@ -77,7 +129,9 @@ api.get("/libros/filtros", async (req, res) => {
   }
 });
 
+//ruta Get para buscar libros por ISBN en el formulario de registro de libros por admin
 api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
+  console.log("GET /libros/buscar-isbn", req.params);
   const { isbn } = req.params;
 
   try {
@@ -143,7 +197,9 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
   }
 });
 
+// Ruta GET para obtener un libro por ID
 api.get("/libros/:id", async (req, res) => {
+  console.log("GET /libros/:id", req.params);
   const { id } = req.params;
 
   try {
@@ -164,7 +220,9 @@ api.get("/libros/:id", async (req, res) => {
   }
 });
 
+// Ruta POST para crear un nuevo libro
 api.post("/libros", async (req, res) => {
+  console.log("POST /libros", req.body);
   try {
     const {
       titulo,
@@ -247,7 +305,9 @@ api.post("/libros", async (req, res) => {
   }
 });
 
+// Ruta PUT para actualizar un libro por ID
 api.put("/libros/:id", async (req, res) => {
+  console.log("PUT /libros/:id", req.params);
   const { id } = req.params;
   const { precio, stock, descuento } = req.body;
 
@@ -306,7 +366,9 @@ api.put("/libros/:id", async (req, res) => {
   }
 });
 
+// Ruta PUT ppor :id para cambiar activo de true a false
 api.put("/libros/:id/desactivar", async (req, res) => {
+  console.log("PUT /libros/:id/desactivar", req.params);
   const { id } = req.params;
 
   try {
@@ -334,6 +396,7 @@ api.put("/libros/:id/desactivar", async (req, res) => {
 
 // Ruta GET /carrito
 api.get("/carrito/:id_cliente", async (req, res) => {
+  console.log("GET /carrito", req.params);
   const { id_cliente } = req.params;
 
   try {
@@ -357,6 +420,7 @@ api.get("/carrito/:id_cliente", async (req, res) => {
 
 // Ruta POST /carrito (agregar libro al carrito)
 api.post("/carrito/:id_cliente/libros", async (req, res) => {
+  console.log("POST /carrito/:id_cliente/libros", req.params, req.body);
   const { id_cliente } = req.params;
   const { id_libro, cantidad = 1 } = req.body;
 
@@ -381,15 +445,16 @@ api.post("/carrito/:id_cliente/libros", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error en POST /carrito:", error);
-    res.status(500).json({
-      error: error.code,
-      message: error.message,
-    });
+    res.status(error.code || 500).json({
+    error: error.code,
+    message: error.message,
+  });
   }
 });
 
 // Ruta PUT /carrito (actualizar cantidad de un libro en el carrito)
 api.put("/carrito/:id_cliente/libros/:id_libro", async (req, res) => {
+  console.log("PUT /carrito/:id_cliente/libros/:id_libro", req.params, req.body);
   const { id_cliente, id_libro } = req.params;
   const { cantidad } = req.body;
 
@@ -419,15 +484,16 @@ api.put("/carrito/:id_cliente/libros/:id_libro", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error en PUT /carrito:", error);
-    res.status(500).json({
-      error: error.code,
-      message: error.message,
-    });
+    res.status(error.code || 500).json({
+    error: error.code,
+    message: error.message,
+  });
   }
 });
 
 // Ruta DELETE /carrito (eliminar un libro del carrito)
 api.delete("/carrito/:id_cliente/libros/:id_libro", async (req, res) => {
+  console.log("DELETE /carrito/:id_cliente/libros/:id_libro", req.params);
   const { id_cliente, id_libro } = req.params;
 
   try {
@@ -445,7 +511,7 @@ api.delete("/carrito/:id_cliente/libros/:id_libro", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error en DELETE /carrito/libro:", error);
-    res.status(500).json({
+    res.status(error.code || 500).json({
       error: error.code,
       message: error.message,
     });
@@ -454,6 +520,7 @@ api.delete("/carrito/:id_cliente/libros/:id_libro", async (req, res) => {
 
 // Ruta DELETE /carrito (vaciar carrito completo) o hacer pedido
 api.delete("/carrito/:id_cliente", async (req, res) => {
+  console.log("DELETE /carrito/:id_cliente", req.params);
   const { id_cliente } = req.params;
 
   try {
@@ -474,6 +541,7 @@ api.delete("/carrito/:id_cliente", async (req, res) => {
 // ruta GET /favoritos/:id_cliente (obtener lista de favoritos)
 api.get("/favoritos/:id_cliente", async (req, res) => {
   const { id_cliente } = req.params;
+  console.log("GET /favoritos/:id_cliente", req.params);
 
   try {
     const favoritos = await getFavoritos(id_cliente);
@@ -485,7 +553,7 @@ api.get("/favoritos/:id_cliente", async (req, res) => {
   } catch (error) {
     console.error("❌ Error en GET /favoritos:", error);
 
-    res.status(500).json({
+    res.status(error.code || 500).json({
       error: error.code,
       message: error.message,
     });
@@ -494,6 +562,7 @@ api.get("/favoritos/:id_cliente", async (req, res) => {
 
 // ruta POST /favoritos/:id_cliente (agregar libro a favoritos)
 api.post("/favoritos/:id_cliente", async (req, res) => {
+  console.log("POST /favoritos/:id_cliente", req.params, req.body);
   const { id_cliente } = req.params;
   const { id_libro } = req.body;
 
@@ -519,6 +588,24 @@ api.post("/favoritos/:id_cliente", async (req, res) => {
   } catch (error) {
     console.error("❌ Error en POST /favoritos:", error);
 
+    res.status(error.code || 500).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
+// Ruta GET /preventas
+api.get("/preventas", async (req, res) => {
+  try {
+    const preventas = await getPreventas();
+
+    res.json({
+      cantidad: preventas.length,
+      data: preventas,
+    });
+  } catch (error) {
+    console.error("❌ Error en GET /preventas:", error);
     res.status(500).json({
       error: error.code,
       message: error.message,
@@ -528,6 +615,7 @@ api.post("/favoritos/:id_cliente", async (req, res) => {
 
 // ruta DELETE /favoritos/:id_cliente/:id_libro (eliminar libro de favoritos)
 api.delete("/favoritos/:id_cliente/:id_libro", async (req, res) => {
+  console.log("DELETE /favoritos/:id_cliente/:id_libro", req.params);
   const { id_cliente, id_libro } = req.params;
 
   try {
@@ -553,7 +641,289 @@ api.delete("/favoritos/:id_cliente/:id_libro", async (req, res) => {
   }
 });
 
+// Ruta GET para lista de generos
+api.get("/generos", async (req, res) => {
+  try {
+    const generos = await getGeneros();
+
+    res.json({
+      cantidad: generos.length,
+      data: generos,
+    });
+  } catch (error) {
+    console.error("❌ Error en GET /generos:", error);
+    res.status(500).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
+// Ruta GET direcciones de un cliente
+api.get("/direcciones/:id_cliente", async (req, res) => {
+  console.log("GET /direcciones/:id_cliente", req.params);
+
+  const { id_cliente } = req.params;
+
+  try {
+    const direcciones = await getDireccionesCliente(id_cliente);
+
+    res.json({
+      cantidad: direcciones.length,
+      data: direcciones,
+    });
+  } catch (error) {
+    console.error("❌ Error en GET /direcciones:", error);
+
+    res.status(error.code || 500).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
+// Ruta POST crear dirección
+api.post("/direcciones/:id_cliente", async (req, res) => {
+  console.log("POST /direcciones/:id_cliente", {
+    params: req.params,
+    body: req.body,
+  });
+
+  const { id_cliente } = req.params;
+
+  try {
+    const {
+      alias,
+      destinatario,
+      telefono,
+      pais,
+      ciudad,
+      calle,
+      numero,
+    } = req.body;
+
+    if (!alias || !destinatario || !telefono || !pais || !ciudad || !calle || !numero) {
+      return res.status(400).json({
+        message: "Alias, destinatario, teléfono, país, ciudad, calle y número son obligatorios",
+      });
+    }
+
+    const nuevaDireccion = await crearDireccion(id_cliente, req.body);
+
+    res.status(201).json({
+      message: "Dirección creada correctamente",
+      data: nuevaDireccion,
+    });
+  } catch (error) {
+    console.error("❌ Error en POST /direcciones:", error);
+
+    res.status(error.code || 500).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
+// Ruta PUT actualizar dirección
+api.put("/direcciones/:id_direccion", async (req, res) => {
+  console.log("PUT /direcciones/:id_direccion", {
+    params: req.params,
+    body: req.body,
+  });
+
+  const { id_direccion } = req.params;
+
+  try {
+    const direccionActualizada = await actualizarDireccion(id_direccion, req.body);
+
+    if (!direccionActualizada) {
+      return res.status(404).json({
+        message: "Dirección no encontrada",
+      });
+    }
+
+    res.json({
+      message: "Dirección actualizada correctamente",
+      data: direccionActualizada,
+    });
+  } catch (error) {
+    console.error("❌ Error en PUT /direcciones:", error);
+
+    res.status(error.code || 500).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
+// Ruta DELETE eliminar dirección
+api.delete("/direcciones/:id_direccion", async (req, res) => {
+  console.log("DELETE /direcciones/:id_direccion", req.params);
+
+  const { id_direccion } = req.params;
+
+  try {
+    const direccionEliminada = await eliminarDireccion(id_direccion);
+
+    if (!direccionEliminada) {
+      return res.status(404).json({
+        message: "Dirección no encontrada",
+      });
+    }
+
+    res.json({
+      message: "Dirección eliminada correctamente",
+      data: direccionEliminada,
+    });
+  } catch (error) {
+    console.error("❌ Error en DELETE /direcciones:", error);
+
+    res.status(error.code || 500).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
+// Ruta GET empresas de envío
+api.get("/empresas-envio", async (req, res) => {
+  console.log("GET /empresas-envio");
+
+  try {
+    const empresas = await getEmpresasEnvio();
+
+    res.json({
+      cantidad: empresas.length,
+      data: empresas,
+    });
+  } catch (error) {
+    console.error("❌ Error en GET /empresas-envio:", error);
+
+    res.status(error.code || 500).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
+// Ruta POST crear empresa de envío
+api.post("/empresas-envio", async (req, res) => {
+  console.log("POST /empresas-envio", req.body);
+
+  try {
+    const { nombre, telefono } = req.body;
+
+    if (!nombre) {
+      return res.status(400).json({
+        message: "El nombre de la empresa de envío es obligatorio",
+      });
+    }
+
+    const nuevaEmpresa = await crearEmpresaEnvio({
+      nombre,
+      telefono,
+    });
+
+    res.status(201).json({
+      message: "Empresa de envío creada correctamente",
+      data: nuevaEmpresa,
+    });
+  } catch (error) {
+    console.error("❌ Error en POST /empresas-envio:", error);
+
+    res.status(error.code || 500).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
+api.post("/pedidos/:id_cliente", async (req, res) => {
+  console.log("POST /pedidos/:id_cliente", {
+    params: req.params,
+    body: req.body,
+  });
+
+  const { id_cliente } = req.params;
+  const { id_direccion, id_empresa_envio } = req.body;
+
+  try {
+    if (!id_direccion || !id_empresa_envio) {
+      return res.status(400).json({
+        message: "id_direccion e id_empresa_envio son obligatorios",
+      });
+    }
+
+    const pedido = await crearPedidoDesdeCarrito(
+      id_cliente,
+      id_direccion,
+      id_empresa_envio
+    );
+
+    res.status(201).json({
+      message: "Pedido creado correctamente",
+      data: pedido,
+    });
+  } catch (error) {
+    console.error("❌ Error en POST /pedidos:", error);
+
+    const statusCode = typeof error.code === "number" ? error.code : 500;
+
+    res.status(statusCode).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
+api.get("/pedidos/:id_cliente", async (req, res) => {
+  console.log("GET /pedidos/:id_cliente", req.params);
+
+  const { id_cliente } = req.params;
+
+  try {
+    const pedidos = await getPedidosCliente(id_cliente);
+
+    res.json({
+      cantidad: pedidos.length,
+      data: pedidos,
+    });
+  } catch (error) {
+    console.error("❌ Error en GET /pedidos:", error);
+
+    const statusCode = typeof error.code === "number" ? error.code : 500;
+
+    res.status(statusCode).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
+api.get("/pedidos/detalle/:id_pedido", async (req, res) => {
+  console.log("GET /pedidos/detalle/:id_pedido", req.params);
+
+  const { id_pedido } = req.params;
+
+  try {
+    const detalle = await getDetallePedido(id_pedido);
+
+    res.json({
+      cantidad: detalle.length,
+      data: detalle,
+    });
+  } catch (error) {
+    console.error("❌ Error en GET /pedidos/detalle:", error);
+
+    const statusCode = typeof error.code === "number" ? error.code : 500;
+
+    res.status(statusCode).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
 api.listen(PORT, () => {
-  //console.log("Server started on http://localhost:"+ process.env.PORT || 3000)
   console.log(`Servidor en http://localhost:${PORT}`);
 });

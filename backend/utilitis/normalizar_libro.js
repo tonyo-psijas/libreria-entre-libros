@@ -1,4 +1,4 @@
-const normalizarFecha = require("./normalizarFecha");
+const normalizarFecha = require("./normalizar_fecha.js");
 
 const normalizarLibro = (libro) => {
     return {

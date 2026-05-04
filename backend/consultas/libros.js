@@ -226,6 +226,7 @@ const actualizarLibro = async (id, datos) => {
             precio = COALESCE($1, precio),
             stock = COALESCE($2, stock),
             descuento = COALESCE($3, descuento)
+            activo = true
         WHERE id_libro = $4
         RETURNING *
     `, [
@@ -238,15 +239,73 @@ const actualizarLibro = async (id, datos) => {
     return rows[0];
 };
 
+// RUTA GET /libros/buscar?q=...en la Navbar del frontend
+const buscarLibros = async (q) => {
+  const { rows } = await pool.query(`
+    SELECT DISTINCT
+      l.id_libro,
+      l.titulo,
+      l.isbn,
+      l.precio,
+      l.descuento,
+      TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
+      l.imagen,
+      l.stock,
+      e.nombre AS editorial
+    FROM libro l
+    LEFT JOIN editorial e ON l.id_editorial = e.id_editorial
+    LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
+    LEFT JOIN autor a ON la.id_autor = a.id_autor
+    LEFT JOIN libro_genero lg ON l.id_libro = lg.id_libro
+    LEFT JOIN genero g ON lg.id_genero = g.id_genero
+    WHERE l.activo = true
+    AND (
+      LOWER(l.titulo) LIKE LOWER('%' || $1 || '%')
+      OR LOWER(a.nombre) LIKE LOWER('%' || $1 || '%')
+      OR LOWER(l.isbn) LIKE LOWER('%' || $1 || '%')
+      OR LOWER(g.nombre) LIKE LOWER('%' || $1 || '%')
+    )
+    ORDER BY l.titulo ASC
+  `, [q]);
+
+  return rows;
+};
+
+// RUTA GET /libros/preventas
+const getPreventas = async () => {
+  const { rows } = await pool.query(`
+    SELECT
+      id_libro,
+      titulo,
+      isbn,
+      precio,
+      descuento,
+      TRUNC(precio * (1 - descuento / 100.0), 0)::INT AS precio_final,
+      imagen,
+      stock,
+      formato
+    FROM libro
+    WHERE activo = true
+    AND LOWER(formato) = 'preventa'
+    ORDER BY fecha_publicacion ASC
+  `);
+
+  return rows;
+};
+
     
 module.exports = {
-    getLibros,
-    getLibroById,
-    updateDescuento,
-    actualizarLibro,
-    crearLibro,
-    actualizarLibroPorIsbn,
-    desactivarLibro,
-    filtrarLibros,
-    getLibroByIsbn
+  getLibros,
+  getLibroById,
+  updateDescuento,
+  actualizarLibro,
+  crearLibro,
+  actualizarLibroPorIsbn,
+  desactivarLibro,
+  filtrarLibros,
+  getLibroByIsbn,
+  buscarLibros,
+  getPreventas,
+  agregarAutorLibro,
+  agregarGeneroLibro
 };

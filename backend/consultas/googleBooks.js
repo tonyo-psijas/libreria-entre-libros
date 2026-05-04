@@ -1,5 +1,5 @@
 const axios = require("axios");
-const normalizarLibro = require("../utils/normalizarLibro");
+const normalizarLibro = require("../utilitis/normalizar_libro.js");
 
 const buscarLibroGoogleBooks = async (isbn) => {
     const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`;
