@@ -3,12 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { librosMock } from "../mock_data/mockData";
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoritesContext";
-
+import { useUser } from "../context/UserContext";
 export const DetalleLibro = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { agregarAlCarrito } = useCart();
   const { esFavorito, toggleFavorito } = useFavorites();
+  const { isAuthenticated } = useUser();
   const [libro, setLibro] = useState(null);
   const [cantidad, setCantidad] = useState(1);
   const [sinopsisAbierta, setSinopsisAbierta] = useState(true);
@@ -23,6 +24,12 @@ export const DetalleLibro = () => {
   }, [id]);
 
   const handleAgregarAlCarrito = () => {
+    // 👈 VERIFICAR SI ESTÁ LOGUEADO
+    if (!isAuthenticated) {
+      navigate("/registro");
+      return;
+    }
+
     if (libro) {
       for (let i = 0; i < cantidad; i++) {
         agregarAlCarrito({
@@ -37,6 +44,12 @@ export const DetalleLibro = () => {
   };
 
   const handleToggleFavorito = () => {
+    // 👈 VERIFICAR SI ESTÁ LOGUEADO
+    if (!isAuthenticated) {
+      navigate("/registro");
+      return;
+    }
+
     if (libro) {
       const libroFavorito = {
         id_libro: libro.id_libro,
@@ -164,7 +177,9 @@ export const DetalleLibro = () => {
                   onClick={() => setSinopsisAbierta(!sinopsisAbierta)}
                 >
                   <h5 className="fw-semibold mb-0">Sinopsis</h5>
-                  <i className={`fa-regular ${sinopsisAbierta ? "fa-chevron-up" : "fa-chevron-down"}`}></i>
+                  <i
+                    className={`fa-regular ${sinopsisAbierta ? "fa-chevron-up" : "fa-chevron-down"}`}
+                  ></i>
                 </div>
 
                 {sinopsisAbierta && (

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 
 export const Registro = () => {
   const [formData, setFormData] = useState({
@@ -12,7 +13,9 @@ export const Registro = () => {
   });
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [error, setError] = useState("");
+  const [exito, setExito] = useState("");
   const navigate = useNavigate();
+  const { register } = useUser();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,6 +28,7 @@ export const Registro = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
+    setExito("");
 
     if (
       !formData.nombre ||
@@ -51,7 +55,18 @@ export const Registro = () => {
       return;
     }
 
-    console.log("Registrar usuario:", formData);
+    register({
+      nombre: formData.nombre,
+      apellido: formData.apellido,
+      email: formData.email,
+      telefono: formData.telefono,
+    });
+
+    setExito("✅ ¡Cuenta creada con éxito! Redirigiendo al login...");
+
+    setTimeout(() => {
+      navigate("/login");
+    }, 2000);
   };
 
   return (
@@ -60,6 +75,12 @@ export const Registro = () => {
         <div className="col-12 col-md-8 col-lg-6">
           <div className="card shadow-sm border-0 p-4 login-register">
             <h2 className="text-center fw-semibold mb-4">Crear cuenta</h2>
+
+            {exito && (
+              <div className="alert alert-success" role="alert">
+                {exito}
+              </div>
+            )}
 
             {error && (
               <div className="alert alert-danger" role="alert">
