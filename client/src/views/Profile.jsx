@@ -3,10 +3,10 @@ import { ProfileNavComponent } from "../components/ProfileNav";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 
-export const Profile = ({ user }) => {
+export const Profile = () => {
   const navigate = useNavigate();
-  const { logout } = useUser();
-  // useState para manejar los datos del formulario
+  const { user, logout, actualizarPerfil } = useUser();
+
   const [formData, setFormData] = useState({
     nombre: user?.nombre || "",
     apellido: user?.apellido || "",
@@ -16,30 +16,45 @@ export const Profile = ({ user }) => {
     confirmPassword: "",
   });
 
-  // useState para controlar si el formulario está en modo edición
   const [editando, setEditando] = useState(false);
-
-  // useState para mostrar mensaje de éxito al guardar
   const [guardado, setGuardado] = useState(false);
+  const [error, setError] = useState("");
 
-  // 👈 FUNCIÓN PARA CERRAR SESIÓN
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  // Maneja los cambios en cada input del formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Maneja el envío del formulario
-  // Cuando el backend esté listo, aquí irá la llamada a la API (PUT /usuarios/:id)
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Datos a enviar al backend:", formData);
-    // TODO: llamar a services/usuarioService.js → PUT /usuarios/:id
+    setError("");
+
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    if (formData.password && formData.password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    const datosAActualizar = {
+      nombre: formData.nombre,
+      apellido: formData.apellido,
+      email: formData.email,
+      telefono: formData.telefono,
+      ...(formData.password ? { password: formData.password } : {}),
+    }
+
+    // TODO: cuando el backend esté listo, reemplazar por PUT /clientes/:id
+    actualizarPerfil(datosAActualizar)
+
     setEditando(false);
     setGuardado(true);
     setTimeout(() => setGuardado(false), 3000);
@@ -54,7 +69,7 @@ export const Profile = ({ user }) => {
       password: "",
       confirmPassword: "",
     });
-
+    setError("");
     setEditando(false);
   };
 
@@ -63,31 +78,31 @@ export const Profile = ({ user }) => {
       <div className="row g-4">
         {/* SIDEBAR */}
         <div className="col-12 col-md-3">
-          {/* Navegación del perfil */}
           <ProfileNavComponent user={user} />
         </div>
 
         {/* CONTENIDO PRINCIPAL */}
         <div className="col-12 col-md-9">
           <div className="profile-content">
-            {/* Encabezado */}
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h4 className="fw-semibold mb-0">Mi cuenta</h4>
             </div>
 
-            {/* Alerta de guardado exitoso */}
             {guardado && (
               <div className="alert alert-success" role="alert">
-                <i className="fa-regular fa-circle-check"></i> Tus datos fueron
-                actualizados correctamente.
+                <i className="fa-regular fa-circle-check"></i> Tus datos fueron actualizados correctamente.
               </div>
             )}
 
-            {/* Formulario de datos personales */}
+            {error && (
+              <div className="alert alert-danger" role="alert">{error}</div>
+            )}
+
             <form onSubmit={handleSubmit}>
               <div className="row g-3 informacion-de-cuenta">
                 <h6 className="fw-semibold">INFORMACIÓN DE LA CUENTA</h6>
                 <hr className="divider" />
+
                 <div className="col-12 col-sm-6">
                   <label className="form-label">Nombre</label>
                   <input
@@ -146,19 +161,17 @@ export const Profile = ({ user }) => {
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        placeholder="Ingresa una nueva contraseña"
+                        placeholder="Déjalo en blanco para no cambiarla"
                       />
                     </div>
 
                     <div className="col-12 col-sm-6">
-                      <label className="form-label">
-                        Confirmar nueva contraseña
-                      </label>
+                      <label className="form-label">Confirmar nueva contraseña</label>
                       <input
                         type="password"
                         className="form-control form-input"
                         name="confirmPassword"
-                        value={formData.confirmPassword || ""}
+                        value={formData.confirmPassword}
                         onChange={handleChange}
                         placeholder="Confirma tu nueva contraseña"
                       />
@@ -167,23 +180,17 @@ export const Profile = ({ user }) => {
                 )}
 
                 {!editando && (
-                  <a className="link-editar" onClick={() => setEditando(true)}>
-                    <i className="fa-regular fa-pen-to-square"></i> Editar
-                    información de la cuenta
+                  <a className="link-editar" onClick={() => setEditando(true)} style={{ cursor: 'pointer' }}>
+                    <i className="fa-regular fa-pen-to-square"></i> Editar información de la cuenta
                   </a>
                 )}
 
-                {/* Botones solo visibles al editar */}
                 {editando && (
                   <div className="col-12 d-flex gap-2 mt-4">
                     <button type="submit" className="btn boton-primario">
                       Guardar cambios
                     </button>
-                    <button
-                      type="button"
-                      className="btn boton-secundario"
-                      onClick={handleCancelar}
-                    >
+                    <button type="button" className="btn boton-secundario" onClick={handleCancelar}>
                       Cancelar
                     </button>
                   </div>
@@ -195,25 +202,22 @@ export const Profile = ({ user }) => {
                 <hr className="divider" />
 
                 <div className="col-12 col-sm-6">
-                  <label className="form-label fw-semibold">
-                    Método de pago
-                  </label>
-                  <p>No tiene ningún metodo de pago asociado</p>
-                  <a className="link-editar">
-                    <i className="fa-regular fa-pen-to-square"></i> Agregar
-                    método de pago
+                  <label className="form-label fw-semibold">Método de pago</label>
+                  <p>No tiene ningún método de pago asociado</p>
+                  <a className="link-editar" style={{ cursor: 'pointer' }}>
+                    <i className="fa-regular fa-pen-to-square"></i> Agregar método de pago
                   </a>
                 </div>
 
                 <div className="col-12 col-sm-6">
                   <label className="form-label fw-semibold">Dirección</label>
                   <p>No tiene ninguna dirección asociada</p>
-                  <a className="link-editar">
-                    <i className="fa-regular fa-pen-to-square"></i> Agregar
-                    dirección
+                  <a className="link-editar" style={{ cursor: 'pointer' }}>
+                    <i className="fa-regular fa-pen-to-square"></i> Agregar dirección
                   </a>
                 </div>
               </div>
+
               <br />
 
               <button

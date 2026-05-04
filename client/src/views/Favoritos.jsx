@@ -5,7 +5,7 @@ import { useCart } from "../context/CartContext";
 import ProductCard from "../components/ProductCard";
 import { ProfileNavComponent } from "../components/ProfileNav";
 
-export const Favoritos = ({ user }) => {
+export const Favoritos = () => {
   const { favoritos, totalFavoritos } = useFavorites();
   const { agregarAlCarrito } = useCart();
 
@@ -19,7 +19,7 @@ export const Favoritos = ({ user }) => {
 
         {/* SIDEBAR */}
         <div className="col-12 col-md-3">
-          <ProfileNavComponent user={user} />
+          <ProfileNavComponent />
         </div>
 
         {/* CONTENIDO PRINCIPAL */}

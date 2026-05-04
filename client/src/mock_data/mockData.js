@@ -32,7 +32,8 @@ export const authMock = {
             apellido: "Psijas",
             email: "antonio@email.com",
             telefono: "+56 9 5500 2985",
-            rol: "admin",
+            role: "admin",
+            password: "antonio1234"
         },
         {
             id_cliente: 2,
@@ -40,7 +41,8 @@ export const authMock = {
             apellido: "González",
             email: "maria.gonzalez@email.com",
             telefono: "+56 9 1234 5678",
-            rol: "cliente",
+            role: "cliente",
+            password: "maria1234"
         },
     ],
     message: "Cliente actualizado"

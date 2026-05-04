@@ -72,7 +72,7 @@ function App() {
             path="/perfil"
             element={
               isAuthenticated ? (
-                <Profile user={user} />
+                <Profile />
               ) : (
                 <Navigate to="/login" />
               )

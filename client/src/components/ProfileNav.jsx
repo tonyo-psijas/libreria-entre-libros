@@ -1,18 +1,18 @@
 import React from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { useUser } from '../context/UserContext'
 
-export const ProfileNavComponent = ({ user }) => {
+export const ProfileNavComponent = () => {
     const navigate = useNavigate()
     const location = useLocation()
+    const { user } = useUser()
 
-    // Links base para todos los usuarios
     const links = [
         { to: '/perfil', label: 'Mi perfil' },
         { to: '/favoritos', label: 'Favoritos' },
         { to: '/historial-compras', label: 'Historial de compras' },
     ]
 
-    // Links solo para admin
     const linksAdmin = [
         { to: '/historial-ventas', label: 'Historial de ventas' },
         { to: '/catalogo', label: 'Catálogo' },

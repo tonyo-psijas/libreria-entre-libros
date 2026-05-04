@@ -16,18 +16,19 @@ export const Login = () => {
     setExito("");
 
     if (!email || !password) {
-      setError("Por favor completa todos los campos");
+      setError("Por favor completa todos los campos.");
       return;
     }
 
-    // 👈 USAR EL LOGIN DEL CONTEXTO
-    login(email, password);
+    const resultado = login(email, password);
+
+    if (!resultado.ok) {
+      setError(resultado.mensaje);
+      return;
+    }
 
     setExito("✅ ¡Has iniciado sesión correctamente! Redirigiendo...");
-
-    setTimeout(() => {
-      navigate("/");
-    }, 2000);
+    setTimeout(() => navigate("/"), 1500);
   };
 
   return (
@@ -37,24 +38,17 @@ export const Login = () => {
           <div className="card shadow-sm border-0 p-4 login-register">
             <h2 className="text-center fw-semibold mb-4">Iniciar sesión</h2>
 
-            {/* 👈 MENSAJE DE ÉXITO */}
             {exito && (
-              <div className="alert alert-success" role="alert">
-                {exito}
-              </div>
+              <div className="alert alert-success" role="alert">{exito}</div>
             )}
 
             {error && (
-              <div className="alert alert-danger" role="alert">
-                {error}
-              </div>
+              <div className="alert alert-danger" role="alert">{error}</div>
             )}
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label htmlFor="email" className="form-label">
-                  Email
-                </label>
+                <label htmlFor="email" className="form-label">Email</label>
                 <input
                   type="email"
                   className="form-control form-input fw-light"
@@ -67,9 +61,7 @@ export const Login = () => {
               </div>
 
               <div className="mb-3">
-                <label htmlFor="password" className="form-label">
-                  Contraseña
-                </label>
+                <label htmlFor="password" className="form-label">Contraseña</label>
                 <input
                   type="password"
                   className="form-control form-input fw-light"
@@ -81,19 +73,14 @@ export const Login = () => {
                 />
               </div>
 
-              <button
-                type="submit"
-                className="btn boton-primario w-100 py-2 fw-semibold"
-              >
+              <button type="submit" className="btn boton-primario w-100 py-2 fw-semibold">
                 INGRESAR
               </button>
             </form>
 
             <p className="text-center mt-4 mb-0">
               ¿Aún no tienes una cuenta?{" "}
-              <Link to="/registro" className="text-decoration-none">
-                Regístrate aquí
-              </Link>
+              <Link to="/registro" className="text-decoration-none">Regístrate aquí</Link>
             </p>
           </div>
         </div>
