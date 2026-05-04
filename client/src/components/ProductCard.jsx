@@ -1,6 +1,7 @@
 import { useCart } from "../context/CartContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useFavorites } from "../context/FavoritesContext";
+import { useUser } from "../context/UserContext"; //
 
 function ProductCard({
   id_libro,
@@ -13,13 +14,18 @@ function ProductCard({
 }) {
   const { agregarAlCarrito } = useCart();
   const { esFavorito, toggleFavorito } = useFavorites();
-
+  const { isAuthenticated } = useUser(); //
+  const navigate = useNavigate(); //
   const handleAgregar = (e) => {
-    e.preventDefault(); // 👈 Evita que navegue al Link
-    e.stopPropagation(); // 👈 Detiene la propagación del evento
+    e.preventDefault();
+    e.stopPropagation();
+    // 👈 VERIFICAR SI ESTÁ LOGUEADO
+    if (!isAuthenticated) {
+      navigate("/registro");
+      return;
+    }
     agregarAlCarrito({
       id_libro,
-
       imagen,
       titulo,
       autor,
@@ -28,8 +34,15 @@ function ProductCard({
   };
 
   const handleToggleFavorito = (e) => {
-    e.preventDefault(); // 👈 Evita que navegue al Link
-    e.stopPropagation(); // 👈 Detiene la propagación del evento
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 👈 VERIFICAR SI ESTÁ LOGUEADO
+    if (!isAuthenticated) {
+      navigate("/registro");
+      return;
+    }
+
     const libro = { id_libro, imagen, titulo, autor, precio };
     toggleFavorito(libro);
   };
@@ -66,7 +79,11 @@ function ProductCard({
 
       <Link to={`/libro/${id_libro}`} className="product-card-link">
         <div key={id_libro} className="product-card">
-          <img src={imagen} alt={titulo} class="card-image img-fluid mb-2" />
+          <img
+            src={imagen}
+            alt={titulo}
+            className="card-image img-fluid mb-2"
+          />
           <div className="card-body">
             <p className="autor-name-card">{autor}</p>
             <h5 className="card-title">{titulo}</h5>

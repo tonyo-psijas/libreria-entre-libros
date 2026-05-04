@@ -3,10 +3,17 @@ import { NavLink } from "react-router-dom";
 import logo from "../assets/images/entre-libros-logo.png";
 import { useFavorites } from "../context/FavoritesContext";
 import { useCart } from "../context/CartContext";
+import { useUser } from "../context/UserContext"; // 👈 AGREGAR
 
-export const NavbarComponent = ({ user }) => {
+export const NavbarComponent = () => {
+  // 👈 ELIMINAR prop 'user'
   const { totalFavoritos } = useFavorites();
   const { totalItems } = useCart();
+  const { user, logout, isAuthenticated } = useUser(); // 👈 AGREGAR
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <header>
@@ -52,7 +59,7 @@ export const NavbarComponent = ({ user }) => {
 
           {/* LOGIN / REGISTER DESKTOP */}
           <ul className="navbar-nav d-none d-md-flex flex-row align-items-center gap-3">
-            {!user ? (
+            {!isAuthenticated ? (
               <>
                 <li className="nav-item">
                   <NavLink to="/login" className="nav-link">
@@ -68,6 +75,26 @@ export const NavbarComponent = ({ user }) => {
               </>
             ) : (
               <>
+                {/* 👈 NOMBRE DEL USUARIO Y BOTÓN CERRAR SESIÓN */}
+                <li className="nav-item">
+                  <span className="nav-link user-greeting">
+                    Hola, {user?.nombre || user?.email?.split("@")[0]}
+                  </span>
+                </li>
+                <li className="nav-item">
+                  <button
+                    onClick={handleLogout}
+                    className="btn btn-link nav-link"
+                    style={{
+                      color: "#2B3528",
+                      cursor: "pointer",
+                      textDecoration: "none",
+                    }}
+                  >
+                    CERRAR SESIÓN
+                  </button>
+                </li>
+
                 <li className="nav-item">
                   <NavLink to="/perfil" className="nav-link boton-micuenta">
                     MI CUENTA <i className="fa-light fa-user fs-5"></i>
@@ -177,7 +204,7 @@ export const NavbarComponent = ({ user }) => {
 
           {/* LOGIN / REGISTER MOBILE */}
           <ul className="navbar-nav mb-3">
-            {!user ? (
+            {!isAuthenticated ? (
               <>
                 <li className="nav-item">
                   <NavLink to="/login" className="nav-link">
@@ -186,13 +213,36 @@ export const NavbarComponent = ({ user }) => {
                 </li>
 
                 <li className="nav-item">
-                  <NavLink to="/register" className="nav-link">
+                  <NavLink to="/registro" className="nav-link">
                     CREAR CUENTA
                   </NavLink>
                 </li>
               </>
             ) : (
               <>
+                {/* 👈 NOMBRE Y CERRAR SESIÓN EN MOBILE */}
+                <li className="nav-item">
+                  <span
+                    className="nav-link"
+                    style={{ color: "#F7B220", fontWeight: "500" }}
+                  >
+                    Hola, {user?.nombre || user?.email?.split("@")[0]}
+                  </span>
+                </li>
+                <li className="nav-item">
+                  <button
+                    onClick={handleLogout}
+                    className="btn btn-link nav-link"
+                    style={{
+                      color: "#2B3528",
+                      cursor: "pointer",
+                      textDecoration: "none",
+                    }}
+                  >
+                    CERRAR SESIÓN
+                  </button>
+                </li>
+
                 <li className="nav-item">
                   <NavLink to="/perfil" className="nav-link boton-micuenta">
                     MI CUENTA <i className="fa-light fa-user fs-5"></i>

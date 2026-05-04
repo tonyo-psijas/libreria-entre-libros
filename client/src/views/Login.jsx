@@ -1,22 +1,33 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [exito, setExito] = useState("");
   const navigate = useNavigate();
+  const { login } = useUser();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
+    setExito("");
 
     if (!email || !password) {
       setError("Por favor completa todos los campos");
       return;
     }
 
-    console.log("Iniciar sesión con:", { email, password });
+    // 👈 USAR EL LOGIN DEL CONTEXTO
+    login(email, password);
+
+    setExito("✅ ¡Has iniciado sesión correctamente! Redirigiendo...");
+
+    setTimeout(() => {
+      navigate("/");
+    }, 2000);
   };
 
   return (
@@ -25,6 +36,13 @@ export const Login = () => {
         <div className="col-12 col-md-6 col-lg-5">
           <div className="card shadow-sm border-0 p-4 login-register">
             <h2 className="text-center fw-semibold mb-4">Iniciar sesión</h2>
+
+            {/* 👈 MENSAJE DE ÉXITO */}
+            {exito && (
+              <div className="alert alert-success" role="alert">
+                {exito}
+              </div>
+            )}
 
             {error && (
               <div className="alert alert-danger" role="alert">

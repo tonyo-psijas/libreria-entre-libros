@@ -19,17 +19,10 @@ import { useCart } from "./context/CartContext";
 import ToastFavorito from "./components/ToastFavorito";
 import ToastCarrito from "./components/ToastCarrito";
 
-function App() {
-  const user = {
-    id: 1,
-    nombre: "María",
-    apellido: "González",
-    email: "maria.gonzalez@email.com",
-    telefono: "+56 9 1234 5678",
-    role: "admin",
-  };
+import { useUser } from "./context/UserContext";
 
-  // const user = null;
+function App() {
+  const { user, isAuthenticated, loading } = useUser();
 
   const favoritosContext = useFavorites();
   const cartContext = useCart();
@@ -39,46 +32,62 @@ function App() {
   const mensajeCarrito = cartContext.mensaje;
   const setMensajeCarrito = cartContext.setMensaje;
 
+  if (loading) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "100vh" }}
+      >
+        <div className="spinner-border text-success" role="status">
+          <span className="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-layout">
-      <NavbarComponent user={user} />
+      <NavbarComponent />
 
       <main>
         <Routes>
+          {/* 🟢 RUTAS PÚBLICAS (no requieren login) */}
           <Route path="/" element={<Home />} />
-
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
           <Route path="/libro/:id" element={<DetalleLibro />} />
+          <Route path="/libros" element={<Gallery />} />
+
+          {/* 🟡 RUTAS PROTEGIDAS (requieren login) */}
           <Route
             path="/favoritos"
-            element={user ? <Favoritos user={user} /> : <Navigate to={"/login"} />}
+            element={isAuthenticated ? <Favoritos /> : <Navigate to="/login" />}
           />
 
           <Route
             path="/perfil"
             element={
-              user ? <Profile user={user} /> : <Navigate to={"/login"} />
+              isAuthenticated ? (
+                <Profile user={user} />
+              ) : (
+                <Navigate to="/login" />
+              )
             }
           />
 
           <Route
             path="/carrito"
-            element={user ? <Carrito /> : <Navigate to={"/login"} />}
+            element={isAuthenticated ? <Carrito /> : <Navigate to="/login" />}
           />
 
-          <Route
-            path="/libros"
-            element={user ? <Gallery /> : <Navigate to={"/login"} />}
-          />
-
+          {/* 🔵 RUTA ADMIN (solo para administradores) */}
           <Route
             path="/catalogo"
             element={
-              user && user.role === "admin" ? (
+              isAuthenticated && user?.role === "admin" ? (
                 <Catalogo user={user} />
               ) : (
-                <Navigate to={"/login"} />
+                <Navigate to="/login" />
               )
             }
           />
