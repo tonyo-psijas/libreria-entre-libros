@@ -1,4 +1,4 @@
-const { pool } = require("../database/db");
+const pool = require("../database/db");
 
 const getGeneros = async () => {
   const { rows } = await pool.query(`

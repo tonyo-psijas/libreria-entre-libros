@@ -1,4 +1,4 @@
-const { pool } = require("../database/db");
+const pool = require("../database/db");
 
 // Obtener empresas de envío
 const getEmpresasEnvio = async () => {

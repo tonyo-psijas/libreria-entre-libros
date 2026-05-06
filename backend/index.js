@@ -1,7 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
+const { authMiddleware, verificarAdmin } = require("./middlewares/auth");
 const { getHealth } = require("./database/db.js");
+const { registrarCliente, loginCliente } = require("./consultas/clientes.js");
 const { obtenerOCrearEditorial } = require("./consultas/editoriales");
 const { obtenerOCrearAutor } = require("./consultas/autores.js");
 const { getGeneros, obtenerOCrearGenero } = require("./consultas/generos.js");
@@ -23,14 +26,14 @@ const {
   getPreventas
 } = require("./consultas/libros.js");
 const { 
-  getCarrito,
+  obtenerCarrito,
   agregarLibroCarrito,
   actualizarCantidadCarrito,
   eliminarLibroCarrito,
   vaciarCarrito
 } = require("./consultas/carrito.js");
 const {
-  getFavoritos,
+  obtenerFavoritos,
   agregarFavorito,
   eliminarFavorito,
 } = require("./consultas/favoritos.js");
@@ -64,6 +67,67 @@ const PORT = process.env.PORT || 3000;
 // Ruta de prueba del servidor
 api.get("/", (req, res) => {
   res.send("API libreria funcionando");
+});
+
+// Ruta POST para registrar clientes
+api.post("/clientes/register", async (req, res) => {
+  try {
+    const cliente = await registrarCliente(req.body);
+
+    const token = jwt.sign(
+      {
+        id_cliente: cliente.id_cliente,
+        email: cliente.email,
+        rol: cliente.rol
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.status(201).json({
+      message: "Cliente registrado correctamente",
+      cliente,
+      token
+    });
+  } catch (error) {
+    res.status(error.code || 500).json({
+      message: error.message
+    });
+  }
+});
+
+// Ruta POST para login de clientes
+api.post("/clientes/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const cliente = await loginCliente(email, password);
+
+    const token = jwt.sign(
+      {
+        id_cliente: cliente.id_cliente,
+        email: cliente.email,
+        rol: cliente.rol
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.json({
+      message: "Login exitoso",
+      cliente: {
+        id_cliente: cliente.id_cliente,
+        nombre: cliente.nombre,
+        email: cliente.email,
+        rol: cliente.rol
+      },
+      token
+    });
+  } catch (error) {
+    res.status(error.code || 500).json({
+      message: error.message
+    });
+  }
 });
 
 //Ruta Get para obtener todos los libros activos
@@ -221,7 +285,7 @@ api.get("/libros/:id", async (req, res) => {
 });
 
 // Ruta POST para crear un nuevo libro
-api.post("/libros", async (req, res) => {
+api.post("/libros",  async (req, res) => {
   console.log("POST /libros", req.body);
   try {
     const {
@@ -395,12 +459,12 @@ api.put("/libros/:id/desactivar", async (req, res) => {
 });
 
 // Ruta GET /carrito
-api.get("/carrito/:id_cliente", async (req, res) => {
+api.get("/carrito", authMiddleware, async (req, res) => {
   console.log("GET /carrito", req.params);
-  const { id_cliente } = req.params;
+  const id_cliente = req.user.id_cliente;
 
   try {
-    const carrito = await getCarrito(id_cliente);
+    const carrito = await obtenerCarrito(id_cliente);
 
     const total = carrito.reduce((acc, item) => acc + Number(item.subtotal), 0);
 
@@ -419,10 +483,13 @@ api.get("/carrito/:id_cliente", async (req, res) => {
 });
 
 // Ruta POST /carrito (agregar libro al carrito)
-api.post("/carrito/:id_cliente/libros", async (req, res) => {
-  console.log("POST /carrito/:id_cliente/libros", req.params, req.body);
-  const { id_cliente } = req.params;
+api.post("/carrito", authMiddleware, async (req, res) => {
+
+
+  //console.log("POST /carrito", req.body);
   const { id_libro, cantidad = 1 } = req.body;
+  const  id_cliente  = req.user.id_cliente;
+
 
   try {
     if (!id_libro) {
@@ -444,18 +511,19 @@ api.post("/carrito/:id_cliente/libros", async (req, res) => {
       data: item,
     });
   } catch (error) {
-    console.error("❌ Error en POST /carrito:", error);
-    res.status(error.code || 500).json({
-    error: error.code,
+    console.error("Error POST /carrito:", error);
+    
+    res.status(Number.isInteger(error.code) ? error.code : 500).json({
     message: error.message,
   });
   }
 });
 
 // Ruta PUT /carrito (actualizar cantidad de un libro en el carrito)
-api.put("/carrito/:id_cliente/libros/:id_libro", async (req, res) => {
+api.put("/carrito/:id_libro", authMiddleware, async (req, res) => {
   console.log("PUT /carrito/:id_cliente/libros/:id_libro", req.params, req.body);
-  const { id_cliente, id_libro } = req.params;
+  const id_cliente = req.user.id_cliente;
+  const { id_libro } = req.params;
   const { cantidad } = req.body;
 
   try {
@@ -471,20 +539,15 @@ api.put("/carrito/:id_cliente/libros/:id_libro", async (req, res) => {
       cantidad,
     );
 
-    if (!item) {
-      return res.status(404).json({
-        message: "Libro no encontrado en el carrito",
-      });
-    }
-
     res.json({
       message:
         cantidad <= 0 ? "Libro eliminado del carrito" : "Cantidad actualizada",
       data: item,
     });
+
   } catch (error) {
-    console.error("❌ Error en PUT /carrito:", error);
-    res.status(error.code || 500).json({
+    const statusCode = typeof error.code === "number" ? error.code : 500;
+    res.status(statusCode).json({
     error: error.code,
     message: error.message,
   });
@@ -492,9 +555,10 @@ api.put("/carrito/:id_cliente/libros/:id_libro", async (req, res) => {
 });
 
 // Ruta DELETE /carrito (eliminar un libro del carrito)
-api.delete("/carrito/:id_cliente/libros/:id_libro", async (req, res) => {
+api.delete("/carrito/:id_libro", authMiddleware, async (req, res) => {
   console.log("DELETE /carrito/:id_cliente/libros/:id_libro", req.params);
-  const { id_cliente, id_libro } = req.params;
+  const id_cliente = req.user.id_cliente;
+  const { id_libro } = req.params;
 
   try {
     const item = await eliminarLibroCarrito(id_cliente, id_libro);
@@ -509,9 +573,10 @@ api.delete("/carrito/:id_cliente/libros/:id_libro", async (req, res) => {
       message: "Libro eliminado del carrito",
       data: item,
     });
+
   } catch (error) {
-    console.error("❌ Error en DELETE /carrito/libro:", error);
-    res.status(error.code || 500).json({
+    const statusCode = typeof error.code === "number" ? error.code : 500;
+    res.status(statusCode).json({
       error: error.code,
       message: error.message,
     });
@@ -519,9 +584,9 @@ api.delete("/carrito/:id_cliente/libros/:id_libro", async (req, res) => {
 });
 
 // Ruta DELETE /carrito (vaciar carrito completo) o hacer pedido
-api.delete("/carrito/:id_cliente", async (req, res) => {
-  console.log("DELETE /carrito/:id_cliente", req.params);
-  const { id_cliente } = req.params;
+api.delete("/carrito", authMiddleware, async (req, res) => {
+  console.log("DELETE /carrito", req.params);
+  const id_cliente = req.user.id_cliente;
 
   try {
     await vaciarCarrito(id_cliente);
@@ -530,21 +595,21 @@ api.delete("/carrito/:id_cliente", async (req, res) => {
       message: "Carrito vaciado correctamente",
     });
   } catch (error) {
-    console.error("❌ Error en DELETE /carrito:", error);
-    res.status(500).json({
+    const statusCode = typeof error.code === "number" ? error.code : 500;
+    res.status(statusCode).json({
       error: error.code,
       message: error.message,
     });
   }
 });
 
-// ruta GET /favoritos/:id_cliente (obtener lista de favoritos)
-api.get("/favoritos/:id_cliente", async (req, res) => {
-  const { id_cliente } = req.params;
-  console.log("GET /favoritos/:id_cliente", req.params);
+// ruta GET /favoritos (obtener lista de favoritos)
+api.get("/favoritos", authMiddleware, async (req, res) => {
+  const id_cliente = req.user.id_cliente;
+  console.log("GET /favoritos", req.params);
 
   try {
-    const favoritos = await getFavoritos(id_cliente);
+    const favoritos = await obtenerFavoritos(id_cliente);
 
     res.json({
       cantidad: favoritos.length,
@@ -560,10 +625,10 @@ api.get("/favoritos/:id_cliente", async (req, res) => {
   }
 });
 
-// ruta POST /favoritos/:id_cliente (agregar libro a favoritos)
-api.post("/favoritos/:id_cliente", async (req, res) => {
-  console.log("POST /favoritos/:id_cliente", req.params, req.body);
-  const { id_cliente } = req.params;
+// ruta POST /favoritos/ (agregar libro a favoritos)
+api.post("/favoritos", authMiddleware, async (req, res) => {
+  console.log("POST /favoritos", req.params, req.body);
+  const id_cliente = req.user.id_cliente;
   const { id_libro } = req.body;
 
   try {
@@ -595,28 +660,11 @@ api.post("/favoritos/:id_cliente", async (req, res) => {
   }
 });
 
-// Ruta GET /preventas
-api.get("/preventas", async (req, res) => {
-  try {
-    const preventas = await getPreventas();
-
-    res.json({
-      cantidad: preventas.length,
-      data: preventas,
-    });
-  } catch (error) {
-    console.error("❌ Error en GET /preventas:", error);
-    res.status(500).json({
-      error: error.code,
-      message: error.message,
-    });
-  }
-});
-
-// ruta DELETE /favoritos/:id_cliente/:id_libro (eliminar libro de favoritos)
-api.delete("/favoritos/:id_cliente/:id_libro", async (req, res) => {
-  console.log("DELETE /favoritos/:id_cliente/:id_libro", req.params);
-  const { id_cliente, id_libro } = req.params;
+// ruta DELETE /favoritos (eliminar libro de favoritos)
+api.delete("/favoritos", authMiddleware, async (req, res) => {
+  console.log("DELETE /favoritos", req.params);
+  const id_cliente = req.user.id_cliente;
+  const { id_libro } = req.body;
 
   try {
     const favorito = await eliminarFavorito(id_cliente, id_libro);
@@ -659,11 +707,29 @@ api.get("/generos", async (req, res) => {
   }
 });
 
+// Ruta GET /preventas
+api.get("/preventas", async (req, res) => {
+  try {
+    const preventas = await getPreventas();
+
+    res.json({
+      cantidad: preventas.length,
+      data: preventas,
+    });
+  } catch (error) {
+    console.error("❌ Error en GET /preventas:", error);
+    res.status(500).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
+
 // Ruta GET direcciones de un cliente
-api.get("/direcciones/:id_cliente", async (req, res) => {
+api.get("/direcciones", authMiddleware, async (req, res) => {
   console.log("GET /direcciones/:id_cliente", req.params);
 
-  const { id_cliente } = req.params;
+  const id_cliente = req.user.id_cliente;
 
   try {
     const direcciones = await getDireccionesCliente(id_cliente);
@@ -683,13 +749,13 @@ api.get("/direcciones/:id_cliente", async (req, res) => {
 });
 
 // Ruta POST crear dirección
-api.post("/direcciones/:id_cliente", async (req, res) => {
-  console.log("POST /direcciones/:id_cliente", {
+api.post("/direcciones", authMiddleware, async (req, res) => {
+  console.log("POST /direcciones", {
     params: req.params,
     body: req.body,
   });
 
-  const { id_cliente } = req.params;
+  const id_cliente = req.user.id_cliente;
 
   try {
     const {
@@ -725,7 +791,7 @@ api.post("/direcciones/:id_cliente", async (req, res) => {
 });
 
 // Ruta PUT actualizar dirección
-api.put("/direcciones/:id_direccion", async (req, res) => {
+api.put("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
   console.log("PUT /direcciones/:id_direccion", {
     params: req.params,
     body: req.body,
@@ -757,7 +823,7 @@ api.put("/direcciones/:id_direccion", async (req, res) => {
 });
 
 // Ruta DELETE eliminar dirección
-api.delete("/direcciones/:id_direccion", async (req, res) => {
+api.delete("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
   console.log("DELETE /direcciones/:id_direccion", req.params);
 
   const { id_direccion } = req.params;
@@ -838,7 +904,7 @@ api.post("/empresas-envio", async (req, res) => {
   }
 });
 
-api.post("/pedidos/:id_cliente", async (req, res) => {
+api.post("/pedidos/:id_cliente", authMiddleware, async (req, res) => {
   console.log("POST /pedidos/:id_cliente", {
     params: req.params,
     body: req.body,
@@ -923,6 +989,7 @@ api.get("/pedidos/detalle/:id_pedido", async (req, res) => {
     });
   }
 });
+
 
 api.listen(PORT, () => {
   console.log(`Servidor en http://localhost:${PORT}`);

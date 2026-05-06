@@ -1,4 +1,4 @@
-const { pool } = require("../database/db");
+const pool = require("../database/db");
 
 // Obtener direcciones de un cliente
 const getDireccionesCliente = async (id_cliente) => {

@@ -1,4 +1,4 @@
-const { pool } = require("../database/db");
+const pool = require("../database/db");
 
 // Obtener o crear carrito del cliente
 const obtenerOCrearCarrito = async (id_cliente) => {
@@ -22,7 +22,7 @@ const obtenerOCrearCarrito = async (id_cliente) => {
 };
 
 // Ver carrito del cliente
-const getCarrito = async (id_cliente) => {
+const obtenerCarrito = async (id_cliente) => {
     const { rows } = await pool.query(`
         SELECT 
             cd.id_carrito_detalle,
@@ -127,6 +127,13 @@ const actualizarCantidadCarrito = async (id_cliente, id_libro, cantidad) => {
             RETURNING *
         `, [id_carrito, id_libro]);
 
+     if (result.rows.length === 0) {
+    throw {
+      code: 404,
+      message: "Libro no encontrado en el carrito"
+    };
+  }
+  
         return result.rows[0];
     }
 
@@ -138,6 +145,13 @@ const actualizarCantidadCarrito = async (id_cliente, id_libro, cantidad) => {
         WHERE id_carrito = $2 AND id_libro = $3
         RETURNING *
     `, [cantidad, id_carrito, id_libro]);
+    
+    if (rows.length === 0) {
+        throw {
+            code: 404,
+            message: "Libro no encontrado en el carrito"
+        };
+    }
 
     return rows[0];
 };
@@ -152,6 +166,12 @@ const eliminarLibroCarrito = async (id_cliente, id_libro) => {
         RETURNING *
     `, [id_carrito, id_libro]);
 
+    if (rows.length === 0) {
+  throw {
+    code: 404,
+    message: "Libro no encontrado en el carrito"
+  };
+}
     return rows[0];
 };
 
@@ -169,7 +189,7 @@ const vaciarCarrito = async (id_cliente) => {
 
 module.exports = {
     obtenerOCrearCarrito,
-    getCarrito,
+    obtenerCarrito,
     validarStockLibro,
     agregarLibroCarrito,
     actualizarCantidadCarrito,

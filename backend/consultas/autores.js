@@ -1,4 +1,4 @@
-const { pool } = require("../database/db");
+const pool = require("../database/db");
 
 const obtenerOCrearAutor = async (nombre) => {
     const { rows } = await pool.query(`

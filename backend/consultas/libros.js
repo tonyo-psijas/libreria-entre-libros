@@ -1,6 +1,4 @@
-// consultas/libros.js
-
-const { pool } = require("../database/db");
+const pool = require("../database/db");
 
 // RUTA GET /libros
 const getLibros = async () => {

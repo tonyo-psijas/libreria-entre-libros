@@ -1,4 +1,4 @@
-const { pool } = require("../database/db");
+const pool = require("../database/db");
 
 const obtenerOCrearEditorial = async (nombre) => {
     if (!nombre) return null;

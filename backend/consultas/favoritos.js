@@ -1,7 +1,7 @@
-const { pool } = require("../database/db");
+const pool = require("../database/db");
 
 // Obtener lista de favoritos
-const getFavoritos = async (id_cliente) => {
+const obtenerFavoritos = async (id_cliente) => {
     const { rows } = await pool.query(`
         SELECT
             l.id_libro,
@@ -46,7 +46,7 @@ const eliminarFavorito = async (id_cliente, id_libro) => {
 };
 
 module.exports = {
-    getFavoritos,
+    obtenerFavoritos,
     agregarFavorito,
     eliminarFavorito
 };

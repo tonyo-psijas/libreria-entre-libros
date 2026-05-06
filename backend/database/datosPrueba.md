@@ -50,3 +50,11 @@ INSERT INTO libro_autor (id_libro, id_autor) VALUES
 (9, 9),
 (10, 10);
 
+
+{
+  "nombre": "Orlando",
+  "email": "orlando2@test.com",
+  "password": "123456"
+}
+
+token de prueba:  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF9jbGllbnRlIjozLCJlbWFpbCI6Im9ybGFuZG8yQHRlc3QuY29tIiwicm9sIjoiY2xpZW50ZSIsImlhdCI6MTc3ODAyNzU0OCwiZXhwIjoxNzc4MDMxMTQ4fQ.HTovTHsZrwMj2XoyLtnfVHMPuzp_YOZy00Jsj_hNCRk

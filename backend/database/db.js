@@ -16,4 +16,5 @@ const getHealth = async () => {
     }
 };
 
-module.exports = { pool, getHealth };
+module.exports =  pool 
+module.exports.getHealth = getHealth 
