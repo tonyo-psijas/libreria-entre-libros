@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 export const HeroComponent = () => {
     return (
@@ -13,9 +14,13 @@ export const HeroComponent = () => {
                         Encuentra las mejores ofertas en nuestra tienda virtual.
                         Ofertas válidas hasta el 30 de Junio.
                     </p>
-                    <button className='btn boton-agregar boton-primario'>
-                        VER OFERTAS <i className="fa-regular fa-chevron-right"></i>
-                    </button>
+
+                    <Link to="/promociones">
+                        <button className='btn boton-agregar boton-primario mt-3'>
+                            VER OFERTAS <i className="fa-regular fa-chevron-right"></i>
+                        </button>
+                    </Link>
+                    
                 </div>
                     
                 

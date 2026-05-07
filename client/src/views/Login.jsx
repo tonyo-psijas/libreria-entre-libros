@@ -5,19 +5,16 @@ export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [exito, setExito] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setExito("");
 
     if (!email || !password) {
-      setError("Por favor completa todos los campos");
-      return;
-    }
-
-    if (!email || !password) {
-      setError("Por favor completa todos los campos");
+      setError("Por favor completa todos los campos.");
       return;
     }
 
@@ -37,10 +34,15 @@ export const Login = () => {
         return;
       }
 
-      // Guardar el token en el localStorage
+      // Guardar token y cliente
       localStorage.setItem("token", data.token);
       localStorage.setItem("cliente", JSON.stringify(data.cliente));
-      navigate("/");
+
+      setExito("✅ ¡Has iniciado sesión correctamente! Redirigiendo...");
+
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
 
     } catch (error) {
       console.error("❌ Error en login:", error);
@@ -54,6 +56,12 @@ export const Login = () => {
         <div className="col-12 col-md-6 col-lg-5">
           <div className="card shadow-sm border-0 p-4 login-register">
             <h2 className="text-center fw-semibold mb-4">Iniciar sesión</h2>
+
+            {exito && (
+              <div className="alert alert-success" role="alert">
+                {exito}
+              </div>
+            )}
 
             {error && (
               <div className="alert alert-danger" role="alert">

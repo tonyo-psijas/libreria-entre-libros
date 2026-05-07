@@ -1,8 +1,20 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import logo from "../assets/images/entre-libros-logo.png";
+import { useFavorites } from "../context/FavoritesContext";
+import { useCart } from "../context/CartContext";
+import { useUser } from "../context/UserContext"; // 👈 AGREGAR
 
-export const NavbarComponent = ({ user }) => {
+export const NavbarComponent = () => {
+  // 👈 ELIMINAR prop 'user'
+  const { totalFavoritos } = useFavorites();
+  const { totalItems } = useCart();
+  const { user, logout, isAuthenticated } = useUser(); // 👈 AGREGAR
+
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <header>
       {/* NAVBAR SUPERIOR */}
@@ -47,7 +59,7 @@ export const NavbarComponent = ({ user }) => {
 
           {/* LOGIN / REGISTER DESKTOP */}
           <ul className="navbar-nav d-none d-md-flex flex-row align-items-center gap-3">
-            {!user ? (
+            {!isAuthenticated ? (
               <>
                 <li className="nav-item">
                   <NavLink to="/login" className="nav-link">
@@ -63,6 +75,26 @@ export const NavbarComponent = ({ user }) => {
               </>
             ) : (
               <>
+                {/* 👈 NOMBRE DEL USUARIO Y BOTÓN CERRAR SESIÓN */}
+                <li className="nav-item">
+                  <span className="nav-link user-greeting">
+                    Hola, {user?.nombre || user?.email?.split("@")[0]}
+                  </span>
+                </li>
+                <li className="nav-item">
+                  <button
+                    onClick={handleLogout}
+                    className="btn btn-link nav-link"
+                    style={{
+                      color: "#2B3528",
+                      cursor: "pointer",
+                      textDecoration: "none",
+                    }}
+                  >
+                    CERRAR SESIÓN
+                  </button>
+                </li>
+
                 <li className="nav-item">
                   <NavLink to="/perfil" className="nav-link boton-micuenta">
                     MI CUENTA <i className="fa-light fa-user fs-5"></i>
@@ -73,15 +105,27 @@ export const NavbarComponent = ({ user }) => {
                   <li className="nav-item">
                     <NavLink
                       to="/favoritos"
-                      className="nav-link boton-favoritos"
+                      className="nav-link boton-favoritos position-relative"
                     >
                       <i className="fa-sharp fa-light fa-heart fs-5"></i>
+                      {totalFavoritos > 0 && (
+                        <span className="favoritos-badge">
+                          {totalFavoritos}
+                        </span>
+                      )}
                     </NavLink>
                   </li>
 
                   <li className="nav-item">
-                    <NavLink to="/carrito" className="nav-link boton-carrito">
+                    <NavLink
+                      to="/carrito"
+                      className="nav-link boton-carrito position-relative"
+                    >
+                      {" "}
                       <i className="fa-light fa-basket-shopping fs-5"></i>
+                      {totalItems > 0 && (
+                        <span className="carrito-badge">{totalItems}</span>
+                      )}
                     </NavLink>
                   </li>
                 </ul>
@@ -110,7 +154,7 @@ export const NavbarComponent = ({ user }) => {
             </li>
 
             <li className="nav-item">
-              <NavLink to="/comics-mangas" className="nav-link">
+              <NavLink to="/comics-&-mangas" className="nav-link">
                 Comics & Mangas
               </NavLink>
             </li>
@@ -160,7 +204,7 @@ export const NavbarComponent = ({ user }) => {
 
           {/* LOGIN / REGISTER MOBILE */}
           <ul className="navbar-nav mb-3">
-            {!user ? (
+            {!isAuthenticated ? (
               <>
                 <li className="nav-item">
                   <NavLink to="/login" className="nav-link">
@@ -169,13 +213,36 @@ export const NavbarComponent = ({ user }) => {
                 </li>
 
                 <li className="nav-item">
-                  <NavLink to="/register" className="nav-link">
+                  <NavLink to="/registro" className="nav-link">
                     CREAR CUENTA
                   </NavLink>
                 </li>
               </>
             ) : (
               <>
+                {/* 👈 NOMBRE Y CERRAR SESIÓN EN MOBILE */}
+                <li className="nav-item">
+                  <span
+                    className="nav-link"
+                    style={{ color: "#F7B220", fontWeight: "500" }}
+                  >
+                    Hola, {user?.nombre || user?.email?.split("@")[0]}
+                  </span>
+                </li>
+                <li className="nav-item">
+                  <button
+                    onClick={handleLogout}
+                    className="btn btn-link nav-link"
+                    style={{
+                      color: "#2B3528",
+                      cursor: "pointer",
+                      textDecoration: "none",
+                    }}
+                  >
+                    CERRAR SESIÓN
+                  </button>
+                </li>
+
                 <li className="nav-item">
                   <NavLink to="/perfil" className="nav-link boton-micuenta">
                     MI CUENTA <i className="fa-light fa-user fs-5"></i>
@@ -185,13 +252,28 @@ export const NavbarComponent = ({ user }) => {
                 <li className="nav-item">
                   <NavLink to="/favoritos" className="nav-link boton-favoritos">
                     FAVORITOS{" "}
-                    <i className="fa-sharp fa-light fa-heart fs-5"></i>
+                    <i className="fa-sharp fa-light fa-heart fs-5 position-relative">
+                      {" "}
+                      {totalFavoritos > 0 && (
+                        <span className="favoritos-badge-mobile">
+                          {totalFavoritos}
+                        </span>
+                      )}
+                    </i>
                   </NavLink>
                 </li>
 
                 <li className="nav-item">
                   <NavLink to="/carrito" className="nav-link boton-carrito">
-                    CARRITO <i className="fa-light fa-basket-shopping fs-5"></i>
+                    CARRITO{" "}
+                    <i className="fa-light fa-basket-shopping fs-5 position-relative">
+                      {" "}
+                      {totalItems > 0 && (
+                        <span className="carrito-badge-mobile">
+                          {totalItems}
+                        </span>
+                      )}
+                    </i>
                   </NavLink>
                 </li>
               </>
@@ -215,7 +297,7 @@ export const NavbarComponent = ({ user }) => {
             </li>
 
             <li className="nav-item">
-              <NavLink to="/comics-mangas" className="nav-link">
+              <NavLink to="/comics-&-mangas" className="nav-link">
                 Comics & Mangas
               </NavLink>
             </li>

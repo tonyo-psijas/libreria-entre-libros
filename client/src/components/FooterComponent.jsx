@@ -101,11 +101,11 @@ export const FooterComponent = () => {
 
         </div>
 
-        <br />
+      </div>
+
+      <br />
         <hr className='divider'/>
         <p className='text-center text-secondary fw-light mt-2'>Todos los derechos reservados © 2026</p>
-
-      </div>
   
     </footer>
   )

@@ -32,7 +32,8 @@ export const authMock = {
             apellido: "Psijas",
             email: "antonio@email.com",
             telefono: "+56 9 5500 2985",
-            rol: "admin",
+            role: "admin",
+            password: "antonio1234"
         },
         {
             id_cliente: 2,
@@ -40,7 +41,8 @@ export const authMock = {
             apellido: "González",
             email: "maria.gonzalez@email.com",
             telefono: "+56 9 1234 5678",
-            rol: "cliente",
+            role: "cliente",
+            password: "maria1234"
         },
     ],
     message: "Cliente actualizado"
@@ -320,6 +322,202 @@ export const authMock = {
         imagen: "https://www.penguinlibros.com/cl/1780237/el-extranjero.jpg"
       },
 
+      {
+        id_libro: 11,
+        titulo: "Meridiano de Sangre",
+        descripcion: "Las autoridades mexicanas y del estado de Texas organizan una expedición paramilitar para acabar con el mayor número posible de indios. Es el Grupo Glanton, y tienen como líder espiritual al juez Holden, un ser violento y cruel. Nunca duerme, y afirma que nunca morirá. Todo cambia cuando los carniceros de Glanton dejan de asesinar indios y empiezan a exterminar a los mexicanos que les pagan. Se instaura así la ley de la selva, el terreno moral donde la figura del juez se convierte en una especie de dios arbitrario.",
+        precio: 14800,
+        stock: 25,
+        editorial: "Penguin Random House",
+        descuento: false,
+        autores: [
+            {
+                id_autor: 10,
+                nombre: "Cormac McCarthy"
+            },
+        ],
+        generos: [
+            {
+                id_genero: 8,
+                nombre: "Clásicos Universales"
+            }
+        ],
+        imagen: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1686647017i/2817961.jpg"
+      },
+
+      {
+        id_libro: 12,
+        titulo: "Juego de Tronos",
+        descripcion: "En un mundo diferente al nuestro, en el que los veranos y los inviernos duran generaciones, un gran conflicto está a punto de estallar. Robert Baratheon ocupa el Trono de Hierro en el cálido y opulento sur de Poniente. Se lo arrebató tras una sangrienta guerra al último rey loco de la dinastía Targaryen, señores de dragones. Sin embargo, ahora su poder se ve amenazado: en el norte, el Muro erigido para proteger el reino de las bestias y de los extraños se tambalea. Hace siglos que nadie ve a los caminantes blancos, pero ¿quiénes son entonces esos seres de ojos azules y fríos que se ocultan en las sombras de los bosques y que les arrebatan la vida y la mente a aquellos desafortunados que se cruzan en su camino? El final del verano está próximo, se acerca el invierno y solo un milagro podrá disipar las tinieblas.",
+        precio: 24990,
+        stock: 42,
+        editorial: "Plaza & Janés",
+        descuento: false,
+        autores: [
+            {
+                id_autor: 7,
+                nombre: "George R. R. Martin"
+            },
+        ],
+        generos: [
+            {
+                id_genero: 1,
+                nombre: "Fantasía"
+            }
+        ],
+        imagen: "https://static.wikia.nocookie.net/hieloyfuego/images/2/21/Juego_de_Tronos_portada_Plaza_Janes.jpg"
+      },
+
+      {
+        id_libro: 13,
+        titulo: "Persépolis",
+        descripcion: "Persépolis nos cuenta la revolución islámica iraní vista desde los ojos de una niña que asiste atónita al cambio profundo que experimentan su país y su familia, mientras ella debe aprender a llevar el velo. Intensamente personal y profundamente político, el relato autobiográfico de Marjane Satrapi examina qué significa crecer en un ambiente de guerra y represión política.",
+        precio: 24500,
+        stock: 7,
+        editorial: "Reservoir Books",
+        descuento: false,
+        autores: [
+            {
+                id_autor: 14,
+                nombre: "Marjane Satrapi"
+            },
+        ],
+        generos: [
+            {
+                id_genero: 14,
+                nombre: "Comics & Mangas"
+            }
+        ],
+        imagen: "https://www.penguinlibros.com/cl/50069/persepolis.jpg"
+      },
+
+      {
+        id_libro: 14,
+        titulo: "Watchmen",
+        descripcion: "El asesinato de un antiguo superhéroe y la posterior investigación del crimen no son más que el comienzo de uno de los cómics más aclamados de la historia, uno donde el mundo se aproxima a una catástrofe nuclear mientras sus defensores se ven obligados a resurgir de sus cenizas. Sin embargo, ¿quiénes son esos personajes? ¿Cuál fue la auténtica historia de sus predecesores, los Minutemen? ¿Cómo fue la relación entre Espectro de Seda y su madre? ¿Qué tuvo que ver el Comediante con los Kennedy?",
+        precio: 30000,
+        stock: 13,
+        editorial: "DC Comics",
+        descuento: false,
+        autores: [
+            {
+              id_autor: 15,
+              nombre: "Alan Moore"
+            },
+            {
+              id_autor: 16,
+              nombre: "Dave Gibbons"
+            }
+        ],
+        generos: [
+            {
+                id_genero: 14,
+                nombre: "Comics & Mangas"
+            }
+        ],
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/6/65/Watchmen-cover.svg"
+      },
+
+      {
+        id_libro: 15,
+        titulo: "El Incal",
+        descripcion: "Esta es la epopeya de John Difool, un detective de poca monta que al recibir un extraño objeto debe enfrentarse, sin habérselo propuesto, a los altos poderes del cosmos. Mientras, irrumpen varias rebeliones a la vez en el imperio galáctico; siembran el caos, así como la caída y el renacimiento de múltiples poderes y contrapoderes. Difool deberá viajar, junto a la abigarrada compañía metafísica que forman su pájaro Deepo y otros cinco elegidos, por el magistral universo futurista creado por Jodorowsky y Moebius.",
+        precio: 30990,
+        stock: 3,
+        editorial: "Integral",
+        descuento: false,
+        autores: [
+            {
+              id_autor: 17,
+              nombre: "Alejandro Jodorowsky"
+            },
+            {
+              id_autor: 18,
+              nombre: "Moebius"
+            }
+        ],
+        generos: [
+            {
+                id_genero: 14,
+                nombre: "Comics & Mangas"
+            }
+        ],
+        imagen: "https://www.tiposinfames.com/media/img/portadas/9788416709298.jpg"
+      },
+
+      {
+        id_libro: 16,
+        titulo: "Uzumaki",
+        descripcion: "De la mano de Junji ito, Uzumaki en su versión integral, se narra la historia del pueblo Kurouzu, el cual está rodeado por la niebla en la costa de Japón, está maldito. Según Shûichi Saitô, el novio de la joven Kirie Goshima, su hogar está encantado, no por una persona, sino por un patrón: UZUMAKI, la espiral, el secreto hipnótico que da forma al mundo.",
+        precio: 28500,
+        stock: 9,
+        editorial: "Planeta",
+        descuento: false,
+        autores: [
+            {
+              id_autor: 19,
+              nombre: "Junji Ito"
+            }
+        ],
+        generos: [
+            {
+                id_genero: 14,
+                nombre: "Comics & Mangas"
+            }
+        ],
+        imagen: "https://cdnx.jumpseller.com/shazam-online/image/14590402/portada___201706011613.jpg"
+      },
+
+      {
+        id_libro: 17,
+        titulo: "All-Star Superman",
+        descripcion: "Con la premisa de Superman muriéndose a causa de una sobrecarga masiva de energía solar, Grant Morrison (El Asco) y Frank Quitely (El Multiverso) narran a lo largo de este volumen las últimas semanas del Hombre de Acero. Durante este tiempo, Superman se enfrentará a dos supervivientes de Krypton, a amenazas alienígenas y, por supuesto, a Lex Luthor en una última batalla por la supervivivencia de la Tierra. Y todo esto mientras, como Clark Kent, intenta poner en orden su propia vida privada ante su inminente e irremediable muerte.",
+        precio: 26690,
+        stock: 14,
+        editorial: "DC Comics",
+        descuento: false,
+        autores: [
+            {
+              id_autor: 20,
+              nombre: "Grant Morrison"
+            },
+            {
+              id_autor: 21,
+              nombre: "Frank Quitely"
+            }
+        ],
+        generos: [
+            {
+                id_genero: 14,
+                nombre: "Comics & Mangas"
+            }
+        ],
+        imagen: "https://content.eccediciones.com/productos/33142/Cubierta_AllStar_Superman.jpg"
+      },
+
+      {
+        id_libro: 18,
+        titulo: "Nijigahara Holograph",
+        descripcion: "Once años atrás, un misterioso rumor comenzaba a difundirse entre los chicos de un pueblo: en el túnel de Nijigahara habita un monstruo capaz de destruir el mundo. Convencidos de que tenían que acabar con esto, se la agarran con Arie Kimura, una compañera de primaria. Es así como le echan la culpa por la maldición que los asolaba, y deciden entregársela a la supuesta criatura a modo de sacrificio. En el presente, el destino de esos chicos sigue conectado. Una sucesión de eventos los reúne poco a poco, dando lugar a una serie de crudas experiencias que entremezclan recuerdos con alucinaciones. Con constantes idas y vueltas entre pasado y presente, la historia deja lugar para asesinatos, violaciones, suicidios, mutilaciones y otras joyitas. Y todo esto en el medio de una plaga de mariposas que, de alguna manera, parece estar conectada con los hechos.",
+        precio: 16400,
+        stock: 19,
+        editorial: "Milky Way Ediciones",
+        descuento: false,
+        autores: [
+            {
+              id_autor: 22,
+              nombre: "Inio Asano"
+            }
+        ],
+        generos: [
+            {
+                id_genero: 14,
+                nombre: "Comics & Mangas"
+            }
+        ],
+        imagen: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1501900060i/17306314.jpg"
+      },
+
     ].map(libro => ({
         ...libro,
         precio_original: libro.precio,
@@ -382,6 +580,42 @@ export const authMock = {
       {
         id_autor: 13,
         nombre: "Edgar Allan Poe"
+      },
+      {
+        id_autor: 14,
+        nombre: "Marjane Satrapi"
+      },
+      {
+        id_autor: 15,
+        nombre: "Alan Moore"
+      },
+      {
+        id_autor: 16,
+        nombre: "Dave Gibbons"
+      },
+      {
+        id_autor: 17,
+        nombre: "Alejandro Jodorowsky"
+      },
+      {
+        id_autor: 18,
+        nombre: "Moebius"
+      },
+      {
+        id_autor: 19,
+        nombre: "Junji Ito"
+      },
+      {
+        id_autor: 20,
+        nombre: "Grant Morrison"
+      },
+      {
+        id_autor: 21,
+        nombre: "Frank Quitely"
+      },
+      {
+        id_autor: 22,
+        nombre: "Inio Asano"
       }
     ]
   };

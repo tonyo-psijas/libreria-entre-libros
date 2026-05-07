@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { librosMock } from '../mock_data/mockData'
 import { ProfileNavComponent } from '../components/ProfileNav'
 
-export const Catalogo = ({ user }) => {
+export const Catalogo = () => {
 
     const librosPorPagina = 6
     const [paginaActual, setPaginaActual] = useState(1)
@@ -31,7 +31,7 @@ export const Catalogo = ({ user }) => {
                 <div className="col-12 col-md-3">
 
                     {/* Navegación del perfil */}
-                    <ProfileNavComponent user={user}/>
+                    <ProfileNavComponent />
                 </div>
 
                 {/* CONTENIDO PRINCIPAL */}
