@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useUser } from "../context/UserContext";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
@@ -8,9 +7,8 @@ export const Login = () => {
   const [error, setError] = useState("");
   const [exito, setExito] = useState("");
   const navigate = useNavigate();
-  const { login } = useUser();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setExito("");
@@ -20,15 +18,36 @@ export const Login = () => {
       return;
     }
 
-    const resultado = login(email, password);
+    try {
+      const response = await fetch("http://localhost:3000/clientes/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!resultado.ok) {
-      setError(resultado.mensaje);
-      return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Error al iniciar sesión");
+        return;
+      }
+
+      // Guardar token y cliente
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("cliente", JSON.stringify(data.cliente));
+
+      setExito("✅ ¡Has iniciado sesión correctamente! Redirigiendo...");
+
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
+
+    } catch (error) {
+      console.error("❌ Error en login:", error);
+      setError("Error al iniciar sesión");
     }
-
-    setExito("✅ ¡Has iniciado sesión correctamente! Redirigiendo...");
-    setTimeout(() => navigate("/"), 1500);
   };
 
   return (
@@ -39,16 +58,22 @@ export const Login = () => {
             <h2 className="text-center fw-semibold mb-4">Iniciar sesión</h2>
 
             {exito && (
-              <div className="alert alert-success" role="alert">{exito}</div>
+              <div className="alert alert-success" role="alert">
+                {exito}
+              </div>
             )}
 
             {error && (
-              <div className="alert alert-danger" role="alert">{error}</div>
+              <div className="alert alert-danger" role="alert">
+                {error}
+              </div>
             )}
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label htmlFor="email" className="form-label">Email</label>
+                <label htmlFor="email" className="form-label">
+                  Email
+                </label>
                 <input
                   type="email"
                   className="form-control form-input fw-light"
@@ -61,7 +86,9 @@ export const Login = () => {
               </div>
 
               <div className="mb-3">
-                <label htmlFor="password" className="form-label">Contraseña</label>
+                <label htmlFor="password" className="form-label">
+                  Contraseña
+                </label>
                 <input
                   type="password"
                   className="form-control form-input fw-light"
@@ -73,14 +100,19 @@ export const Login = () => {
                 />
               </div>
 
-              <button type="submit" className="btn boton-primario w-100 py-2 fw-semibold">
+              <button
+                type="submit"
+                className="btn boton-primario w-100 py-2 fw-semibold"
+              >
                 INGRESAR
               </button>
             </form>
 
             <p className="text-center mt-4 mb-0">
               ¿Aún no tienes una cuenta?{" "}
-              <Link to="/registro" className="text-decoration-none">Regístrate aquí</Link>
+              <Link to="/registro" className="text-decoration-none">
+                Regístrate aquí
+              </Link>
             </p>
           </div>
         </div>
