@@ -12,18 +12,18 @@ const { buscarLibroGoogleBooks } = require("./consultas/googleBooks.js");
 const { buscarLibroOpenLibrary } = require("./consultas/openLibrary.js");
 const { traducirTexto } = require("./consultas/traductor.js");
 const {
-  getLibros,
-  getLibroById,
+  obtenerLibros,
+  obtenerLibroById,
   updateDescuento,
   filtrarLibros,
-  getLibroByIsbn,
+  obtenerLibroByIsbn,
   buscarLibros,
   crearLibro,
   desactivarLibro,
   actualizarLibro,
   agregarAutorLibro,
   agregarGeneroLibro,
-  getPreventas
+  obtenerPreventas
 } = require("./consultas/libros.js");
 const { 
   obtenerCarrito,
@@ -38,19 +38,19 @@ const {
   eliminarFavorito,
 } = require("./consultas/favoritos.js");
 const {
-  getDireccionesCliente,
+  obtenerDireccionesCliente,
   crearDireccion,
   actualizarDireccion,
   eliminarDireccion,
 } = require("./consultas/direcciones.js");
 const {
-  getEmpresasEnvio,
+  obtenerEmpresasEnvio,
   crearEmpresaEnvio,
 } = require("./consultas/empresasEnvio.js");
 const {
   crearPedidoDesdeCarrito,
-  getPedidosCliente,
-  getDetallePedido,
+  obtenerPedidosCliente,
+  obtenerDetallePedido,
 } = require("./consultas/pedidos.js");
 
 getHealth();
@@ -85,7 +85,7 @@ api.post("/clientes/register", async (req, res) => {
     );
 
     res.status(201).json({
-      message: "Cliente registrado correctamente",
+      message: "Cliente registrado con éxito",
       cliente,
       token
     });
@@ -134,10 +134,10 @@ api.post("/clientes/login", async (req, res) => {
 api.get("/libros", async (req, res) => {
   console.log("GET /libros");
   try {
-    const libros = await getLibros();
+    const libros = await obtenerLibros();
     res.json(libros);
   } catch (error) {
-    console.error("❌ Error en GET /libros:", error);
+    console.error("Error en GET /libros:", error);
     res.status(500).json({
       error: error.code,
       message: error.message,
@@ -164,7 +164,7 @@ api.get("/libros/buscar", async (req, res) => {
       data: libros,
     });
   } catch (error) {
-    console.error("❌ Error en GET /libros/buscar:", error);
+    console.error("Error en GET /libros/buscar:", error);
     res.status(500).json({
       error: error.code,
       message: error.message,
@@ -185,7 +185,7 @@ api.get("/libros/filtros", async (req, res) => {
       data: libros,
     });
   } catch (error) {
-    console.error("❌ Error en GET /libros/filtros:", error);
+    console.error("Error en GET /libros/filtros:", error);
     res.status(500).json({
       error: error.code,
       message: error.message,
@@ -200,7 +200,7 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
 
   try {
     // 1. Buscar en BD en Neon
-    const libroBD = await getLibroByIsbn(isbn);
+    const libroBD = await obtenerLibroByIsbn(isbn);
 
     if (libroBD) {
       return res.json({
@@ -246,7 +246,7 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
       message: "Libro no encontrado",
     });
   } catch (error) {
-    console.error("❌ Error en GET /libros/buscar-isbn:", error);
+    console.error("Error en GET /libros/buscar-isbn:", error);
 
     if (error.response?.status === 429) {
       return res.status(429).json({
@@ -267,7 +267,7 @@ api.get("/libros/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const libro = await getLibroById(id);
+    const libro = await obtenerLibroById(id);
 
     if (!libro) {
       return res.status(404).json({
@@ -276,7 +276,7 @@ api.get("/libros/:id", async (req, res) => {
     }
     res.json(libro);
   } catch (error) {
-    console.error("❌ Error en GET /libros/:id:", error);
+    console.error("Error en GET /libros/:id:", error);
     res.status(500).json({
       error: error.code,
       message: error.message,
@@ -285,7 +285,7 @@ api.get("/libros/:id", async (req, res) => {
 });
 
 // Ruta POST para crear un nuevo libro
-api.post("/libros",  async (req, res) => {
+api.post("/libros", authMiddleware, verificarAdmin, async (req, res) => {
   console.log("POST /libros", req.body);
   try {
     const {
@@ -318,11 +318,11 @@ api.post("/libros",  async (req, res) => {
 
     if (descuento < 0 || descuento > 100) {
       return res.status(400).json({
-        message: "El descuento debe estar entre 0 y 100",
+        message: "El descuento debe ser un valor entre 0 y 100",
       });
     }
 
-    const libroExistente = await getLibroByIsbn(isbn);
+    const libroExistente = await obtenerLibroByIsbn(isbn);
 
     if (libroExistente) {
       return res.status(400).json({
@@ -357,11 +357,11 @@ api.post("/libros",  async (req, res) => {
     }
 
     res.status(201).json({
-      message: "Libro creado correctamente",
+      message: "Libro creado con exito",
       data: nuevoLibro,
     });
   } catch (error) {
-    console.error("❌ Error en POST /libros:", error);
+    console.error("Error en POST /libros:", error);
     res.status(500).json({
       error: error.code,
       message: error.message,
@@ -370,7 +370,7 @@ api.post("/libros",  async (req, res) => {
 });
 
 // Ruta PUT para actualizar un libro por ID
-api.put("/libros/:id", async (req, res) => {
+api.put("/libros/:id", authMiddleware, verificarAdmin, async (req, res) => {
   console.log("PUT /libros/:id", req.params);
   const { id } = req.params;
   const { precio, stock, descuento } = req.body;
@@ -382,7 +382,7 @@ api.put("/libros/:id", async (req, res) => {
       descuento === undefined
     ) {
       return res.status(400).json({
-        message: "Debes enviar al menos un campo: precio, stock o descuento",
+        message: "Debes enviar al menos un campo a modificar: precio, stock o descuento",
       });
     }
 
@@ -417,11 +417,11 @@ api.put("/libros/:id", async (req, res) => {
     }
 
     res.json({
-      message: "Libro actualizado correctamente",
+      message: "Libro actualizado con exito",
       data: libroActualizado,
     });
   } catch (error) {
-    console.error("❌ Error en PUT /libros/:id:", error);
+    console.error("Error en PUT /libros/:id:", error);
 
     res.status(500).json({
       error: error.code,
@@ -431,7 +431,7 @@ api.put("/libros/:id", async (req, res) => {
 });
 
 // Ruta PUT ppor :id para cambiar activo de true a false
-api.put("/libros/:id/desactivar", async (req, res) => {
+api.put("/libros/:id/desactivar", authMiddleware, verificarAdmin, async (req, res) => {
   console.log("PUT /libros/:id/desactivar", req.params);
   const { id } = req.params;
 
@@ -445,11 +445,11 @@ api.put("/libros/:id/desactivar", async (req, res) => {
     }
 
     res.json({
-      message: "Libro desactivado correctamente",
+      message: "Libro desactivado con exito",
       data: libroDesactivado,
     });
   } catch (error) {
-    console.error("❌ Error en PUT /libros/:id/desactivar:", error);
+    console.error("Error en PUT /libros/:id/desactivar:", error);
 
     res.status(error.code || 500).json({
       error: error.code,
@@ -474,7 +474,7 @@ api.get("/carrito", authMiddleware, async (req, res) => {
       data: carrito,
     });
   } catch (error) {
-    console.error("❌ Error en GET /carrito:", error);
+    console.error("Error en GET /carrito:", error);
     res.status(500).json({
       error: error.code,
       message: error.message,
@@ -500,7 +500,7 @@ api.post("/carrito", authMiddleware, async (req, res) => {
 
     if (cantidad <= 0) {
       return res.status(400).json({
-        message: "La cantidad debe ser mayor a 0",
+        message: "La cantidad debe ser al menos de 1 libro",
       });
     }
 
@@ -565,7 +565,7 @@ api.delete("/carrito/:id_libro", authMiddleware, async (req, res) => {
 
     if (!item) {
       return res.status(404).json({
-        message: "Libro no encontrado en el carrito",
+        message: "El Libro no se encuentra en el carrito",
       });
     }
 
@@ -592,7 +592,7 @@ api.delete("/carrito", authMiddleware, async (req, res) => {
     await vaciarCarrito(id_cliente);
 
     res.json({
-      message: "Carrito vaciado correctamente",
+      message: "Carrito vaciado con exito",
     });
   } catch (error) {
     const statusCode = typeof error.code === "number" ? error.code : 500;
@@ -616,7 +616,7 @@ api.get("/favoritos", authMiddleware, async (req, res) => {
       data: favoritos,
     });
   } catch (error) {
-    console.error("❌ Error en GET /favoritos:", error);
+    console.error("Error en GET /favoritos:", error);
 
     res.status(error.code || 500).json({
       error: error.code,
@@ -642,7 +642,7 @@ api.post("/favoritos", authMiddleware, async (req, res) => {
 
     if (!favorito) {
       return res.json({
-        message: "El libro ya estaba en favoritos",
+        message: "El libro ya esta en favoritos",
       });
     }
 
@@ -651,7 +651,7 @@ api.post("/favoritos", authMiddleware, async (req, res) => {
       data: favorito,
     });
   } catch (error) {
-    console.error("❌ Error en POST /favoritos:", error);
+    console.error("Error en POST /favoritos:", error);
 
     res.status(error.code || 500).json({
       error: error.code,
@@ -676,11 +676,11 @@ api.delete("/favoritos", authMiddleware, async (req, res) => {
     }
 
     res.json({
-      message: "Favorito eliminado correctamente",
+      message: "Favorito eliminado con exito",
       data: favorito,
     });
   } catch (error) {
-    console.error("❌ Error en DELETE /favoritos:", error);
+    console.error("Error en DELETE /favoritos:", error);
 
     res.status(500).json({
       error: error.code,
@@ -699,7 +699,7 @@ api.get("/generos", async (req, res) => {
       data: generos,
     });
   } catch (error) {
-    console.error("❌ Error en GET /generos:", error);
+    console.error("Error en GET /generos:", error);
     res.status(500).json({
       error: error.code,
       message: error.message,
@@ -717,7 +717,7 @@ api.get("/preventas", async (req, res) => {
       data: preventas,
     });
   } catch (error) {
-    console.error("❌ Error en GET /preventas:", error);
+    console.error("Error en GET /preventas:", error);
     res.status(500).json({
       error: error.code,
       message: error.message,
@@ -732,14 +732,14 @@ api.get("/direcciones", authMiddleware, async (req, res) => {
   const id_cliente = req.user.id_cliente;
 
   try {
-    const direcciones = await getDireccionesCliente(id_cliente);
+    const direcciones = await obtenerDireccionesCliente(id_cliente);
 
     res.json({
       cantidad: direcciones.length,
       data: direcciones,
     });
   } catch (error) {
-    console.error("❌ Error en GET /direcciones:", error);
+    console.error("Error en GET /direcciones:", error);
 
     res.status(error.code || 500).json({
       error: error.code,
@@ -777,11 +777,11 @@ api.post("/direcciones", authMiddleware, async (req, res) => {
     const nuevaDireccion = await crearDireccion(id_cliente, req.body);
 
     res.status(201).json({
-      message: "Dirección creada correctamente",
+      message: "Dirección creada con exito",
       data: nuevaDireccion,
     });
   } catch (error) {
-    console.error("❌ Error en POST /direcciones:", error);
+    console.error("Error en POST /direcciones:", error);
 
     res.status(error.code || 500).json({
       error: error.code,
@@ -809,11 +809,11 @@ api.put("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
     }
 
     res.json({
-      message: "Dirección actualizada correctamente",
+      message: "Dirección actualizada con exito",
       data: direccionActualizada,
     });
   } catch (error) {
-    console.error("❌ Error en PUT /direcciones:", error);
+    console.error("Error en PUT /direcciones:", error);
 
     res.status(error.code || 500).json({
       error: error.code,
@@ -838,11 +838,11 @@ api.delete("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
     }
 
     res.json({
-      message: "Dirección eliminada correctamente",
+      message: "Dirección eliminada con exito",
       data: direccionEliminada,
     });
   } catch (error) {
-    console.error("❌ Error en DELETE /direcciones:", error);
+    console.error("Error en DELETE /direcciones:", error);
 
     res.status(error.code || 500).json({
       error: error.code,
@@ -856,14 +856,14 @@ api.get("/empresas-envio", async (req, res) => {
   console.log("GET /empresas-envio");
 
   try {
-    const empresas = await getEmpresasEnvio();
+    const empresas = await obtenerEmpresasEnvio();
 
     res.json({
       cantidad: empresas.length,
       data: empresas,
     });
   } catch (error) {
-    console.error("❌ Error en GET /empresas-envio:", error);
+    console.error("Error en GET /empresas-envio:", error);
 
     res.status(error.code || 500).json({
       error: error.code,
@@ -873,7 +873,7 @@ api.get("/empresas-envio", async (req, res) => {
 });
 
 // Ruta POST crear empresa de envío
-api.post("/empresas-envio", async (req, res) => {
+api.post("/empresas-envio", authMiddleware, verificarAdmin, async (req, res) => {
   console.log("POST /empresas-envio", req.body);
 
   try {
@@ -891,11 +891,11 @@ api.post("/empresas-envio", async (req, res) => {
     });
 
     res.status(201).json({
-      message: "Empresa de envío creada correctamente",
+      message: "Empresa de envío creada",
       data: nuevaEmpresa,
     });
   } catch (error) {
-    console.error("❌ Error en POST /empresas-envio:", error);
+    console.error("Error en POST /empresas-envio:", error);
 
     res.status(error.code || 500).json({
       error: error.code,
@@ -904,26 +904,36 @@ api.post("/empresas-envio", async (req, res) => {
   }
 });
 
-api.post("/pedidos/:id_cliente", authMiddleware, async (req, res) => {
-  console.log("POST /pedidos/:id_cliente", {
-    params: req.params,
+api.post("/pedidos", authMiddleware, async (req, res) => {
+  console.log("POST /pedidos", {
     body: req.body,
   });
 
-  const { id_cliente } = req.params;
-  const { id_direccion, id_empresa_envio } = req.body;
+  const id_cliente = req.user.id_cliente;
+
+  const {
+    id_direccion,
+    id_empresa_envio,
+    id_metodo_pago
+  } = req.body;
 
   try {
-    if (!id_direccion || !id_empresa_envio) {
+    if (
+      !id_direccion ||
+      !id_empresa_envio ||
+      !id_metodo_pago
+    ) {
       return res.status(400).json({
-        message: "id_direccion e id_empresa_envio son obligatorios",
+        message:
+          "id_direccion, id_empresa_envio e id_metodo_pago son obligatorios",
       });
     }
 
     const pedido = await crearPedidoDesdeCarrito(
       id_cliente,
       id_direccion,
-      id_empresa_envio
+      id_empresa_envio,
+      id_metodo_pago
     );
 
     res.status(201).json({
@@ -931,9 +941,10 @@ api.post("/pedidos/:id_cliente", authMiddleware, async (req, res) => {
       data: pedido,
     });
   } catch (error) {
-    console.error("❌ Error en POST /pedidos:", error);
+    console.error("Error en POST /pedidos:", error);
 
-    const statusCode = typeof error.code === "number" ? error.code : 500;
+    const statusCode =
+      typeof error.code === "number" ? error.code : 500;
 
     res.status(statusCode).json({
       error: error.code,
@@ -942,20 +953,20 @@ api.post("/pedidos/:id_cliente", authMiddleware, async (req, res) => {
   }
 });
 
-api.get("/pedidos/:id_cliente", async (req, res) => {
-  console.log("GET /pedidos/:id_cliente", req.params);
+api.get("/pedidos", authMiddleware, async (req, res) => {
+  console.log("GET /pedidos", req.params);
 
-  const { id_cliente } = req.params;
+  const id_cliente = req.user.id_cliente;
 
   try {
-    const pedidos = await getPedidosCliente(id_cliente);
+    const pedidos = await obtenerPedidosCliente(id_cliente);
 
     res.json({
       cantidad: pedidos.length,
       data: pedidos,
     });
   } catch (error) {
-    console.error("❌ Error en GET /pedidos:", error);
+    console.error("Error en GET /pedidos:", error);
 
     const statusCode = typeof error.code === "number" ? error.code : 500;
 
@@ -966,20 +977,20 @@ api.get("/pedidos/:id_cliente", async (req, res) => {
   }
 });
 
-api.get("/pedidos/detalle/:id_pedido", async (req, res) => {
+api.get("/pedidos/detalle/:id_pedido", authMiddleware, async (req, res) => {
   console.log("GET /pedidos/detalle/:id_pedido", req.params);
 
   const { id_pedido } = req.params;
 
   try {
-    const detalle = await getDetallePedido(id_pedido);
+    const detalle = await obtenerDetallePedido(id_pedido);
 
     res.json({
       cantidad: detalle.length,
       data: detalle,
     });
   } catch (error) {
-    console.error("❌ Error en GET /pedidos/detalle:", error);
+    console.error("Error en GET /pedidos/detalle:", error);
 
     const statusCode = typeof error.code === "number" ? error.code : 500;
 
@@ -990,7 +1001,11 @@ api.get("/pedidos/detalle/:id_pedido", async (req, res) => {
   }
 });
 
+if (require.main === module) {
+  api.listen(PORT, () => {
+    console.log(`Servidor en http://localhost:${PORT}`);
+  });
+}
 
-api.listen(PORT, () => {
-  console.log(`Servidor en http://localhost:${PORT}`);
-});
+
+module.exports = api;

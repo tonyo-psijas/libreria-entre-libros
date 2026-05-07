@@ -1,7 +1,7 @@
 const pool = require("../database/db");
 
 // RUTA GET /libros
-const getLibros = async () => {
+const obtenerLibros = async () => {
     const { rows } = await pool.query(`
         SELECT 
             id_libro,
@@ -50,7 +50,7 @@ const filtrarLibros = async ({ titulo, autor, genero }) => {
 };
 
 // RUTA GET /libros/buscar-isbn/:isbn
-const getLibroByIsbn = async (isbn) => {
+const obtenerLibroByIsbn = async (isbn) => {
     const { rows } = await pool.query(`
         SELECT 
             id_libro,
@@ -74,7 +74,7 @@ const getLibroByIsbn = async (isbn) => {
 };
 
 // RUTA GET /libros/:id
-const getLibroById = async (id) => {
+const obtenerLibroById = async (id) => {
     const { rows } = await pool.query(`
         SELECT 
             id_libro,
@@ -270,7 +270,7 @@ const buscarLibros = async (q) => {
 };
 
 // RUTA GET /libros/preventas
-const getPreventas = async () => {
+const obtenerPreventas = async () => {
   const { rows } = await pool.query(`
     SELECT
       id_libro,
@@ -293,17 +293,17 @@ const getPreventas = async () => {
 
     
 module.exports = {
-  getLibros,
-  getLibroById,
+  obtenerLibros,
+  obtenerLibroById,
   updateDescuento,
   actualizarLibro,
   crearLibro,
   actualizarLibroPorIsbn,
   desactivarLibro,
   filtrarLibros,
-  getLibroByIsbn,
+  obtenerLibroByIsbn,
   buscarLibros,
-  getPreventas,
+  obtenerPreventas,
   agregarAutorLibro,
   agregarGeneroLibro
 };

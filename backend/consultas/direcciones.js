@@ -1,7 +1,7 @@
 const pool = require("../database/db");
 
 // Obtener direcciones de un cliente
-const getDireccionesCliente = async (id_cliente) => {
+const obtenerDireccionesCliente = async (id_cliente) => {
   const { rows } = await pool.query(`
     SELECT
       id_direccion,
@@ -117,7 +117,7 @@ const eliminarDireccion = async (id_direccion) => {
 };
 
 module.exports = {
-  getDireccionesCliente,
+  obtenerDireccionesCliente,
   crearDireccion,
   actualizarDireccion,
   eliminarDireccion,

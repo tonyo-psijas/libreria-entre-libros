@@ -1,7 +1,7 @@
 const pool = require("../database/db");
 
 // Obtener empresas de envío
-const getEmpresasEnvio = async () => {
+const obtenerEmpresasEnvio = async () => {
   const { rows } = await pool.query(`
     SELECT
       id_empresa_envio,
@@ -28,6 +28,6 @@ const crearEmpresaEnvio = async (datos) => {
 };
 
 module.exports = {
-  getEmpresasEnvio,
+  obtenerEmpresasEnvio,
   crearEmpresaEnvio,
 };

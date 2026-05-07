@@ -7,7 +7,7 @@ export const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     setError("");
 
@@ -16,7 +16,36 @@ export const Login = () => {
       return;
     }
 
-    console.log("Iniciar sesión con:", { email, password });
+    if (!email || !password) {
+      setError("Por favor completa todos los campos");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:3000/clientes/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Error al iniciar sesión");
+        return;
+      }
+
+      // Guardar el token en el localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("cliente", JSON.stringify(data.cliente));
+      navigate("/");
+
+    } catch (error) {
+      console.error("❌ Error en login:", error);
+      setError("Error al iniciar sesión");
+    }
   };
 
   return (
