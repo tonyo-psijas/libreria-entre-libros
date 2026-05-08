@@ -12,6 +12,11 @@ import { Promociones } from "./views/Promociones";
 import { ComicsMangas } from "./views/ComicsMangas";
 import { FooterComponent } from "./components/FooterComponent";
 
+import { Checkout } from "./views/Checkout";
+import { DetallePedido } from "./views/DetallePedido";
+import { HistorialCompras } from "./views/HistorialCompras";
+import { HistorialVentas } from "./views/HistorialVentas";
+
 import Login from "./views/Login";
 import Registro from "./views/Registro";
 import DetalleLibro from "./views/DetalleLibro";
@@ -69,6 +74,23 @@ function App() {
           />
 
           <Route
+            path='/checkout'
+            element={isAuthenticated ? <Checkout /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path='/pedido/:id_pedido'
+            element={isAuthenticated ? <DetallePedido /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path='/historial-compras'
+            element={isAuthenticated ? <HistorialCompras /> : <Navigate to="/login" />}
+          />
+
+
+
+          <Route
             path="/perfil"
             element={
               isAuthenticated ? (
@@ -95,6 +117,18 @@ function App() {
               )
             }
           />
+
+          <Route
+            path="/historial-ventas"
+            element={
+              isAuthenticated && user?.role === "admin" ? (
+                <HistorialVentas />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+
 
           <Route path="*" element={<h1>404 Not Found</h1>} />
         </Routes>

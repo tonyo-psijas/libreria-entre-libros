@@ -66,6 +66,7 @@ export const Gallery = () => {
     const librosPaginados = librosFiltrados.slice(indiceInicio, indiceInicio + LIBROS_POR_PAGINA)
 
     // Al cambiar cualquier filtro, volver a página 1
+    const handleBusqueda = (e) => { setBusqueda(e.target.value); setPaginaActual(1) }
     const handleOrdenamiento = (e) => { setOrdenamiento(e.target.value); setPaginaActual(1) }
     const handleGenero = (e) => { setGeneroSeleccionado(e.target.value); setPaginaActual(1) }
 
