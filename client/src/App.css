@@ -98,6 +98,12 @@ header button {
   border-radius: 50px;
 }
 
+.form-long-text {
+  background-color: #f8f9f5;
+  border: #d4d9c7 solid 0.5px;
+  border-radius: 10px;
+}
+
 .nav-searchbar {
   background-color: #f1f2ed;
   border: none;

@@ -228,21 +228,27 @@ const desactivarLibro = async (id) => {
 };
 
 const actualizarLibro = async (id, datos) => {
-    const { precio, stock, descuento } = datos;
+    const { precio, stock, descuento, titulo, descripcion, imagen } = datos;
 
     const { rows } = await pool.query(`
         UPDATE libro
         SET
             precio = COALESCE($1, precio),
             stock = COALESCE($2, stock),
-            descuento = COALESCE($3, descuento)
+            descuento = COALESCE($3, descuento),
+            titulo = COALESCE($4, titulo),
+            descripcion = COALESCE($5, descripcion),
+            imagen = COALESCE($6, imagen),
             activo = true
-        WHERE id_libro = $4
+        WHERE id_libro = $7
         RETURNING *
     `, [
         precio ?? null,
         stock ?? null,
         descuento ?? null,
+        titulo ?? null,
+        descripcion ?? null,
+        imagen ?? null,
         id
     ]);
 

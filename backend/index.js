@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const pool = require("./database/db");
 const jwt = require("jsonwebtoken");
 const { authMiddleware, verificarAdmin } = require("./middlewares/auth");
 const { getHealth } = require("./database/db.js");
@@ -371,62 +372,48 @@ api.post("/libros", authMiddleware, verificarAdmin, async (req, res) => {
 
 // Ruta PUT para actualizar un libro por ID
 api.put("/libros/:id", authMiddleware, verificarAdmin, async (req, res) => {
-  console.log("PUT /libros/:id", req.params);
   const { id } = req.params;
-  const { precio, stock, descuento } = req.body;
+  const { precio, stock, descuento, titulo, descripcion, imagen, autores, generos } = req.body;
 
   try {
-    if (
-      precio === undefined &&
-      stock === undefined &&
-      descuento === undefined
-    ) {
-      return res.status(400).json({
-        message: "Debes enviar al menos un campo a modificar: precio, stock o descuento",
-      });
-    }
+      if (precio !== undefined && precio < 0) {
+          return res.status(400).json({ message: "El precio no puede ser negativo" });
+      }
+      if (stock !== undefined && stock < 0) {
+          return res.status(400).json({ message: "El stock no puede ser negativo" });
+      }
+      if (descuento !== undefined && (descuento < 0 || descuento > 100)) {
+          return res.status(400).json({ message: "El descuento debe estar entre 0 y 100" });
+      }
 
-    if (precio !== undefined && precio < 0) {
-      return res.status(400).json({
-        message: "El precio no puede ser negativo",
-      });
-    }
+      const libroActualizado = await actualizarLibro(id, { precio, stock, descuento, titulo, descripcion, imagen });
 
-    if (stock !== undefined && stock < 0) {
-      return res.status(400).json({
-        message: "El stock no puede ser negativo",
-      });
-    }
+      if (!libroActualizado) {
+          return res.status(404).json({ message: "Libro no encontrado" });
+      }
 
-    if (descuento !== undefined && (descuento < 0 || descuento > 100)) {
-      return res.status(400).json({
-        message: "El descuento debe estar entre 0 y 100",
-      });
-    }
+      // Actualizar autores si vienen
+      if (autores && autores.length > 0) {
+          await pool.query(`DELETE FROM libro_autor WHERE id_libro = $1`, [id]);
+          for (const nombreAutor of autores) {
+              const id_autor = await obtenerOCrearAutor(nombreAutor);
+              await agregarAutorLibro(id, id_autor);
+          }
+      }
 
-    const libroActualizado = await actualizarLibro(id, {
-      precio,
-      stock,
-      descuento,
-    });
+      // Actualizar géneros si vienen
+      if (generos && generos.length > 0) {
+          await pool.query(`DELETE FROM libro_genero WHERE id_libro = $1`, [id]);
+          for (const nombreGenero of generos) {
+              const id_genero = await obtenerOCrearGenero(nombreGenero);
+              await agregarGeneroLibro(id, id_genero);
+          }
+      }
 
-    if (!libroActualizado) {
-      return res.status(404).json({
-        message: "Libro no encontrado",
-      });
-    }
-
-    res.json({
-      message: "Libro actualizado con exito",
-      data: libroActualizado,
-    });
+      res.json({ message: "Libro actualizado con exito", data: libroActualizado });
   } catch (error) {
-    console.error("Error en PUT /libros/:id:", error);
-
-    res.status(500).json({
-      error: error.code,
-      message: error.message,
-    });
+      console.error("Error en PUT /libros/:id:", error);
+      res.status(500).json({ error: error.code, message: error.message });
   }
 });
 
