@@ -1,148 +1,153 @@
-import React from 'react'
-import { librosMock } from '../mock_data/mockData'
+import React, { useState, useEffect } from 'react'
 import ProductCard from '../components/ProductCard'
 import { HeroComponent } from '../components/HeroComponent'
 import { Link } from 'react-router-dom'
 import discountImg from '../assets/images/discount-img.png'
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000"
+
 export const Home = () => {
-    // Ordena por los más recientes primero y toma solo 6
-    const ultimosLibros = [...librosMock.result]
-        .filter(libro =>
-            !libro.descuento &&
-            !libro.generos.some(
-                genero => genero.nombre === "Comics & Mangas"
-            )
-        )
+    const [libros, setLibros] = useState([])
+    const [comicsMangas, setComicsMangas] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const cargarTodo = async () => {
+            try {
+                // Cargamos libros generales y comics en paralelo
+                const [resLibros, resComics] = await Promise.all([
+                    fetch(`${BASE_URL}/libros/filtros`),
+                    fetch(`${BASE_URL}/libros/filtros?genero=${encodeURIComponent('Comics & Mangas')}`)
+                ])
+
+                const jsonLibros = await resLibros.json()
+                const jsonComics = await resComics.json()
+
+                const listaLibros = Array.isArray(jsonLibros) ? jsonLibros : (jsonLibros.data ?? [])
+                const listaComics = Array.isArray(jsonComics) ? jsonComics : (jsonComics.data ?? [])
+
+                setLibros(listaLibros)
+                setComicsMangas(listaComics)
+            } catch (error) {
+                console.error("Error al cargar libros:", error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        cargarTodo()
+    }, [])
+
+    // Novedades: sin descuento, con imagen, sin Comics & Mangas, más recientes primero, max 6
+    const idsComics = new Set(comicsMangas.map(l => l.id_libro))
+    const ultimosLibros = [...libros]
+        .filter(l => (!l.descuento || l.descuento === 0) && l.imagen && !idsComics.has(l.id_libro))
         .sort((a, b) => b.id_libro - a.id_libro)
         .slice(0, 6)
 
-
-    const librosConDescuento = [...librosMock.result]
-        .filter(libro => libro.descuento)
+    // Promociones: con descuento > 0, con imagen, max 5
+    const librosConDescuento = [...libros]
+        .filter(l => l.descuento && l.descuento > 0 && l.imagen)
         .sort((a, b) => b.id_libro - a.id_libro)
         .slice(0, 5)
 
+    // Comics & Mangas: max 6
+    const comicsMangasHome = [...comicsMangas]
+        .sort((a, b) => b.id_libro - a.id_libro)
+        .slice(0, 6)
 
-    const comicsYMangas = [...librosMock.result]
-    .filter(libro =>
-        libro.generos.some(
-            genero => genero.nombre === "Comics & Mangas"
+    if (loading) {
+        return (
+            <div className="d-flex justify-content-center align-items-center py-5">
+                <div className="spinner-border text-success" role="status">
+                    <span className="visually-hidden">Cargando...</span>
+                </div>
+            </div>
         )
-    )
-    .sort((a, b) => b.id_libro - a.id_libro)
-    .slice(0, 6)
+    }
 
     return (
         <>
             <HeroComponent />
 
+            {/* NOVEDADES */}
             <div className='container pt-5'>
-
                 <div className="encabezado-home mb-2 d-flex justify-content-between align-items-center">
                     <h2 className='fw-semibold'>Novedades</h2>
-
                     <Link to="/libros" className='ver-mas'>
                         Ver Más <i className="fa-regular fa-chevron-right"></i>
                     </Link>
                 </div>
-
-                <div className="row g-4 ">
+                <div className="row g-4">
                     {ultimosLibros.map((libro) => (
-                        <div
-                            key={libro.id_libro}
-                            className="
-                                col-6
-                                col-sm-4
-                                col-lg-2
-                            "
-                        >
+                        <div key={libro.id_libro} className="col-6 col-sm-4 col-lg-2">
                             <ProductCard
                                 imagen={libro.imagen}
                                 id_libro={libro.id_libro}
                                 titulo={libro.titulo}
-                                autor={libro.autores.map(autor => autor.nombre).join(", ")}
-                                precio={libro.precio}
+                                autor={libro.autores || ''}
+                                precio={libro.precio_final ?? libro.precio}
                             />
                         </div>
                     ))}
                 </div>
             </div>
 
-            <div className='container pt-5'>
-
-                <div className="encabezado-home mb-2 d-flex justify-content-between align-items-center">
-                    <h2 className='fw-semibold'>Comics & Mangas</h2>
-
-                    <Link to="/comics-&-mangas" className='ver-mas'>
-                        Ver Más <i className="fa-regular fa-chevron-right"></i>
-                    </Link>
+            {/* COMICS & MANGAS */}
+            {comicsMangasHome.length > 0 && (
+                <div className='container pt-5'>
+                    <div className="encabezado-home mb-2 d-flex justify-content-between align-items-center">
+                        <h2 className='fw-semibold'>Comics & Mangas</h2>
+                        <Link to="/comics-&-mangas" className='ver-mas'>
+                            Ver Más <i className="fa-regular fa-chevron-right"></i>
+                        </Link>
+                    </div>
+                    <div className="row g-4">
+                        {comicsMangasHome.map((libro) => (
+                            <div key={libro.id_libro} className="col-6 col-sm-4 col-lg-2">
+                                <ProductCard
+                                    imagen={libro.imagen}
+                                    id_libro={libro.id_libro}
+                                    titulo={libro.titulo}
+                                    autor={libro.autores || ''}
+                                    precio={libro.precio_final ?? libro.precio}
+                                    descuento={libro.descuento}
+                                    precio_original={libro.precio}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
+            )}
 
-                <div className="row g-4 ">
- 
-
-                    {comicsYMangas.map((libro) => (
-                        <div
-                            key={libro.id_libro}
-                            className="
-                                col-6
-                                col-sm-4
-                                col-lg-2
-                            "
-                        >
-                            <ProductCard
-                                imagen={libro.imagen}
-                                id_libro={libro.id_libro}
-                                titulo={libro.titulo}
-                                autor={libro.autores.map(autor => autor.nombre).join(", ")}
-                                precio={libro.precio}
-                                descuento={libro.descuento}
-                                precio_original={libro.precio_original}
-                            />
+            {/* PROMOCIONES */}
+            {librosConDescuento.length > 0 && (
+                <div className='container pt-5'>
+                    <div className="encabezado-home mb-2 d-flex justify-content-between align-items-center">
+                        <h2 className='fw-semibold'>Promociones</h2>
+                        <Link to="/promociones" className='ver-mas'>
+                            Ver Más <i className="fa-regular fa-chevron-right"></i>
+                        </Link>
+                    </div>
+                    <div className="row g-4">
+                        <div className="col-12 col-sm-6 col-lg-4">
+                            <img className='img-fluid img-descuento' src={discountImg} alt="descuentos" />
                         </div>
-                    ))}
+                        {librosConDescuento.map((libro) => (
+                            <div key={libro.id_libro} className="col-6 col-sm-4 col-lg-2">
+                                <ProductCard
+                                    imagen={libro.imagen}
+                                    id_libro={libro.id_libro}
+                                    titulo={libro.titulo}
+                                    autor={libro.autores || ''}
+                                    precio={libro.precio_final ?? libro.precio}
+                                    descuento={libro.descuento}
+                                    precio_original={libro.precio}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
-
-            <div className='container pt-5'>
-
-                <div className="encabezado-home mb-2 d-flex justify-content-between align-items-center">
-                    <h2 className='fw-semibold'>Promociones</h2>
-
-                    <Link to="/promociones" className='ver-mas'>
-                        Ver Más <i className="fa-regular fa-chevron-right"></i>
-                    </Link>
-                </div>
-
-                <div className="row g-4 ">
-
-                    <div className="col-12 col-sm-6 col-lg-4">
-                        <img className='img-fluid img-descuento' src={discountImg} alt="descuentos" />
-                    </div>      
-
-                    {librosConDescuento.map((libro) => (
-                        <div
-                            key={libro.id_libro}
-                            className="
-                                col-6
-                                col-sm-4
-                                col-lg-2
-                            "
-                        >
-                            <ProductCard
-                                imagen={libro.imagen}
-                                id_libro={libro.id_libro}
-                                titulo={libro.titulo}
-                                autor={libro.autores.map(autor => autor.nombre).join(", ")}
-                                precio={libro.precio}
-                                descuento={libro.descuento}
-                                precio_original={libro.precio_original}
-                            />
-                        </div>
-                    ))}
-                </div>
-            </div>
+            )}
         </>
     )
 }

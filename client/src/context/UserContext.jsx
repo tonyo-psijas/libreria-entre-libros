@@ -1,13 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { clientesMock } from "../mock_data/mockData";
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const UserContext = createContext();
 
 export const useUser = () => {
   const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUser debe usarse dentro de UserProvider");
-  }
+  if (!context) throw new Error("useUser debe usarse dentro de UserProvider");
   return context;
 };
 
@@ -15,115 +14,110 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Base de usuarios simulada — incluye los del mock más una cuenta admin
-  // Cuando el backend esté listo, esto se reemplaza por llamadas a la API
-  const [usuarios, setUsuarios] = useState([
-    ...clientesMock.data,
-    {
-      id_cliente: 999,
-      nombre: "Admin",
-      apellido: "Entre Libros",
-      email: "admin@entrelibros.cl",
-      telefono: "",
-      password: "admin1234",
-      role: "admin",
-    },
-  ])
-
-  // Cargar usuario desde localStorage al iniciar la app
+  // Restaurar sesión desde localStorage al iniciar la app
   useEffect(() => {
     const userGuardado = localStorage.getItem("user");
     if (userGuardado) {
       try {
         setUser(JSON.parse(userGuardado));
-      } catch (error) {
-        console.error("Error al parsear usuario:", error);
+      } catch {
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
       }
     }
     setLoading(false);
   }, []);
 
-  // LOGIN — busca el usuario en la lista simulada
-  // TODO: reemplazar por POST /auth/login
-  const login = (email, password) => {
-    const encontrado = usuarios.find(
-      (u) => u.email === email && u.password === password
-    );
+  // LOGIN — POST /clientes/login
+  // Retorna: { cliente: { id_cliente, nombre, email, rol }, token }
+  const login = async (email, password) => {
+    try {
+      const res = await fetch(`${BASE_URL}/clientes/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!encontrado) {
-      return { ok: false, mensaje: "Email o contraseña incorrectos." }
+      const data = await res.json();
+
+      if (!res.ok) {
+        return { ok: false, mensaje: data.message || "Credenciales incorrectas." };
+      }
+
+      // Normalizar: el backend usa "rol", el frontend usaba "role"
+      // Guardamos "rol" para ser consistentes con el backend
+      const userLogueado = {
+        id_cliente: data.cliente.id_cliente,
+        nombre: data.cliente.nombre,
+        email: data.cliente.email,
+        rol: data.cliente.rol,
+      };
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(userLogueado));
+      setUser(userLogueado);
+
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, mensaje: "Error de conexión con el servidor." };
     }
-
-    const userLogueado = {
-      id_cliente: encontrado.id_cliente,
-      nombre: encontrado.nombre,
-      apellido: encontrado.apellido,
-      email: encontrado.email,
-      telefono: encontrado.telefono || "",
-      role: encontrado.role || "cliente",
-    };
-
-    setUser(userLogueado);
-    localStorage.setItem("user", JSON.stringify(userLogueado));
-    return { ok: true }
   };
 
-  // REGISTRO — agrega un nuevo usuario a la lista simulada
-  // TODO: reemplazar por POST /auth/register
-  const register = (userData) => {
-    const emailExiste = usuarios.some((u) => u.email === userData.email);
-    if (emailExiste) {
-      return { ok: false, mensaje: "Ya existe una cuenta con ese email." }
+  // REGISTRO — POST /clientes/register
+  // El backend acepta: { nombre, email, password }
+  const register = async (userData) => {
+    try {
+      const res = await fetch(`${BASE_URL}/clientes/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: userData.nombre,
+          email: userData.email,
+          password: userData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return { ok: false, mensaje: data.message || "Error al registrarse." };
+      }
+
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, mensaje: "Error de conexión con el servidor." };
     }
-
-    const nuevoUsuario = {
-      id_cliente: Date.now(),
-      nombre: userData.nombre,
-      apellido: userData.apellido,
-      email: userData.email,
-      telefono: userData.telefono || "",
-      password: userData.password,
-      role: "cliente",
-    };
-
-    setUsuarios(prev => [...prev, nuevoUsuario])
-    return { ok: true }
   };
 
-  // ACTUALIZAR PERFIL — modifica los datos del usuario logueado
-  // TODO: reemplazar por PUT /clientes/:id
+  // ACTUALIZAR PERFIL — solo local por ahora
+  // TODO: conectar a PUT /clientes/:id cuando el backend lo tenga
   const actualizarPerfil = (datosActualizados) => {
-    const userActualizado = { ...user, ...datosActualizados }
-    setUser(userActualizado)
-    localStorage.setItem("user", JSON.stringify(userActualizado))
+    const userActualizado = { ...user, ...datosActualizados };
+    setUser(userActualizado);
+    localStorage.setItem("user", JSON.stringify(userActualizado));
+    return { ok: true };
+  };
 
-    // También actualizar en la lista de usuarios
-    setUsuarios(prev =>
-      prev.map(u =>
-        u.id_cliente === user.id_cliente
-          ? { ...u, ...datosActualizados }
-          : u
-      )
-    )
-    return { ok: true }
-  }
-
-  // CERRAR SESIÓN
+  // LOGOUT
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
   };
 
-  const value = {
-    user,
-    loading,
-    login,
-    logout,
-    register,
-    actualizarPerfil,
-    isAuthenticated: !!user,
-  };
-
-  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
+  return (
+    <UserContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        register,
+        actualizarPerfil,
+        isAuthenticated: !!user,
+      }}
+    >
+      {children}
+    </UserContext.Provider>
+  );
 };

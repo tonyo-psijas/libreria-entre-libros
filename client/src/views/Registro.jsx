@@ -5,9 +5,7 @@ import { useUser } from "../context/UserContext";
 export const Registro = () => {
   const [formData, setFormData] = useState({
     nombre: "",
-    apellido: "",
     email: "",
-    telefono: "",
     password: "",
     confirmPassword: "",
   });
@@ -22,12 +20,12 @@ export const Registro = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setExito("");
 
-    if (!formData.nombre || !formData.apellido || !formData.email || !formData.password) {
+    if (!formData.nombre || !formData.email || !formData.password) {
       setError("Por favor completa todos los campos obligatorios.");
       return;
     }
@@ -47,7 +45,13 @@ export const Registro = () => {
       return;
     }
 
-    const resultado = register(formData);
+    // register() llama a POST /clientes/register
+    // El backend acepta: { nombre, email, password }
+    const resultado = await register({
+      nombre: formData.nombre,
+      email: formData.email,
+      password: formData.password,
+    });
 
     if (!resultado.ok) {
       setError(resultado.mensaje);
@@ -68,38 +72,22 @@ export const Registro = () => {
             {exito && (
               <div className="alert alert-success" role="alert">{exito}</div>
             )}
-
             {error && (
               <div className="alert alert-danger" role="alert">{error}</div>
             )}
 
             <form onSubmit={handleSubmit}>
-              <div className="row">
-                <div className="col-12 col-md-6 mb-3">
-                  <label htmlFor="nombre" className="form-label">Nombre *</label>
-                  <input
-                    type="text"
-                    className="form-control form-input"
-                    id="nombre"
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="col-12 col-md-6 mb-3">
-                  <label htmlFor="apellido" className="form-label">Apellido *</label>
-                  <input
-                    type="text"
-                    className="form-control form-input"
-                    id="apellido"
-                    name="apellido"
-                    value={formData.apellido}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+              <div className="mb-3">
+                <label htmlFor="nombre" className="form-label">Nombre *</label>
+                <input
+                  type="text"
+                  className="form-control form-input"
+                  id="nombre"
+                  name="nombre"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="mb-3">
@@ -112,19 +100,6 @@ export const Registro = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="telefono" className="form-label">Teléfono</label>
-                <input
-                  type="tel"
-                  className="form-control form-input"
-                  id="telefono"
-                  name="telefono"
-                  value={formData.telefono}
-                  onChange={handleChange}
-                  placeholder="+56 9 1234 5678"
                 />
               </div>
 

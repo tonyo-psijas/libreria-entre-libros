@@ -110,7 +110,7 @@ function App() {
           <Route
             path="/catalogo"
             element={
-              isAuthenticated && user?.role === "admin" ? (
+              isAuthenticated && user?.rol === "admin" ? (
                 <Catalogo user={user} />
               ) : (
                 <Navigate to="/login" />
@@ -121,7 +121,7 @@ function App() {
           <Route
             path="/historial-ventas"
             element={
-              isAuthenticated && user?.role === "admin" ? (
+              isAuthenticated && user?.rol === "admin" ? (
                 <HistorialVentas />
               ) : (
                 <Navigate to="/login" />

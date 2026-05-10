@@ -1,78 +1,97 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { librosMock } from "../mock_data/mockData";
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useUser } from "../context/UserContext";
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000"
+
 export const DetalleLibro = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { agregarAlCarrito } = useCart();
   const { esFavorito, toggleFavorito } = useFavorites();
   const { isAuthenticated } = useUser();
+
   const [libro, setLibro] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [cantidad, setCantidad] = useState(1);
   const [sinopsisAbierta, setSinopsisAbierta] = useState(true);
 
   useEffect(() => {
-    const libroEncontrado = librosMock.result.find(
-      (l) => l.id_libro === parseInt(id),
-    );
-    if (libroEncontrado) {
-      setLibro(libroEncontrado);
+    const cargarLibro = async () => {
+      setLoading(true)
+      try {
+        // GET /libros/:id retorna: { id_libro, titulo, descripcion, precio,
+        // descuento, precio_final, formato, stock, imagen, autores, generos }
+        const res = await fetch(`${BASE_URL}/libros/${id}`)
+        if (!res.ok) throw new Error("Libro no encontrado")
+        const data = await res.json()
+        setLibro(data)
+      } catch (err) {
+        console.error("Error al cargar libro:", err)
+        setError("No se pudo cargar el libro.")
+      } finally {
+        setLoading(false)
+      }
     }
+    cargarLibro()
   }, [id]);
 
   const handleAgregarAlCarrito = () => {
-    // 👈 VERIFICAR SI ESTÁ LOGUEADO
     if (!isAuthenticated) {
-      navigate("/registro");
+      navigate("/login");
       return;
     }
-
     if (libro) {
-      for (let i = 0; i < cantidad; i++) {
-        agregarAlCarrito({
-          id_libro: libro.id_libro,
-          imagen: libro.imagen,
-          titulo: libro.titulo,
-          autor: libro.autores.map((autor) => autor.nombre).join(", "),
-          precio: libro.precio,
-        });
-      }
+      agregarAlCarrito({
+        id_libro: libro.id_libro,
+        imagen: libro.imagen,
+        titulo: libro.titulo,
+        autor: libro.autores || '',
+        precio: libro.precio_final ?? libro.precio,
+        cantidad,
+      });
     }
   };
 
   const handleToggleFavorito = () => {
-    // 👈 VERIFICAR SI ESTÁ LOGUEADO
     if (!isAuthenticated) {
-      navigate("/registro");
+      navigate("/login");
       return;
     }
-
     if (libro) {
-      const libroFavorito = {
+      toggleFavorito({
         id_libro: libro.id_libro,
         imagen: libro.imagen,
         titulo: libro.titulo,
-        autor: libro.autores.map((autor) => autor.nombre).join(", "),
-        precio: libro.precio,
-      };
-      toggleFavorito(libroFavorito);
+        autor: libro.autores || '',
+        precio: libro.precio_final ?? libro.precio,
+      });
     }
   };
 
-  if (!libro) {
+  if (loading) {
     return (
       <div className="container py-5 text-center">
-        <h2>Cargando...</h2>
+        <div className="spinner-border text-success" role="status">
+          <span className="visually-hidden">Cargando...</span>
+        </div>
       </div>
     );
   }
 
-  const autores = libro.autores.map((autor) => autor.nombre).join(", ");
-  const categorias =
-    libro.generos?.map((cat) => cat.nombre).join(", ") || "General";
+  if (error || !libro) {
+    return (
+      <div className="container py-5 text-center">
+        <h5>{error || "Libro no encontrado."}</h5>
+      </div>
+    );
+  }
+
+  const precioFinal = libro.precio_final ?? libro.precio
+  const tieneDescuento = libro.descuento && libro.descuento > 0
 
   return (
     <div className="container mt-5">
@@ -89,35 +108,36 @@ export const DetalleLibro = () => {
           <div className="col-12 col-md-8 col-lg-9">
             <h1 className="fw-bold mb-3">{libro.titulo}</h1>
 
-            <p className="text-muted mb-2">
-              <strong>Autor:</strong> {autores}
-            </p>
-
-            <p className="text-muted mb-2">
-              <strong>Categorías:</strong> {categorias}
-            </p>
-
-            <hr className="divider" />
-
-            {libro.sku && (
-              <p className="text-muted mb-3">
-                <strong>SKU:</strong> {libro.sku}
+            {libro.autores && (
+              <p className="text-muted mb-2">
+                <strong>Autor:</strong> {libro.autores}
               </p>
             )}
 
-            {libro.descuento ? (
+            {libro.generos && (
+              <p className="text-muted mb-2">
+                <strong>Categorías:</strong> {libro.generos}
+              </p>
+            )}
+
+            <hr className="divider" />
+
+            {tieneDescuento ? (
               <div className="mt-2">
                 <span className="text-decoration-line-through text-muted fs-5 me-2">
-                  ${Number(libro.precio_original).toLocaleString("es-CL")}
+                  ${Number(libro.precio).toLocaleString("es-CL")}
                 </span>
                 <span className="fw-bold fs-2 text-danger">
-                  ${Number(libro.precio).toLocaleString("es-CL")}
+                  ${Number(precioFinal).toLocaleString("es-CL")}
+                </span>
+                <span className="badge ms-2" style={{ backgroundColor: '#E37217' }}>
+                  -{libro.descuento}%
                 </span>
               </div>
             ) : (
               <div className="mb-3 mt-2">
                 <span className="fw-bold fs-2">
-                  ${Number(libro.precio).toLocaleString("es-CL")}
+                  ${Number(precioFinal).toLocaleString("es-CL")}
                 </span>
               </div>
             )}
@@ -151,17 +171,11 @@ export const DetalleLibro = () => {
                   onClick={handleToggleFavorito}
                   className="btn px-3 py-2"
                   style={{ fontSize: "1.2rem" }}
-                  title={
-                    esFavorito(libro.id_libro)
-                      ? "Quitar de favoritos"
-                      : "Agregar a favoritos"
-                  }
+                  title={esFavorito(libro.id_libro) ? "Quitar de favoritos" : "Agregar a favoritos"}
                 >
                   <i
                     className={`fa-heart ${esFavorito(libro.id_libro) ? "fa-solid" : "fa-regular"}`}
-                    style={{
-                      color: esFavorito(libro.id_libro) ? "#dc3545" : "#888",
-                    }}
+                    style={{ color: esFavorito(libro.id_libro) ? "#dc3545" : "#888" }}
                   ></i>
                 </button>
               </div>
@@ -177,11 +191,8 @@ export const DetalleLibro = () => {
                   onClick={() => setSinopsisAbierta(!sinopsisAbierta)}
                 >
                   <h5 className="fw-semibold mb-0">Sinopsis</h5>
-                  <i
-                    className={`fa-regular ${sinopsisAbierta ? "fa-chevron-up" : "fa-chevron-down"}`}
-                  ></i>
+                  <i className={`fa-regular ${sinopsisAbierta ? "fa-chevron-up" : "fa-chevron-down"}`}></i>
                 </div>
-
                 {sinopsisAbierta && (
                   <p className="text-secondary mt-3">{libro.descripcion}</p>
                 )}
@@ -190,8 +201,7 @@ export const DetalleLibro = () => {
               <hr className="divider" />
 
               <p className="text-success mb-1 mt-3">
-                <strong>Stock:</strong> {libro.stock || "Consultar"} unidades
-                disponibles
+                <strong>Stock:</strong> {libro.stock || "Consultar"} unidades disponibles
               </p>
             </div>
           </div>

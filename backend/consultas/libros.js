@@ -4,14 +4,19 @@ const pool = require("../database/db");
 const obtenerLibros = async () => {
     const { rows } = await pool.query(`
         SELECT 
-            id_libro,
-            titulo,
-            precio,
-            descuento,
-            TRUNC(precio * (1 - descuento / 100.0), 0)::INT AS precio_final
-        FROM libro
-        WHERE activo = true
-        ORDER BY descuento DESC, id_libro ASC
+            l.id_libro,
+            l.titulo,
+            l.precio,
+            l.descuento,
+            TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
+            l.imagen,
+            STRING_AGG(DISTINCT a.nombre, ', ') AS autores
+        FROM libro l
+        LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
+        LEFT JOIN autor a ON la.id_autor = a.id_autor
+        WHERE l.activo = true
+        GROUP BY l.id_libro, l.titulo, l.precio, l.descuento, l.imagen
+        ORDER BY l.descuento DESC, l.id_libro ASC
     `);
 
     return rows;
@@ -28,7 +33,8 @@ const filtrarLibros = async ({ titulo, autor, genero }) => {
             TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
             l.imagen,
             l.stock,
-            e.nombre AS editorial
+            e.nombre AS editorial,
+            STRING_AGG(DISTINCT a.nombre, ', ') AS autores
         FROM libro l
         LEFT JOIN editorial e ON l.id_editorial = e.id_editorial
         LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
@@ -39,12 +45,9 @@ const filtrarLibros = async ({ titulo, autor, genero }) => {
         AND ($1::TEXT IS NULL OR LOWER(l.titulo) LIKE LOWER('%' || $1 || '%'))
         AND ($2::TEXT IS NULL OR LOWER(a.nombre) LIKE LOWER('%' || $2 || '%'))
         AND ($3::TEXT IS NULL OR LOWER(g.nombre) LIKE LOWER('%' || $3 || '%'))
+        GROUP BY l.id_libro, l.titulo, l.precio, l.descuento, l.imagen, l.stock, e.nombre
         ORDER BY l.titulo ASC
-    `, [
-        titulo || null,
-        autor || null,
-        genero || null
-    ]);
+    `, [titulo || null, autor || null, genero || null]);
 
     return rows;
 };
@@ -77,20 +80,29 @@ const obtenerLibroByIsbn = async (isbn) => {
 const obtenerLibroById = async (id) => {
     const { rows } = await pool.query(`
         SELECT 
-            id_libro,
-            titulo,
-            descripcion,
-            precio,
-            descuento,
-            TRUNC(precio * (1 - descuento / 100.0), 0)::INT AS precio_final,
-            formato,
-            stock,
-            id_editorial,
-            fecha_publicacion,
-            numero_paginas,
-            imagen
-        FROM libro
-        WHERE id_libro = $1 AND activo = true
+            l.id_libro,
+            l.titulo,
+            l.descripcion,
+            l.precio,
+            l.descuento,
+            TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
+            l.formato,
+            l.stock,
+            l.fecha_publicacion,
+            l.numero_paginas,
+            l.imagen,
+            e.nombre AS editorial,
+            STRING_AGG(DISTINCT a.nombre, ', ') AS autores,
+            STRING_AGG(DISTINCT g.nombre, ', ') AS generos
+        FROM libro l
+        LEFT JOIN editorial e ON l.id_editorial = e.id_editorial
+        LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
+        LEFT JOIN autor a ON la.id_autor = a.id_autor
+        LEFT JOIN libro_genero lg ON l.id_libro = lg.id_libro
+        LEFT JOIN genero g ON lg.id_genero = g.id_genero
+        WHERE l.id_libro = $1 AND l.activo = true
+        GROUP BY l.id_libro, l.titulo, l.descripcion, l.precio, l.descuento,
+                 l.formato, l.stock, l.fecha_publicacion, l.numero_paginas, l.imagen, e.nombre
     `, [id]);
 
     return rows[0];

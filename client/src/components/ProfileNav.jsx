@@ -19,7 +19,7 @@ export const ProfileNavComponent = () => {
         { to: '/gestion-de-usuarios', label: 'Gestión de usuarios' },
     ]
 
-    const todosLosLinks = user?.role === 'admin'
+    const todosLosLinks = user?.rol === 'admin'
         ? [...links, ...linksAdmin]
         : links
 
