@@ -31,17 +31,14 @@ export const Catalogo = () => {
     const [busqueda, setBusqueda] = useState('')
     const [paginaActual, setPaginaActual] = useState(1)
 
-    // Modal editar
     const [libroEditando, setLibroEditando] = useState(null)
     const [formEditar, setFormEditar] = useState({ ...FORM_LIBRO_VACIO })
     const [guardandoEdicion, setGuardandoEdicion] = useState(false)
     const [mensajeEdicion, setMensajeEdicion] = useState('')
 
-    // Modal agregar
     const [mostrarModalAgregar, setMostrarModalAgregar] = useState(false)
-    const [tabAgregar, setTabAgregar] = useState('isbn') // 'isbn' | 'manual'
+    const [tabAgregar, setTabAgregar] = useState('isbn')
 
-    // Tab ISBN
     const [isbn, setIsbn] = useState('')
     const [libroBuscado, setLibroBuscado] = useState(null)
     const [buscandoIsbn, setBuscandoIsbn] = useState(false)
@@ -49,7 +46,6 @@ export const Catalogo = () => {
     const [formIsbn, setFormIsbn] = useState({ precio: '', stock: '', descuento: 0 })
     const [guardandoIsbn, setGuardandoIsbn] = useState(false)
 
-    // Tab manual
     const [formManual, setFormManual] = useState({ ...FORM_LIBRO_VACIO })
     const [guardandoManual, setGuardandoManual] = useState(false)
     const [mensajeManual, setMensajeManual] = useState('')
@@ -58,8 +54,7 @@ export const Catalogo = () => {
         try {
             const res = await fetch(`${BASE_URL}/generos`)
             const json = await res.json()
-            const lista = Array.isArray(json) ? json : (json.data ?? [])
-            setGeneros(lista)
+            setGeneros(Array.isArray(json) ? json : (json.data ?? []))
         } catch (error) {
             console.error("Error al cargar géneros:", error)
         }
@@ -71,8 +66,7 @@ export const Catalogo = () => {
             const params = q ? `?titulo=${encodeURIComponent(q)}` : ''
             const res = await fetch(`${BASE_URL}/libros/filtros${params}`)
             const json = await res.json()
-            const lista = Array.isArray(json) ? json : (json.data ?? [])
-            setLibros(lista)
+            setLibros(Array.isArray(json) ? json : (json.data ?? []))
         } catch (error) {
             console.error("Error al cargar libros:", error)
         } finally {
@@ -93,7 +87,6 @@ export const Catalogo = () => {
     const indiceInicio = (paginaActual - 1) * LIBROS_POR_PAGINA
     const librosPaginados = libros.slice(indiceInicio, indiceInicio + LIBROS_POR_PAGINA)
 
-    // ── HELPERS ─────────────────────────────────────────────
     const toggleGenero = (setter, listaActual, nombre) => {
         setter(prev => ({
             ...prev,
@@ -250,7 +243,7 @@ export const Catalogo = () => {
                 method: 'POST',
                 body: JSON.stringify({
                     ...buildPayload(formManual),
-                    isbn: `MANUAL-${Date.now()}`, // ISBN temporal
+                    isbn: `MANUAL-${Date.now()}`,
                 }),
             })
             const data = await res.json()
@@ -275,7 +268,7 @@ export const Catalogo = () => {
         setTabAgregar('isbn')
     }
 
-    // ── RENDER CAMPOS COMPARTIDOS ────────────────────────────
+    // ── CAMPOS COMPARTIDOS ───────────────────────────────────
     const renderCamposLibro = (form, setForm) => (
         <div className="row g-3">
             <div className="col-12">
@@ -294,8 +287,7 @@ export const Catalogo = () => {
 
             <div className="col-12">
                 <label className="form-label">URL de imagen</label>
-                <input type="text" className="form-control form-input"
-                    placeholder="https://..."
+                <input type="text" className="form-control form-input" placeholder="https://..."
                     value={form.imagen}
                     onChange={e => setForm(p => ({ ...p, imagen: e.target.value }))} />
                 {form.imagen && (
@@ -306,9 +298,7 @@ export const Catalogo = () => {
             </div>
 
             <div className="col-12">
-                <label className="form-label">
-                    Autores <span className="text-secondary fw-light">(separados por coma)</span>
-                </label>
+                <label className="form-label">Autores <span className="text-secondary fw-light">(separados por coma)</span></label>
                 <input type="text" className="form-control form-input"
                     placeholder="Ej: Gabriel García Márquez, Isabel Allende"
                     value={form.autores}
@@ -375,8 +365,7 @@ export const Catalogo = () => {
 
             <div className="col-6">
                 <label className="form-label">Descuento (%)</label>
-                <input type="number" className="form-control form-input"
-                    min="0" max="100"
+                <input type="number" className="form-control form-input" min="0" max="100"
                     value={form.descuento}
                     onChange={e => setForm(p => ({ ...p, descuento: e.target.value }))} />
             </div>
@@ -387,12 +376,10 @@ export const Catalogo = () => {
         <div className='container py-5'>
             <div className="row g-4">
 
-                {/* SIDEBAR */}
                 <div className="col-12 col-md-3">
                     <ProfileNavComponent />
                 </div>
 
-                {/* CONTENIDO */}
                 <div className="col-12 col-md-9">
                     <div className="profile-content">
 
@@ -429,7 +416,12 @@ export const Catalogo = () => {
                                         <div className="d-flex gap-3 align-items-start">
                                             {libro.imagen && <img className='img-fluid' src={libro.imagen} alt={libro.titulo} />}
                                             <div className='book-info'>
-                                                <h5 className='fw-semibold mb-1'>{libro.titulo}</h5>
+                                                <div className="d-flex align-items-center gap-2 mb-1">
+                                                    <h5 className='fw-semibold mb-0'>{libro.titulo}</h5>
+                                                    {libro.formato?.toLowerCase() === 'preventa' && (
+                                                        <span className="badge" style={{ backgroundColor: '#4A5947', fontSize: '10px' }}>PREVENTA</span>
+                                                    )}
+                                                </div>
                                                 {libro.autores && <p className='mb-0'>Autor: <span className='fw-semibold'>{libro.autores}</span></p>}
                                                 <p className='mb-0'>Editorial: <span className='fw-semibold'>{libro.editorial}</span></p>
                                                 <p className='mb-0'>Stock: <span className='fw-semibold'>{libro.stock ?? '—'}</span></p>
@@ -473,17 +465,14 @@ export const Catalogo = () => {
             {/* ── MODAL EDITAR ─────────────────────────────────── */}
             {libroEditando && (
                 <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050 }}>
-                    <div className="profile-content" style={{ width: '100%', maxWidth: '560px', margin: '1rem', maxHeight: '90vh', overflowY: 'auto' }}>
+                    <div className="profile-content pb-4" style={{ width: '100%', maxWidth: '560px', margin: '1rem', maxHeight: '90vh', overflowY: 'auto' }}>
                         <div className="d-flex justify-content-between align-items-center mb-3">
                             <h5 className="fw-semibold mb-0">Editar libro</h5>
                             <button className="btn btn-sm" onClick={() => setLibroEditando(null)}>✕</button>
                         </div>
                         <hr className="divider mb-3" />
-
                         {renderCamposLibro(formEditar, setFormEditar)}
-
                         {mensajeEdicion && <p className="mt-3 mb-0">{mensajeEdicion}</p>}
-
                         <div className="d-flex gap-2 mt-4">
                             <button className="btn boton-primario" onClick={handleGuardarEdicion} disabled={guardandoEdicion}>
                                 {guardandoEdicion ? 'Guardando...' : 'Guardar cambios'}
@@ -503,23 +492,14 @@ export const Catalogo = () => {
                             <button className="btn btn-sm" onClick={cerrarModalAgregar}>✕</button>
                         </div>
 
-                        {/* TABS */}
                         <ul className="nav nav-tabs mb-4">
                             <li className="nav-item">
-                                <button
-                                    className={`nav-link ${tabAgregar === 'isbn' ? 'active' : ''}`}
-                                    onClick={() => setTabAgregar('isbn')}
-                                >
-                                    Por ISBN
-                                </button>
+                                <button className={`nav-link ${tabAgregar === 'isbn' ? 'active' : ''}`}
+                                    onClick={() => setTabAgregar('isbn')}>Por ISBN</button>
                             </li>
                             <li className="nav-item">
-                                <button
-                                    className={`nav-link ${tabAgregar === 'manual' ? 'active' : ''}`}
-                                    onClick={() => setTabAgregar('manual')}
-                                >
-                                    Manual
-                                </button>
+                                <button className={`nav-link ${tabAgregar === 'manual' ? 'active' : ''}`}
+                                    onClick={() => setTabAgregar('manual')}>Manual</button>
                             </li>
                         </ul>
 
@@ -536,9 +516,7 @@ export const Catalogo = () => {
                                         {buscandoIsbn ? '...' : 'Buscar'}
                                     </button>
                                 </div>
-
                                 {errorIsbn && <p className="text-danger mb-3">{errorIsbn}</p>}
-
                                 {libroBuscado && (
                                     <>
                                         <div className="d-flex gap-3 mb-3 p-3" style={{ backgroundColor: '#F1F2ED', borderRadius: '12px' }}>
@@ -556,7 +534,6 @@ export const Catalogo = () => {
                                                 </span>
                                             </div>
                                         </div>
-
                                         <div className="row g-3">
                                             <div className="col-12">
                                                 <label className="form-label">Precio (CLP) *</label>
@@ -572,13 +549,11 @@ export const Catalogo = () => {
                                             </div>
                                             <div className="col-6">
                                                 <label className="form-label">Descuento (%)</label>
-                                                <input type="number" className="form-control form-input"
-                                                    min="0" max="100"
+                                                <input type="number" className="form-control form-input" min="0" max="100"
                                                     value={formIsbn.descuento}
                                                     onChange={e => setFormIsbn(p => ({ ...p, descuento: e.target.value }))} />
                                             </div>
                                         </div>
-
                                         <div className="d-flex gap-2 mt-4">
                                             <button className="btn boton-primario" onClick={handleGuardarIsbn}
                                                 disabled={guardandoIsbn || !formIsbn.precio || !formIsbn.stock}>
@@ -595,10 +570,8 @@ export const Catalogo = () => {
                         {tabAgregar === 'manual' && (
                             <>
                                 {renderCamposLibro(formManual, setFormManual)}
-
                                 {mensajeManual && <p className="mt-3 mb-0">{mensajeManual}</p>}
-
-                                <div className="d-flex gap-2 mt-4 mb-2">
+                                <div className="d-flex gap-2 mt-4">
                                     <button className="btn boton-primario" onClick={handleGuardarManual} disabled={guardandoManual}>
                                         {guardandoManual ? 'Guardando...' : 'Agregar al catálogo'}
                                     </button>

@@ -48,7 +48,7 @@ export const Home = () => {
     const librosConDescuento = [...libros]
         .filter(l => l.descuento && l.descuento > 0 && l.imagen)
         .sort((a, b) => b.id_libro - a.id_libro)
-        .slice(0, 5)
+        .slice(0, 4)
 
     // Comics & Mangas: max 6
     const comicsMangasHome = [...comicsMangas]

@@ -123,14 +123,14 @@ export const DetalleLibro = () => {
             <hr className="divider" />
 
             {tieneDescuento ? (
-              <div className="mt-2">
+              <div className="mt-2 d-flex align-items-center">
                 <span className="text-decoration-line-through text-muted fs-5 me-2">
                   ${Number(libro.precio).toLocaleString("es-CL")}
                 </span>
                 <span className="fw-bold fs-2 text-danger">
                   ${Number(precioFinal).toLocaleString("es-CL")}
                 </span>
-                <span className="badge ms-2" style={{ backgroundColor: '#E37217' }}>
+                <span className="badge ms-2" style={{ backgroundColor: '#FCB400' }}>
                   -{libro.descuento}%
                 </span>
               </div>
@@ -146,7 +146,7 @@ export const DetalleLibro = () => {
               <label htmlFor="cantidad" className="form-label fw-semibold">
                 Cantidad:
               </label>
-              <div className="d-flex align-items-center gap-2">
+              <div className="d-flex align-items-center gap-2 flex-wrap">
                 <input
                   type="number"
                   id="cantidad"
