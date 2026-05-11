@@ -10,6 +10,7 @@ import { Favoritos } from "./views/Favoritos";
 import { Gallery } from "./views/Gallery";
 import { Promociones } from "./views/Promociones";
 import { ComicsMangas } from "./views/ComicsMangas";
+import { Preventas } from "./views/Preventas";
 import { FooterComponent } from "./components/FooterComponent";
 
 import { Checkout } from "./views/Checkout";
@@ -66,6 +67,7 @@ function App() {
           <Route path="/libros" element={<Gallery />} />
           <Route path="/promociones" element={<Promociones />} />
           <Route path="/comics-&-mangas" element={<ComicsMangas />} />
+          <Route path="/preventas" element={<Preventas />} />
 
           {/* 🟡 RUTAS PROTEGIDAS (requieren login) */}
           <Route
