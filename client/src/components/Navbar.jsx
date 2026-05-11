@@ -309,7 +309,7 @@ export const NavbarComponent = () => {
             </li>
 
             <li className="nav-item">
-              <NavLink to="/preventas" className="nav-link">
+              <NavLink to="/Preventas" className="nav-link">
                 Preventas
               </NavLink>
             </li>

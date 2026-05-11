@@ -69,9 +69,9 @@ const validarStockLibro = async (id_libro, cantidadSolicitada) => {
     };
   }
 
-  const esPreventa = libro.formato?.toLowerCase() === "preventa";
+  const esPreventass = libro.formato?.toLowerCase() === "Preventas";
 
-  if (!esPreventa && cantidadSolicitada > libro.stock) {
+  if (!esPreventass && cantidadSolicitada > libro.stock) {
     throw {
       code: 400,
       message: `Stock insuficiente. Disponible: ${libro.stock}`,

@@ -287,7 +287,7 @@ const buscarLibros = async (q) => {
   return rows;
 };
 
-// RUTA GET /libros/preventas
+// RUTA GET /libros/Preventas
 const obtenerPreventas = async () => {
   const { rows } = await pool.query(`
     SELECT

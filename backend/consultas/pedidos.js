@@ -35,9 +35,9 @@ const crearPedidoDesdeCarrito = async (
   }
 
   for (const item of carrito) {
-    const esPreventa = item.formato?.toLowerCase() === "preventa";
+    const esPreventas = item.formato?.toLowerCase() === "Preventas";
 
-    if (!esPreventa && item.cantidad > item.stock) {
+    if (!esPreventas && item.cantidad > item.stock) {
       throw {
         code: 400,
         message: `Stock insuficiente para libro ${item.id_libro}`,
@@ -89,9 +89,9 @@ const crearPedidoDesdeCarrito = async (
       ]
     );
 
-    const esPreventa = item.formato?.toLowerCase() === "preventa";
+    const esPreventas = item.formato?.toLowerCase() === "Preventas";
 
-    if (!esPreventa) {
+    if (!esPreventas) {
       await pool.query(
         `
         UPDATE libro

@@ -54,7 +54,9 @@ const {
   obtenerDetallePedido,
 } = require("./consultas/pedidos.js");
 
-getHealth();
+if (require.main === module) {
+  getHealth();
+}
 
 const api = express();
 
@@ -66,9 +68,9 @@ api.use(cors());
 const PORT = process.env.PORT || 3000;
 
 // Ruta de prueba del servidor
-api.get("/", (req, res) => {
-  res.send("API libreria funcionando");
-});
+// api.get("/", (req, res) => {
+//   res.send("API libreria funcionando");
+// });
 
 // Ruta POST para registrar clientes
 api.post("/clientes/register", async (req, res) => {
@@ -694,17 +696,17 @@ api.get("/generos", async (req, res) => {
   }
 });
 
-// Ruta GET /preventas
+// Ruta GET /Preventas
 api.get("/preventas", async (req, res) => {
   try {
-    const preventas = await getPreventas();
+    const Preventas = await obtenerPreventas();
 
     res.json({
-      cantidad: preventas.length,
-      data: preventas,
+      cantidad: Preventas.length,
+      data: Preventas,
     });
   } catch (error) {
-    console.error("Error en GET /preventas:", error);
+    console.error("Error en GET /Preventas:", error);
     res.status(500).json({
       error: error.code,
       message: error.message,
