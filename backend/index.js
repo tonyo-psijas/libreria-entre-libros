@@ -375,7 +375,7 @@ api.post("/libros", authMiddleware, verificarAdmin, async (req, res) => {
 // Ruta PUT para actualizar un libro por ID
 api.put("/libros/:id", authMiddleware, verificarAdmin, async (req, res) => {
   const { id } = req.params;
-  const { precio, stock, descuento, titulo, descripcion, imagen, autores, generos } = req.body;
+  const { precio, stock, descuento, titulo, descripcion, imagen, formato, autores, generos } = req.body;
 
   try {
       if (precio !== undefined && precio < 0) {
@@ -388,7 +388,7 @@ api.put("/libros/:id", authMiddleware, verificarAdmin, async (req, res) => {
           return res.status(400).json({ message: "El descuento debe estar entre 0 y 100" });
       }
 
-      const libroActualizado = await actualizarLibro(id, { precio, stock, descuento, titulo, descripcion, imagen });
+      const libroActualizado = await actualizarLibro(id, { precio, stock, descuento, titulo, descripcion, imagen, formato });
 
       if (!libroActualizado) {
           return res.status(404).json({ message: "Libro no encontrado" });

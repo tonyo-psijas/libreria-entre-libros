@@ -9,25 +9,25 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000"
 export const Home = () => {
     const [libros, setLibros] = useState([])
     const [comicsMangas, setComicsMangas] = useState([])
+    const [preventas, setPreventas] = useState([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const cargarTodo = async () => {
             try {
-                // Cargamos libros generales y comics en paralelo
-                const [resLibros, resComics] = await Promise.all([
+                const [resLibros, resComics, resPreventas] = await Promise.all([
                     fetch(`${BASE_URL}/libros/filtros`),
-                    fetch(`${BASE_URL}/libros/filtros?genero=${encodeURIComponent('Comics & Mangas')}`)
+                    fetch(`${BASE_URL}/libros/filtros?genero=${encodeURIComponent('Comics & Mangas')}`),
+                    fetch(`${BASE_URL}/preventas`)
                 ])
 
                 const jsonLibros = await resLibros.json()
                 const jsonComics = await resComics.json()
+                const jsonPreventas = await resPreventas.json()
 
-                const listaLibros = Array.isArray(jsonLibros) ? jsonLibros : (jsonLibros.data ?? [])
-                const listaComics = Array.isArray(jsonComics) ? jsonComics : (jsonComics.data ?? [])
-
-                setLibros(listaLibros)
-                setComicsMangas(listaComics)
+                setLibros(Array.isArray(jsonLibros) ? jsonLibros : (jsonLibros.data ?? []))
+                setComicsMangas(Array.isArray(jsonComics) ? jsonComics : (jsonComics.data ?? []))
+                setPreventas(Array.isArray(jsonPreventas) ? jsonPreventas : (jsonPreventas.data ?? []))
             } catch (error) {
                 console.error("Error al cargar libros:", error)
             } finally {
@@ -37,21 +37,33 @@ export const Home = () => {
         cargarTodo()
     }, [])
 
-    // Novedades: sin descuento, con imagen, sin Comics & Mangas, más recientes primero, max 6
     const idsComics = new Set(comicsMangas.map(l => l.id_libro))
+    const idsPreventas = new Set(preventas.map(l => l.id_libro))
+
+    // Novedades: sin descuento, con imagen, sin Comics & Mangas, sin Preventas
     const ultimosLibros = [...libros]
-        .filter(l => (!l.descuento || l.descuento === 0) && l.imagen && !idsComics.has(l.id_libro))
+        .filter(l =>
+            (!l.descuento || l.descuento === 0) &&
+            l.imagen &&
+            !idsComics.has(l.id_libro) &&
+            !idsPreventas.has(l.id_libro)
+        )
         .sort((a, b) => b.id_libro - a.id_libro)
         .slice(0, 6)
 
-    // Promociones: con descuento > 0, con imagen, max 5
+    // Promociones: con descuento, con imagen, sin Preventas
     const librosConDescuento = [...libros]
-        .filter(l => l.descuento && l.descuento > 0 && l.imagen)
+        .filter(l => l.descuento && l.descuento > 0 && l.imagen && !idsPreventas.has(l.id_libro))
         .sort((a, b) => b.id_libro - a.id_libro)
         .slice(0, 4)
 
     // Comics & Mangas: max 6
     const comicsMangasHome = [...comicsMangas]
+        .sort((a, b) => b.id_libro - a.id_libro)
+        .slice(0, 6)
+
+    // Preventas: max 6
+    const preventasHome = [...preventas]
         .sort((a, b) => b.id_libro - a.id_libro)
         .slice(0, 6)
 
@@ -112,6 +124,34 @@ export const Home = () => {
                                     precio={libro.precio_final ?? libro.precio}
                                     descuento={libro.descuento}
                                     precio_original={libro.precio}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* PREVENTAS */}
+            {preventasHome.length > 0 && (
+                <div className='container pt-5'>
+                    <div className="encabezado-home mb-2 d-flex justify-content-between align-items-center">
+                        <h2 className='fw-semibold'>Preventas</h2>
+                        <Link to="/preventas" className='ver-mas'>
+                            Ver Más <i className="fa-regular fa-chevron-right"></i>
+                        </Link>
+                    </div>
+                    <div className="row g-4">
+                        {preventasHome.map((libro) => (
+                            <div key={libro.id_libro} className="col-6 col-sm-4 col-lg-2">
+                                <ProductCard
+                                    imagen={libro.imagen}
+                                    id_libro={libro.id_libro}
+                                    titulo={libro.titulo}
+                                    autor={libro.autores || ''}
+                                    precio={libro.precio_final ?? libro.precio}
+                                    descuento={libro.descuento}
+                                    precio_original={libro.precio}
+                                    esPreventa={true}
                                 />
                             </div>
                         ))}

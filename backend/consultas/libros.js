@@ -8,6 +8,7 @@ const obtenerLibros = async () => {
             l.titulo,
             l.precio,
             l.descuento,
+            l.formato,
             TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
             l.imagen,
             STRING_AGG(DISTINCT a.nombre, ', ') AS autores
@@ -15,7 +16,7 @@ const obtenerLibros = async () => {
         LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
         LEFT JOIN autor a ON la.id_autor = a.id_autor
         WHERE l.activo = true
-        GROUP BY l.id_libro, l.titulo, l.precio, l.descuento, l.imagen
+        GROUP BY l.id_libro, l.titulo, l.precio, l.descuento, l.imagen, l.formato
         ORDER BY l.descuento DESC, l.id_libro ASC
     `);
 
@@ -241,7 +242,7 @@ const actualizarLibro = async (id, datos) => {
             imagen = COALESCE($6, imagen),
             formato = COALESCE($7, formato),
             activo = true
-        WHERE id_libro = $7
+        WHERE id_libro = $8
         RETURNING *
     `, [
         precio ?? null,
