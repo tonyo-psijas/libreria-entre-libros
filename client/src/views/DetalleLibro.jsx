@@ -106,7 +106,20 @@ export const DetalleLibro = () => {
           </div>
 
           <div className="col-12 col-md-8 col-lg-9">
-            <h1 className="fw-bold mb-3">{libro.titulo}</h1>
+
+            <div className="d-flex flex-wrap align-items-center gap-3 mb-3">
+
+              <h1 className="fw-bold mb-0">{libro.titulo}</h1>
+
+              {libro.formato?.toLowerCase() === "preventa" && (
+                <span
+                  className="preventa-label"
+                >
+                  PREVENTA
+                </span>
+              )}
+            </div>
+           
 
             {libro.autores && (
               <p className="text-muted mb-2">
@@ -141,6 +154,7 @@ export const DetalleLibro = () => {
                 </span>
               </div>
             )}
+
 
             <div className="mb-4">
               <label htmlFor="cantidad" className="form-label fw-semibold">

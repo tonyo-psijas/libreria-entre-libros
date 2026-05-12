@@ -57,6 +57,8 @@ export const UserProvider = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(userLogueado));
       setUser(userLogueado);
 
+      window.dispatchEvent(new Event("login"));
+
       return { ok: true };
     } catch (error) {
       return { ok: false, mensaje: "Error de conexión con el servidor." };
@@ -103,6 +105,7 @@ export const UserProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    window.dispatchEvent(new Event("logout"));
   };
 
   return (

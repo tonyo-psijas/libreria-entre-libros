@@ -11,11 +11,14 @@ function ProductCard({
   precio,
   descuento = false,
   precio_original = null,
+  esPreventa = false
 }) {
   const { agregarAlCarrito } = useCart();
   const { esFavorito, toggleFavorito } = useFavorites();
   const { isAuthenticated } = useUser(); //
   const navigate = useNavigate(); //
+
+
   const handleAgregar = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -76,6 +79,28 @@ function ProductCard({
           }}
         ></i>
       </button>
+
+      {/* BADGE PREVENTA */}
+      {esPreventa && (
+        <span
+          style={{
+            position: "absolute",
+            top: "10px",
+            left: "10px",
+            backgroundColor: "#FCB400",
+            color: "white",
+            fontSize: "11px",
+            fontWeight: "600",
+            padding: "4px 8px",
+            borderRadius: "999px",
+            zIndex: 10,
+            letterSpacing: "0.5px",
+          }}
+        >
+          PREVENTA
+        </span>
+      )}
+
 
       <Link to={`/libro/${id_libro}`} className="product-card-link">
         <div key={id_libro} className="product-card">

@@ -154,6 +154,17 @@ header button {
   gap: 0.2rem;
 }
 
+.preventa-label {
+  display: inline-block;
+  background-color: #FCB400;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 999pc;
+  letter-spacing: 0.5px;
+}
+
 .autor-name-card {
   text-transform: uppercase;
   color: #6b705c;

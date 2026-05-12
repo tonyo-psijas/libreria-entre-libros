@@ -62,6 +62,7 @@ export const Gallery = () => {
 
                 // Excluir Comics & Mangas y libros sin imagen
                 setLibros(lista.filter(l => !idsComics.has(l.id_libro) && l.imagen))
+                console.log("Muestra de libros:", lista.slice(0, 3))
             } catch (error) {
                 console.error("Error al cargar libros:", error)
             } finally {
@@ -185,6 +186,7 @@ export const Gallery = () => {
                                     precio={libro.precio_final ?? libro.precio}
                                     descuento={libro.descuento}
                                     precio_original={libro.precio}
+                                    esPreventa={libro.formato?.toLowerCase() === "preventa"}
                                 />
                             </div>
                         ))}
