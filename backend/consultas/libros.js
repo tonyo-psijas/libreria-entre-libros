@@ -241,7 +241,7 @@ const actualizarLibro = async (id, datos) => {
             imagen = COALESCE($6, imagen),
             formato = COALESCE($7, formato),
             activo = true
-        WHERE id_libro = $7
+        WHERE id_libro = $8
         RETURNING *
     `, [
         precio ?? null,

@@ -1,14 +1,22 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-// 🔐 Middleware de autenticación
+// Middleware de autenticación
 const authMiddleware = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
+    if (!authHeader) {
       return res.status(401).json({
-        message: "No se proporcionó un token de autenticación"
+        message: "No se proporcionó un token de autenticación",
+      });
+    }
+
+    const [tipo, token] = authHeader.split(" ");
+
+    if (tipo !== "Bearer" || !token) {
+      return res.status(401).json({
+        message: "Formato de token inválido.",
       });
     }
 
@@ -18,35 +26,30 @@ const authMiddleware = (req, res, next) => {
 
     next();
   } catch (error) {
-    return res.status(403).json({
-      message: "Token inválido"
+    return res.status(401).json({
+      message: "Token inválido o expirado",
     });
   }
 };
 
-// 🔐 Middleware de autorización (admin)
+// Middleware de autorización admin
 const verificarAdmin = (req, res, next) => {
-  try {
-    const user = req.user;
-
-    if (!user) {
-      return res.status(401).json({
-        message: "Usuario no autenticado"
-      });
-    }
-
-    if (user.rol !== "admin") {
-      return res.status(403).json({
-        message: "No tienes permisos para acceder a esta ruta"
-      });
-    }
-
-    next();
-  } catch (error) {
-    return res.status(500).json({
-      message: "Error en verificación de permisos"
+  if (!req.user) {
+    return res.status(401).json({
+      message: "Usuario no autenticado",
     });
   }
+
+  if (req.user.rol !== "admin") {
+    return res.status(403).json({
+      message: "Acceso denegado. Se requiere rol administrador",
+    });
+  }
+
+  next();
 };
 
-module.exports = { authMiddleware, verificarAdmin };
+module.exports = {
+  authMiddleware,
+  verificarAdmin,
+};
