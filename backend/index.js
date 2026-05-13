@@ -5,7 +5,7 @@ const pool = require("./database/db");
 const jwt = require("jsonwebtoken");
 const { authMiddleware, verificarAdmin } = require("./middlewares/auth");
 const { getHealth } = require("./database/db.js");
-const { registrarCliente, loginCliente } = require("./consultas/clientes.js");
+const { registrarCliente, loginCliente, actualizarCliente } = require("./consultas/clientes.js");
 const { obtenerOCrearEditorial } = require("./consultas/editoriales");
 const { obtenerOCrearAutor } = require("./consultas/autores.js");
 const { getGeneros, obtenerOCrearGenero } = require("./consultas/generos.js");
@@ -52,6 +52,8 @@ const {
   crearPedidoDesdeCarrito,
   obtenerPedidosCliente,
   obtenerDetallePedido,
+  obtenerTodosLosPedidos,
+  obtenerResumenPedido,
 } = require("./consultas/pedidos.js");
 
 if (require.main === module) {
@@ -129,6 +131,31 @@ api.post("/clientes/login", async (req, res) => {
   } catch (error) {
     res.status(error.code || 500).json({
       message: error.message
+    });
+  }
+});
+
+//RUTA POST para actualizar perfil del cliente autenticado
+// PUT /clientes/me — actualizar perfil del cliente autenticado
+api.put("/clientes/me", authMiddleware, async (req, res) => {
+  const id_cliente = req.user.id_cliente;
+  const { nombre, email, password } = req.body;
+
+  try {
+    const clienteActualizado = await actualizarCliente(id_cliente, {
+      nombre,
+      email,
+      password,
+    });
+
+    res.json({
+      message: "Perfil actualizado con éxito",
+      data: clienteActualizado,
+    });
+  } catch (error) {
+    console.error("Error en PUT /clientes/me:", error);
+    res.status(error.code || 500).json({
+      message: error.message,
     });
   }
 });
@@ -966,6 +993,25 @@ api.get("/pedidos", authMiddleware, async (req, res) => {
   }
 });
 
+api.get("/pedidos/admin/todos", authMiddleware, verificarAdmin, async (req, res) => {
+  try {
+    const pedidos = await obtenerTodosLosPedidos();
+    res.json({ data: pedidos });
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener vetnas" })
+  }
+});
+
+api.get("/pedidos/resumen/:id_pedido", authMiddleware, async (req, res) => {
+  try {
+    const resumen = await obtenerResumenPedido(req.params.id_pedido);
+    if (!resumen) return res.status(404).json({ message: "Pedido no encontrado" });
+    res.json({ data: resumen });
+  } catch (err) {
+    res.status(500).json({ message: "Error al obtener resumen del pedido" });
+  }
+});
+
 api.get("/pedidos/detalle/:id_pedido", authMiddleware, async (req, res) => {
   console.log("GET /pedidos/detalle/:id_pedido", req.params);
 
@@ -989,6 +1035,7 @@ api.get("/pedidos/detalle/:id_pedido", authMiddleware, async (req, res) => {
     });
   }
 });
+
 
 if (require.main === module) {
   api.listen(PORT, () => {

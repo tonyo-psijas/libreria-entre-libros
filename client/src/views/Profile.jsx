@@ -30,9 +30,7 @@ export const Profile = () => {
   // ── Estado del formulario de perfil ────────────────────────────────────────
   const [formData, setFormData] = useState({
     nombre: user?.nombre || "",
-    apellido: user?.apellido || "",
     email: user?.email || "",
-    telefono: user?.telefono || "",
     password: "",
     confirmPassword: "",
   });
@@ -85,10 +83,10 @@ export const Profile = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmitPerfil = (e) => {
+  const handleSubmitPerfil = async (e) => {
     e.preventDefault();
     setErrorPerfil("");
-
+  
     if (formData.password && formData.password !== formData.confirmPassword) {
       setErrorPerfil("Las contraseñas no coinciden.");
       return;
@@ -97,17 +95,20 @@ export const Profile = () => {
       setErrorPerfil("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
-
+  
     const datosAActualizar = {
       nombre: formData.nombre,
-      apellido: formData.apellido,
       email: formData.email,
-      telefono: formData.telefono,
       ...(formData.password ? { password: formData.password } : {}),
     };
-
-    // TODO: conectar a PUT /clientes/:id cuando el backend lo tenga
-    actualizarPerfil(datosAActualizar);
+  
+    const resultado = await actualizarPerfil(datosAActualizar); 
+  
+    if (!resultado.ok) {
+      setErrorPerfil(resultado.mensaje);
+      return;
+    }
+  
     setEditando(false);
     setGuardado(true);
     setTimeout(() => setGuardado(false), 3000);
@@ -116,9 +117,7 @@ export const Profile = () => {
   const handleCancelarPerfil = () => {
     setFormData({
       nombre: user?.nombre || "",
-      apellido: user?.apellido || "",
       email: user?.email || "",
-      telefono: user?.telefono || "",
       password: "",
       confirmPassword: "",
     });
@@ -279,36 +278,12 @@ export const Profile = () => {
                 </div>
 
                 <div className="col-12 col-sm-6">
-                  <label className="form-label">Apellido</label>
-                  <input
-                    type="text"
-                    className="form-control form-input"
-                    name="apellido"
-                    value={formData.apellido}
-                    onChange={handleChange}
-                    disabled={!editando}
-                  />
-                </div>
-
-                <div className="col-12 col-sm-6">
                   <label className="form-label">Email</label>
                   <input
                     type="email"
                     className="form-control form-input"
                     name="email"
                     value={formData.email}
-                    onChange={handleChange}
-                    disabled={!editando}
-                  />
-                </div>
-
-                <div className="col-12 col-sm-6">
-                  <label className="form-label">Teléfono</label>
-                  <input
-                    type="tel"
-                    className="form-control form-input"
-                    name="telefono"
-                    value={formData.telefono}
                     onChange={handleChange}
                     disabled={!editando}
                   />

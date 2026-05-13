@@ -150,7 +150,7 @@ export const Checkout = () => {
                     No tienes direcciones guardadas.
                   </p>
                   <a
-                    href="/perfil"
+                    href="/entre-libros/perfil"
                     className="btn boton-secundario btn-sm"
                   >
                     Agregar dirección en Mi Perfil
