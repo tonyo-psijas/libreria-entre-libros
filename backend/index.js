@@ -727,6 +727,7 @@ api.get("/generos", async (req, res) => {
 api.get("/preventas", async (req, res) => {
   try {
     const Preventas = await obtenerPreventas();
+    console.log("Preventas encontradas:", Preventas.length);
 
     res.json({
       cantidad: Preventas.length,
