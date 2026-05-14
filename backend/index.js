@@ -64,11 +64,7 @@ const api = express();
 
 //Middlewares
 api.use(express.json());
-api.use(cors({
-  origin: "https://libreria-entre-libros-frontend.onrender.com",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+api.use(cors());
 
 // Puerto donde escucha el back
 const PORT = process.env.PORT || 3000;
