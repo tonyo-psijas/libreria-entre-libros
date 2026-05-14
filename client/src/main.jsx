@@ -11,7 +11,7 @@ import { OrderProvider } from "./context/OrderContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter basename="/entre-libros">
+    <BrowserRouter basename={import.meta.env.VITE_BASENAME || "/"}>
       <UserProvider>
         <OrderProvider>
           <CartProvider>
