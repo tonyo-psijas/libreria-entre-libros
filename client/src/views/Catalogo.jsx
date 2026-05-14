@@ -486,7 +486,7 @@ export const Catalogo = () => {
             {/* ── MODAL AGREGAR ────────────────────────────────── */}
             {mostrarModalAgregar && (
                 <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050 }}>
-                    <div className="profile-content" style={{ width: '100%', maxWidth: '580px', margin: '1rem', maxHeight: '90vh', overflowY: 'auto' }}>
+                    <div className="profile-content pb-4" style={{ width: '100%', maxWidth: '580px', margin: '1rem', maxHeight: '90vh', overflowY: 'auto' }}>
                         <div className="d-flex justify-content-between align-items-center mb-3">
                             <h5 className="fw-semibold mb-0">Agregar libro</h5>
                             <button className="btn btn-sm" onClick={cerrarModalAgregar}>✕</button>

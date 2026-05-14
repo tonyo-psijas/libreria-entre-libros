@@ -5,7 +5,7 @@ const pool = require("./database/db");
 const jwt = require("jsonwebtoken");
 const { authMiddleware, verificarAdmin } = require("./middlewares/auth");
 const { getHealth } = require("./database/db.js");
-const { registrarCliente, loginCliente } = require("./consultas/clientes.js");
+const { registrarCliente, loginCliente, actualizarCliente } = require("./consultas/clientes.js");
 const { obtenerOCrearEditorial } = require("./consultas/editoriales");
 const { obtenerOCrearAutor } = require("./consultas/autores.js");
 const { getGeneros, obtenerOCrearGenero } = require("./consultas/generos.js");
@@ -24,14 +24,14 @@ const {
   actualizarLibro,
   agregarAutorLibro,
   agregarGeneroLibro,
-  obtenerPreventas,
+  obtenerPreventas
 } = require("./consultas/libros.js");
-const {
+const { 
   obtenerCarrito,
   agregarLibroCarrito,
   actualizarCantidadCarrito,
   eliminarLibroCarrito,
-  vaciarCarrito,
+  vaciarCarrito
 } = require("./consultas/carrito.js");
 const {
   obtenerFavoritos,
@@ -52,6 +52,8 @@ const {
   crearPedidoDesdeCarrito,
   obtenerPedidosCliente,
   obtenerDetallePedido,
+  obtenerTodosLosPedidos,
+  obtenerResumenPedido,
 } = require("./consultas/pedidos.js");
 
 if (require.main === module) {
@@ -81,20 +83,20 @@ api.post("/clientes/register", async (req, res) => {
       {
         id_cliente: cliente.id_cliente,
         email: cliente.email,
-        rol: cliente.rol,
+        rol: cliente.rol
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" },
+      { expiresIn: "1h" }
     );
 
     res.status(201).json({
       message: "Cliente registrado con éxito",
       cliente,
-      token,
+      token
     });
   } catch (error) {
     res.status(error.code || 500).json({
-      message: error.message,
+      message: error.message
     });
   }
 });
@@ -110,10 +112,10 @@ api.post("/clientes/login", async (req, res) => {
       {
         id_cliente: cliente.id_cliente,
         email: cliente.email,
-        rol: cliente.rol,
+        rol: cliente.rol
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" },
+      { expiresIn: "1h" }
     );
 
     res.json({
@@ -122,11 +124,36 @@ api.post("/clientes/login", async (req, res) => {
         id_cliente: cliente.id_cliente,
         nombre: cliente.nombre,
         email: cliente.email,
-        rol: cliente.rol,
+        rol: cliente.rol
       },
-      token,
+      token
     });
   } catch (error) {
+    res.status(error.code || 500).json({
+      message: error.message
+    });
+  }
+});
+
+//RUTA POST para actualizar perfil del cliente autenticado
+// PUT /clientes/me — actualizar perfil del cliente autenticado
+api.put("/clientes/me", authMiddleware, async (req, res) => {
+  const id_cliente = req.user.id_cliente;
+  const { nombre, email, password } = req.body;
+
+  try {
+    const clienteActualizado = await actualizarCliente(id_cliente, {
+      nombre,
+      email,
+      password,
+    });
+
+    res.json({
+      message: "Perfil actualizado con éxito",
+      data: clienteActualizado,
+    });
+  } catch (error) {
+    console.error("Error en PUT /clientes/me:", error);
     res.status(error.code || 500).json({
       message: error.message,
     });
@@ -223,11 +250,9 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
         );
 
         libroOpenLibrary.generos = await Promise.all(
-          (libroOpenLibrary.generos || []).map((genero) =>
-            traducirTexto(genero),
-          ),
+        (libroOpenLibrary.generos || []).map((genero) => traducirTexto(genero))
         );
-      }
+        }
 
       return res.json({
         origen: "open_library",
@@ -309,55 +334,25 @@ api.post("/libros", authMiddleware, verificarAdmin, async (req, res) => {
       generos = [],
     } = req.body;
 
-    const formatosPermitidos = ["fisico", "físico", "digital", "preventa"];
-
-    if (!titulo?.trim() || !isbn?.trim() || precio === undefined) {
+    if (!titulo || !isbn || !precio) {
       return res.status(400).json({
         message: "Título, ISBN y precio son obligatorios",
       });
     }
 
-    if (!editorial?.trim()) {
+    if (stock < 0) {
       return res.status(400).json({
-        message: "La editorial es obligatoria",
+        message: "El stock no puede ser negativo",
       });
     }
 
-    if (isNaN(Number(precio)) || Number(precio) <= 0) {
-      return res.status(400).json({
-        message: "El precio debe ser un número mayor a 0",
-      });
-    }
-
-    if (stock === undefined || isNaN(Number(stock)) || Number(stock) < 0) {
-      return res.status(400).json({
-        message: "El stock debe ser un número igual o mayor a 0",
-      });
-    }
-
-    if (
-      isNaN(Number(descuento)) ||
-      Number(descuento) < 0 ||
-      Number(descuento) > 100
-    ) {
+    if (descuento < 0 || descuento > 100) {
       return res.status(400).json({
         message: "El descuento debe ser un valor entre 0 y 100",
       });
     }
 
-    if (!formato || !formatosPermitidos.includes(formato.toLowerCase())) {
-      return res.status(400).json({
-        message: "Formato inválido. Usa fisico, físico, digital o preventa",
-      });
-    }
-
-    if (!Array.isArray(autores) || !Array.isArray(generos)) {
-      return res.status(400).json({
-        message: "Autores y géneros deben ser arreglos",
-      });
-    }
-
-    const libroExistente = await obtenerLibroByIsbn(isbn.trim());
+    const libroExistente = await obtenerLibroByIsbn(isbn);
 
     if (libroExistente) {
       return res.status(400).json({
@@ -365,32 +360,29 @@ api.post("/libros", authMiddleware, verificarAdmin, async (req, res) => {
       });
     }
 
-    const id_editorial = await obtenerOCrearEditorial(editorial.trim());
+    const id_editorial = await obtenerOCrearEditorial(editorial);
 
     const nuevoLibro = await crearLibro({
-      titulo: titulo.trim(),
-      isbn: isbn.trim(),
+      titulo,
+      isbn,
       descripcion,
-      precio: Number(precio),
-      descuento: Number(descuento),
-      formato: formato.toLowerCase(),
-      stock: Number(stock),
+      precio,
+      descuento,
+      formato,
+      stock,
       id_editorial,
       fecha_publicacion,
       numero_paginas,
       imagen,
     });
 
-    const autoresLimpios = autores.filter((a) => a?.trim());
-    const generosLimpios = generos.filter((g) => g?.trim());
-
-    for (const nombreAutor of autoresLimpios) {
-      const id_autor = await obtenerOCrearAutor(nombreAutor.trim());
+    for (const nombreAutor of autores) {
+      const id_autor = await obtenerOCrearAutor(nombreAutor);
       await agregarAutorLibro(nuevoLibro.id_libro, id_autor);
     }
 
-    for (const nombreGenero of generosLimpios) {
-      const id_genero = await obtenerOCrearGenero(nombreGenero.trim());
+    for (const nombreGenero of generos) {
+      const id_genero = await obtenerOCrearGenero(nombreGenero);
       await agregarGeneroLibro(nuevoLibro.id_libro, id_genero);
     }
 
@@ -401,7 +393,8 @@ api.post("/libros", authMiddleware, verificarAdmin, async (req, res) => {
   } catch (error) {
     console.error("Error en POST /libros:", error);
     res.status(500).json({
-      message: "Error interno al crear el libro",
+      error: error.code,
+      message: error.message,
     });
   }
 });
@@ -409,160 +402,77 @@ api.post("/libros", authMiddleware, verificarAdmin, async (req, res) => {
 // Ruta PUT para actualizar un libro por ID
 api.put("/libros/:id", authMiddleware, verificarAdmin, async (req, res) => {
   const { id } = req.params;
-
-  const {
-    precio,
-    stock,
-    descuento,
-    titulo,
-    descripcion,
-    imagen,
-    formato,
-    autores,
-    generos,
-  } = req.body;
+  const { precio, stock, descuento, titulo, descripcion, imagen, formato, autores, generos } = req.body;
 
   try {
-    const formatosPermitidos = ["fisico", "físico", "digital", "preventa"];
+      if (precio !== undefined && precio < 0) {
+          return res.status(400).json({ message: "El precio no puede ser negativo" });
+      }
+      if (stock !== undefined && stock < 0) {
+          return res.status(400).json({ message: "El stock no puede ser negativo" });
+      }
+      if (descuento !== undefined && (descuento < 0 || descuento > 100)) {
+          return res.status(400).json({ message: "El descuento debe estar entre 0 y 100" });
+      }
 
-    if (isNaN(Number(id))) {
-      return res.status(400).json({
-        message: "El id del libro debe ser numérico",
-      });
-    }
+      const libroActualizado = await actualizarLibro(id, { precio, stock, descuento, titulo, descripcion, imagen, formato });
 
-    if (Object.keys(req.body).length === 0) {
-      return res.status(400).json({
-        message: "Debes enviar al menos un campo para actualizar",
-      });
-    }
+      if (!libroActualizado) {
+          return res.status(404).json({ message: "Libro no encontrado" });
+      }
 
-    if (precio !== undefined && (isNaN(Number(precio)) || Number(precio) <= 0)) {
-      return res.status(400).json({
-        message: "El precio debe ser un número mayor a 0",
-      });
-    }
+      // Actualizar autores si vienen
+      if (autores && autores.length > 0) {
+          await pool.query(`DELETE FROM libro_autor WHERE id_libro = $1`, [id]);
+          for (const nombreAutor of autores) {
+              const id_autor = await obtenerOCrearAutor(nombreAutor);
+              await agregarAutorLibro(id, id_autor);
+          }
+      }
 
-    if (stock !== undefined && (isNaN(Number(stock)) || Number(stock) < 0)) {
-      return res.status(400).json({
-        message: "El stock debe ser un número igual o mayor a 0",
-      });
-    }
+      // Actualizar géneros si vienen
+      if (generos && generos.length > 0) {
+          await pool.query(`DELETE FROM libro_genero WHERE id_libro = $1`, [id]);
+          for (const nombreGenero of generos) {
+              const id_genero = await obtenerOCrearGenero(nombreGenero);
+              await agregarGeneroLibro(id, id_genero);
+          }
+      }
 
-    if (
-      descuento !== undefined &&
-      (isNaN(Number(descuento)) ||
-        Number(descuento) < 0 ||
-        Number(descuento) > 100)
-    ) {
-      return res.status(400).json({
-        message: "El descuento debe estar entre 0 y 100",
-      });
-    }
+      res.json({ message: "Libro actualizado con exito", data: libroActualizado });
+  } catch (error) {
+      console.error("Error en PUT /libros/:id:", error);
+      res.status(500).json({ error: error.code, message: error.message });
+  }
+});
 
-    if (
-      formato !== undefined &&
-      !formatosPermitidos.includes(formato.toLowerCase())
-    ) {
-      return res.status(400).json({
-        message: "Formato inválido. Usa fisico, físico, digital o preventa",
-      });
-    }
+// Ruta PUT ppor :id para cambiar activo de true a false
+api.put("/libros/:id/desactivar", authMiddleware, verificarAdmin, async (req, res) => {
+  console.log("PUT /libros/:id/desactivar", req.params);
+  const { id } = req.params;
 
-    if (autores !== undefined && !Array.isArray(autores)) {
-      return res.status(400).json({
-        message: "Autores debe ser un arreglo",
-      });
-    }
+  try {
+    const libroDesactivado = await desactivarLibro(id);
 
-    if (generos !== undefined && !Array.isArray(generos)) {
-      return res.status(400).json({
-        message: "Géneros debe ser un arreglo",
-      });
-    }
-
-    const libroActualizado = await actualizarLibro(id, {
-      precio: precio !== undefined ? Number(precio) : undefined,
-      stock: stock !== undefined ? Number(stock) : undefined,
-      descuento: descuento !== undefined ? Number(descuento) : undefined,
-      titulo: titulo?.trim(),
-      descripcion,
-      imagen: imagen?.trim(),
-      formato: formato?.trim().toLowerCase(),
-    });
-
-    if (!libroActualizado) {
+    if (!libroDesactivado) {
       return res.status(404).json({
         message: "Libro no encontrado",
       });
     }
 
-    if (autores !== undefined) {
-      await pool.query(`DELETE FROM libro_autor WHERE id_libro = $1`, [id]);
-
-      const autoresLimpios = autores.filter((a) => a?.trim());
-
-      for (const nombreAutor of autoresLimpios) {
-        const id_autor = await obtenerOCrearAutor(nombreAutor.trim());
-        await agregarAutorLibro(id, id_autor);
-      }
-    }
-
-    if (generos !== undefined) {
-      await pool.query(`DELETE FROM libro_genero WHERE id_libro = $1`, [id]);
-
-      const generosLimpios = generos.filter((g) => g?.trim());
-
-      for (const nombreGenero of generosLimpios) {
-        const id_genero = await obtenerOCrearGenero(nombreGenero.trim());
-        await agregarGeneroLibro(id, id_genero);
-      }
-    }
-
     res.json({
-      message: "Libro actualizado con exito",
-      data: libroActualizado,
+      message: "Libro desactivado con exito",
+      data: libroDesactivado,
     });
   } catch (error) {
-    console.error("Error en PUT /libros/:id:", error);
-    res.status(500).json({
-      message: "Error interno al actualizar el libro",
+    console.error("Error en PUT /libros/:id/desactivar:", error);
+
+    res.status(error.code || 500).json({
+      error: error.code,
+      message: error.message,
     });
   }
 });
-
-// Ruta PUT por :id para cambiar activo de true a false
-api.put(
-  "/libros/:id/desactivar",
-  authMiddleware,
-  verificarAdmin,
-  async (req, res) => {
-    console.log("PUT /libros/:id/desactivar", req.params);
-    const { id } = req.params;
-
-    try {
-      const libroDesactivado = await desactivarLibro(id);
-
-      if (!libroDesactivado) {
-        return res.status(404).json({
-          message: "Libro no encontrado",
-        });
-      }
-
-      res.json({
-        message: "Libro desactivado con exito",
-        data: libroDesactivado,
-      });
-    } catch (error) {
-      console.error("Error en PUT /libros/:id/desactivar:", error);
-
-      res.status(error.code || 500).json({
-        error: error.code,
-        message: error.message,
-      });
-    }
-  },
-);
 
 // Ruta GET /carrito
 api.get("/carrito", authMiddleware, async (req, res) => {
@@ -590,9 +500,12 @@ api.get("/carrito", authMiddleware, async (req, res) => {
 
 // Ruta POST /carrito (agregar libro al carrito)
 api.post("/carrito", authMiddleware, async (req, res) => {
+
+
   //console.log("POST /carrito", req.body);
   const { id_libro, cantidad = 1 } = req.body;
-  const id_cliente = req.user.id_cliente;
+  const  id_cliente  = req.user.id_cliente;
+
 
   try {
     if (!id_libro) {
@@ -615,20 +528,16 @@ api.post("/carrito", authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error("Error POST /carrito:", error);
-
+    
     res.status(Number.isInteger(error.code) ? error.code : 500).json({
-      message: error.message,
-    });
+    message: error.message,
+  });
   }
 });
 
 // Ruta PUT /carrito (actualizar cantidad de un libro en el carrito)
 api.put("/carrito/:id_libro", authMiddleware, async (req, res) => {
-  console.log(
-    "PUT /carrito/:id_cliente/libros/:id_libro",
-    req.params,
-    req.body,
-  );
+  console.log("PUT /carrito/:id_cliente/libros/:id_libro", req.params, req.body);
   const id_cliente = req.user.id_cliente;
   const { id_libro } = req.params;
   const { cantidad } = req.body;
@@ -651,12 +560,13 @@ api.put("/carrito/:id_libro", authMiddleware, async (req, res) => {
         cantidad <= 0 ? "Libro eliminado del carrito" : "Cantidad actualizada",
       data: item,
     });
+
   } catch (error) {
     const statusCode = typeof error.code === "number" ? error.code : 500;
     res.status(statusCode).json({
-      error: error.code,
-      message: error.message,
-    });
+    error: error.code,
+    message: error.message,
+  });
   }
 });
 
@@ -679,6 +589,7 @@ api.delete("/carrito/:id_libro", authMiddleware, async (req, res) => {
       message: "Libro eliminado del carrito",
       data: item,
     });
+
   } catch (error) {
     const statusCode = typeof error.code === "number" ? error.code : 500;
     res.status(statusCode).json({
@@ -816,6 +727,7 @@ api.get("/generos", async (req, res) => {
 api.get("/preventas", async (req, res) => {
   try {
     const Preventas = await obtenerPreventas();
+    console.log("Preventas encontradas:", Preventas.length);
 
     res.json({
       cantidad: Preventas.length,
@@ -863,21 +775,19 @@ api.post("/direcciones", authMiddleware, async (req, res) => {
   const id_cliente = req.user.id_cliente;
 
   try {
-    const { alias, destinatario, telefono, pais, ciudad, calle, numero } =
-      req.body;
+    const {
+      alias,
+      destinatario,
+      telefono,
+      pais,
+      ciudad,
+      calle,
+      numero,
+    } = req.body;
 
-    if (
-      !alias ||
-      !destinatario ||
-      !telefono ||
-      !pais ||
-      !ciudad ||
-      !calle ||
-      !numero
-    ) {
+    if (!alias || !destinatario || !telefono || !pais || !ciudad || !calle || !numero) {
       return res.status(400).json({
-        message:
-          "Alias, destinatario, teléfono, país, ciudad, calle y número son obligatorios",
+        message: "Alias, destinatario, teléfono, país, ciudad, calle y número son obligatorios",
       });
     }
 
@@ -907,10 +817,7 @@ api.put("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
   const { id_direccion } = req.params;
 
   try {
-    const direccionActualizada = await actualizarDireccion(
-      id_direccion,
-      req.body,
-    );
+    const direccionActualizada = await actualizarDireccion(id_direccion, req.body);
 
     if (!direccionActualizada) {
       return res.status(404).json({
@@ -983,41 +890,36 @@ api.get("/empresas-envio", async (req, res) => {
 });
 
 // Ruta POST crear empresa de envío
-api.post(
-  "/empresas-envio",
-  authMiddleware,
-  verificarAdmin,
-  async (req, res) => {
-    console.log("POST /empresas-envio", req.body);
+api.post("/empresas-envio", authMiddleware, verificarAdmin, async (req, res) => {
+  console.log("POST /empresas-envio", req.body);
 
-    try {
-      const { nombre, telefono } = req.body;
+  try {
+    const { nombre, telefono } = req.body;
 
-      if (!nombre) {
-        return res.status(400).json({
-          message: "El nombre de la empresa de envío es obligatorio",
-        });
-      }
-
-      const nuevaEmpresa = await crearEmpresaEnvio({
-        nombre,
-        telefono,
-      });
-
-      res.status(201).json({
-        message: "Empresa de envío creada",
-        data: nuevaEmpresa,
-      });
-    } catch (error) {
-      console.error("Error en POST /empresas-envio:", error);
-
-      res.status(error.code || 500).json({
-        error: error.code,
-        message: error.message,
+    if (!nombre) {
+      return res.status(400).json({
+        message: "El nombre de la empresa de envío es obligatorio",
       });
     }
-  },
-);
+
+    const nuevaEmpresa = await crearEmpresaEnvio({
+      nombre,
+      telefono,
+    });
+
+    res.status(201).json({
+      message: "Empresa de envío creada",
+      data: nuevaEmpresa,
+    });
+  } catch (error) {
+    console.error("Error en POST /empresas-envio:", error);
+
+    res.status(error.code || 500).json({
+      error: error.code,
+      message: error.message,
+    });
+  }
+});
 
 api.post("/pedidos", authMiddleware, async (req, res) => {
   console.log("POST /pedidos", {
@@ -1026,10 +928,18 @@ api.post("/pedidos", authMiddleware, async (req, res) => {
 
   const id_cliente = req.user.id_cliente;
 
-  const { id_direccion, id_empresa_envio, id_metodo_pago } = req.body;
+  const {
+    id_direccion,
+    id_empresa_envio,
+    id_metodo_pago
+  } = req.body;
 
   try {
-    if (!id_direccion || !id_empresa_envio || !id_metodo_pago) {
+    if (
+      !id_direccion ||
+      !id_empresa_envio ||
+      !id_metodo_pago
+    ) {
       return res.status(400).json({
         message:
           "id_direccion, id_empresa_envio e id_metodo_pago son obligatorios",
@@ -1040,7 +950,7 @@ api.post("/pedidos", authMiddleware, async (req, res) => {
       id_cliente,
       id_direccion,
       id_empresa_envio,
-      id_metodo_pago,
+      id_metodo_pago
     );
 
     res.status(201).json({
@@ -1050,7 +960,8 @@ api.post("/pedidos", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error en POST /pedidos:", error);
 
-    const statusCode = typeof error.code === "number" ? error.code : 500;
+    const statusCode =
+      typeof error.code === "number" ? error.code : 500;
 
     res.status(statusCode).json({
       error: error.code,
@@ -1083,6 +994,25 @@ api.get("/pedidos", authMiddleware, async (req, res) => {
   }
 });
 
+api.get("/pedidos/admin/todos", authMiddleware, verificarAdmin, async (req, res) => {
+  try {
+    const pedidos = await obtenerTodosLosPedidos();
+    res.json({ data: pedidos });
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener vetnas" })
+  }
+});
+
+api.get("/pedidos/resumen/:id_pedido", authMiddleware, async (req, res) => {
+  try {
+    const resumen = await obtenerResumenPedido(req.params.id_pedido);
+    if (!resumen) return res.status(404).json({ message: "Pedido no encontrado" });
+    res.json({ data: resumen });
+  } catch (err) {
+    res.status(500).json({ message: "Error al obtener resumen del pedido" });
+  }
+});
+
 api.get("/pedidos/detalle/:id_pedido", authMiddleware, async (req, res) => {
   console.log("GET /pedidos/detalle/:id_pedido", req.params);
 
@@ -1107,10 +1037,12 @@ api.get("/pedidos/detalle/:id_pedido", authMiddleware, async (req, res) => {
   }
 });
 
+
 if (require.main === module) {
   api.listen(PORT, () => {
     console.log(`Servidor en http://localhost:${PORT}`);
   });
 }
+
 
 module.exports = api;

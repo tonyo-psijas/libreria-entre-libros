@@ -180,8 +180,51 @@ const obtenerDetallePedido = async (id_pedido) => {
   return rows;
 };
 
+const obtenerTodosLosPedidos = async () => {
+  const { rows } = await pool.query(`
+    SELECT
+      p.id_pedido,
+      p.fecha,
+      p.total,
+      p.estado,
+      c.id_cliente,
+      c.nombre AS cliente_nombre,
+      c.email AS cliente_email
+    FROM pedido p
+    JOIN cliente c ON p.id_cliente = c.id_cliente
+    ORDER BY p.fecha DESC, p.id_pedido DESC
+  `);
+
+  return rows;
+};
+
+const obtenerResumenPedido = async (id_pedido) => {
+  const { rows } = await pool.query(`
+    SELECT
+      p.id_pedido,
+      p.fecha,
+      p.total,
+      p.estado,
+      c.nombre AS cliente_nombre,
+      c.email AS cliente_email,
+      ee.nombre AS empresa_envio,
+      mp.nombre AS metodo_pago
+    FROM pedido p
+    JOIN cliente c ON p.id_cliente = c.id_cliente
+    LEFT JOIN envio e ON e.id_pedido = p.id_pedido
+    LEFT JOIN empresa_envio ee ON ee.id_empresa_envio = e.id_empresa_envio
+    LEFT JOIN pago pa ON pa.id_pedido = p.id_pedido
+    LEFT JOIN metodo_pago mp ON mp.id_metodo_pago = pa.id_metodo_pago
+    WHERE p.id_pedido = $1
+  `, [id_pedido]);
+
+  return rows[0];
+};
+
 module.exports = {
   crearPedidoDesdeCarrito,
   obtenerPedidosCliente,
   obtenerDetallePedido,
+  obtenerTodosLosPedidos,
+  obtenerResumenPedido,
 };

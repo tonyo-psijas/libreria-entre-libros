@@ -103,6 +103,7 @@ export const ComicsMangas = () => {
                                     precio={libro.precio_final ?? libro.precio}
                                     descuento={libro.descuento}
                                     precio_original={libro.precio}
+                                    esPreventa={libro.formato?.toLowerCase() === "preventa"}
                                 />
                             </div>
                         ))}

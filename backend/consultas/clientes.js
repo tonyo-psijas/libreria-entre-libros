@@ -60,7 +60,36 @@ const loginCliente = async (email, password) => {
   return cliente;
 };
 
+const actualizarCliente = async (id_cliente, datos) => {
+  const { nombre, email, password } = datos;
+
+  let password_hash = undefined;
+
+  if (password) {
+    password_hash = await bcrypt.hash(password, 10);
+  }
+
+  const { rows } = await pool.query(
+    `
+      UPDATE cliente
+      SET
+        nombre = COALESCE($1, nombre),
+        email = COALESCE($2, email),
+        password_hash = COALESCE($3, password_hash)
+      WHERE id_cliente = $4
+      RETURNING id_cliente, nombre, email, rol
+    `, [nombre ?? null, email ?? null, password_hash ?? null, id_cliente]
+  );
+
+  if (rows.length === 0) {
+    throw { code: 404, message: "Cliente no encontrado"}
+  }
+
+  return rows[0];
+}
+
 module.exports = {
   registrarCliente,
-  loginCliente
+  loginCliente,
+  actualizarCliente
 };

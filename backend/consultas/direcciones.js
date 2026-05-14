@@ -107,13 +107,25 @@ const actualizarDireccion = async (id_direccion, datos) => {
 
 // Eliminar dirección
 const eliminarDireccion = async (id_direccion) => {
-  const { rows } = await pool.query(`
-    DELETE FROM direccion
-    WHERE id_direccion = $1
-    RETURNING *
-  `, [id_direccion]);
+  try {
+    const { rows } = await pool.query(`
+      DELETE FROM direccion
+      WHERE id_direccion = $1
+      RETURNING *
+    `, [id_direccion]);
 
-  return rows[0];
+    return rows[0];
+
+  } catch (error) {
+    if (error.code === "23503") {
+      throw {
+        code: 400,
+        message: "No se puede eliminar esta dirección porque está asociada a un pedido"
+      };
+    }
+
+    throw error;
+  }
 };
 
 module.exports = {

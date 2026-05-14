@@ -57,6 +57,8 @@ export const UserProvider = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(userLogueado));
       setUser(userLogueado);
 
+      window.dispatchEvent(new Event("login"));
+
       return { ok: true };
     } catch (error) {
       return { ok: false, mensaje: "Error de conexión con el servidor." };
@@ -89,13 +91,33 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // ACTUALIZAR PERFIL — solo local por ahora
+  // ACTUALIZAR PERFIL
   // TODO: conectar a PUT /clientes/:id cuando el backend lo tenga
-  const actualizarPerfil = (datosActualizados) => {
-    const userActualizado = { ...user, ...datosActualizados };
-    setUser(userActualizado);
-    localStorage.setItem("user", JSON.stringify(userActualizado));
-    return { ok: true };
+  const actualizarPerfil = async (datosActualizados) => {
+    try {
+      const res = await fetch(`${BASE_URL}/clientes/me`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(datosActualizados),
+      });
+  
+      const data = await res.json();
+  
+      if (!res.ok) {
+        return { ok: false, mensaje: data.message || "Error al actualizar perfil." };
+      }
+  
+      const userActualizado = { ...user, ...data.data };
+      setUser(userActualizado);
+      localStorage.setItem("user", JSON.stringify(userActualizado));
+  
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, mensaje: "Error de conexión con el servidor." };
+    }
   };
 
   // LOGOUT
@@ -103,6 +125,7 @@ export const UserProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    window.dispatchEvent(new Event("logout"));
   };
 
   return (

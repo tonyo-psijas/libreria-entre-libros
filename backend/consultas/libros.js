@@ -8,6 +8,7 @@ const obtenerLibros = async () => {
             l.titulo,
             l.precio,
             l.descuento,
+            l.formato,
             TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
             l.imagen,
             STRING_AGG(DISTINCT a.nombre, ', ') AS autores
@@ -15,7 +16,7 @@ const obtenerLibros = async () => {
         LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
         LEFT JOIN autor a ON la.id_autor = a.id_autor
         WHERE l.activo = true
-        GROUP BY l.id_libro, l.titulo, l.precio, l.descuento, l.imagen
+        GROUP BY l.id_libro, l.titulo, l.precio, l.descuento, l.imagen, l.formato
         ORDER BY l.descuento DESC, l.id_libro ASC
     `);
 
@@ -30,6 +31,7 @@ const filtrarLibros = async ({ titulo, autor, genero }) => {
             l.titulo,
             l.precio,
             l.descuento,
+            l.formato,
             TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
             l.imagen,
             l.stock,
@@ -85,6 +87,7 @@ const obtenerLibroById = async (id) => {
             l.descripcion,
             l.precio,
             l.descuento,
+            l.formato,
             TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
             l.formato,
             l.stock,
@@ -291,25 +294,30 @@ const buscarLibros = async (q) => {
 
 // RUTA GET /libros/Preventas
 const obtenerPreventas = async () => {
-  const { rows } = await pool.query(`
-    SELECT
-      id_libro,
-      titulo,
-      isbn,
-      precio,
-      descuento,
-      TRUNC(precio * (1 - descuento / 100.0), 0)::INT AS precio_final,
-      imagen,
-      stock,
-      formato
-    FROM libro
-    WHERE activo = true
-    AND LOWER(formato) = 'preventa'
-    ORDER BY fecha_publicacion ASC
-  `);
-
-  return rows;
-};
+    const { rows } = await pool.query(`
+      SELECT
+        l.id_libro,
+        l.titulo,
+        l.isbn,
+        l.precio,
+        l.descuento,
+        TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
+        l.imagen,
+        l.stock,
+        l.formato,
+        STRING_AGG(DISTINCT a.nombre, ', ') AS autores  -- 👈 agregar esto
+      FROM libro l
+      LEFT JOIN libro_autor la ON l.id_libro = la.id_libro  -- 👈 agregar esto
+      LEFT JOIN autor a ON la.id_autor = a.id_autor          -- 👈 agregar esto
+      WHERE l.activo = true
+      AND LOWER(l.formato) = 'preventa'
+      GROUP BY l.id_libro, l.titulo, l.isbn, l.precio, l.descuento,  -- 👈 agregar GROUP BY
+               l.imagen, l.stock, l.formato
+      ORDER BY l.fecha_publicacion ASC
+    `);
+  
+    return rows;
+  };
 
     
 module.exports = {
