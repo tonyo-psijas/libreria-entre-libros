@@ -55,6 +55,12 @@ const {
   obtenerTodosLosPedidos,
   obtenerResumenPedido,
 } = require("./consultas/pedidos.js");
+const {
+  obtenerClientes,
+  obtenerClientePorId,
+  actualizarRolCliente,
+  eliminarCliente,
+} = require("./consultas/gestion_usuarios");
 
 if (require.main === module) {
   getHealth();
@@ -1033,6 +1039,134 @@ api.get("/pedidos/detalle/:id_pedido", authMiddleware, async (req, res) => {
     res.status(statusCode).json({
       error: error.code,
       message: error.message,
+    });
+  }
+});
+
+api.get("/clientes", authMiddleware, verificarAdmin, async (req, res) => {
+  const { busqueda, rol } = req.query;
+
+  try {
+    const clientes = await obtenerClientes(busqueda, rol);
+
+    res.json({
+      cantidad: clientes.length,
+      data: clientes,
+    });
+  } catch (error) {
+    console.error("Error en GET /clientes:", error);
+    res.status(500).json({
+      message: "Error interno al obtener clientes",
+    });
+  }
+});
+
+api.get("/clientes/:id", authMiddleware, verificarAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (isNaN(Number(id))) {
+      return res.status(400).json({
+        message: "El id del cliente debe ser numérico",
+      });
+    }
+
+    const cliente = await obtenerClientePorId(id);
+
+    if (!cliente) {
+      return res.status(404).json({
+        message: "Cliente no encontrado",
+      });
+    }
+
+    res.json({
+      data: cliente,
+    });
+  } catch (error) {
+    console.error("Error en GET /clientes/:id:", error);
+    res.status(500).json({
+      message: "Error interno al obtener cliente",
+    });
+  }
+});
+
+api.put("/clientes/:id/rol", authMiddleware, verificarAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { rol } = req.body;
+
+  try {
+    const rolesPermitidos = ["cliente", "admin"];
+
+    if (isNaN(Number(id))) {
+      return res.status(400).json({
+        message: "El id del cliente debe ser numérico",
+      });
+    }
+
+    if (Number(id) === Number(req.user.id_cliente)) {
+      return res.status(400).json({
+        message: "No puedes modificar tu propio rol",
+      });
+    }
+
+    if (!rol || !rolesPermitidos.includes(rol.toLowerCase())) {
+      return res.status(400).json({
+        message: "Rol inválido. Usa cliente o admin",
+      });
+    }
+
+    const clienteActualizado = await actualizarRolCliente(id, rol.toLowerCase());
+
+    if (!clienteActualizado) {
+      return res.status(404).json({
+        message: "Cliente no encontrado",
+      });
+    }
+
+    res.json({
+      message: "Rol actualizado con éxito",
+      data: clienteActualizado,
+    });
+  } catch (error) {
+    console.error("Error en PUT /clientes/:id/rol:", error);
+    res.status(500).json({
+      message: "Error interno al actualizar rol",
+    });
+  }
+});
+
+api.delete("/clientes/:id", authMiddleware, verificarAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (isNaN(Number(id))) {
+      return res.status(400).json({
+        message: "El id del cliente debe ser numérico",
+      });
+    }
+
+    if (Number(id) === Number(req.user.id_cliente)) {
+      return res.status(400).json({
+        message: "No puedes eliminar tu propio usuario",
+      });
+    }
+
+    const clienteEliminado = await eliminarCliente(id);
+
+    if (!clienteEliminado) {
+      return res.status(404).json({
+        message: "Cliente no encontrado",
+      });
+    }
+
+    res.json({
+      message: "Cliente eliminado con éxito",
+      data: clienteEliminado,
+    });
+  } catch (error) {
+    console.error("Error en DELETE /clientes/:id:", error);
+    res.status(500).json({
+      message: "Error interno al eliminar cliente",
     });
   }
 });
