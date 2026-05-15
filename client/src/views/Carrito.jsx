@@ -54,46 +54,50 @@ export const Carrito = () => {
                                     {/* Imagen */}
                                     <img src={item.imagen} alt={item.titulo} />
 
-                                    {/* Info */}
-                                    <div className="flex-grow-1">
-                                        <p className="autor-name-card mb-0">{item.autor}</p>
-                                        <h5 className="fw-semibold mb-1">{item.titulo}</h5>
+                                    {/* Todo lo que va a la derecha de la imagen */}
+                                    <div className="flex-grow-1 d-flex flex-column flex-sm-row align-items-sm-center gap-2 gap-sm-3">
 
-                                    </div>
+                                      {/* Info */}
+                                      <div className="flex-grow-1">
+                                          <p className="autor-name-card mb-0">{item.autor}</p>
+                                          <h5 className="fw-semibold mb-0">{item.titulo}</h5>
+                                      </div>
 
-                                    <div className='d-flex flex-column flex-sm-row d align-items-center gap-4 gap-sm-3'>
-                                      {/* Cantidad */}
-                                      <div className="d-flex align-items-center gap-2">
+                                      {/* Cantidad, subtotal y eliminar */}
+                                      <div className="d-flex flex-column flex-md-row align-items-start align-items-sm-center gap-3">
+                                          {/* Cantidad */}
+                                          <div className="d-flex align-items-center gap-2">
+                                              <button
+                                                  className="btn btn-sm boton-secundario px-2 py-0"
+                                                  onClick={() => actualizarCantidad(item.id_libro, item.cantidad - 1)}
+                                              >
+                                                  −
+                                              </button>
+                                              <span className="fw-semibold">{item.cantidad}</span>
+                                              <button
+                                                  className="btn btn-sm boton-secundario px-2 py-0"
+                                                  onClick={() => actualizarCantidad(item.id_libro, item.cantidad + 1)}
+                                              >
+                                                  +
+                                              </button>
+                                          </div>
+
+                                          {/* Subtotal */}
+                                          <p className="fw-semibold mb-0" style={{ textAlign: 'center' }}>
+                                              ${Number(item.precio * item.cantidad).toLocaleString('es-CL')}
+                                          </p>
+
+                                          {/* Eliminar */}
                                           <button
-                                              className="btn btn-sm boton-secundario px-2 py-0"
-                                              onClick={() => actualizarCantidad(item.id_libro, item.cantidad - 1)}
+                                              className="link-eliminar btn btn-sm"
+                                              onClick={() => quitarDelCarrito(item.id_libro)}
+                                              title="Quitar del carrito"
                                           >
-                                              −
-                                          </button>
-                                          <span className="fw-semibold">{item.cantidad}</span>
-                                          <button
-                                              className="btn btn-sm boton-secundario px-2 py-0"
-                                              onClick={() => actualizarCantidad(item.id_libro, item.cantidad + 1)}
-                                          >
-                                              +
+                                              <i className="fa-regular fa-trash-can"></i>
                                           </button>
                                       </div>
 
-                                      {/* Subtotal */}
-                                      <p className="fw-semibold mb-0" style={{ minWidth: '90px', textAlign: 'center' }}>
-                                          ${Number(item.precio * item.cantidad).toLocaleString('es-CL')}
-                                      </p>
-
-                                      {/* Eliminar */}
-                                      <button
-                                          className="link-eliminar btn btn-sm"
-                                          onClick={() => quitarDelCarrito(item.id_libro)}
-                                          title="Quitar del carrito"
-                                      >
-                                          <i className="fa-regular fa-trash-can"></i>
-                                      </button>
                                     </div>
-                                    
 
                                 </div>
 
