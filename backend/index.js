@@ -76,9 +76,9 @@ api.use(cors());
 const PORT = process.env.PORT || 3000;
 
 // Ruta de prueba del servidor
-// api.get("/", (req, res) => {
-//   res.send("API libreria funcionando");
-// });
+api.get("/", (req, res) => {
+  res.send("API libreria funcionando");
+});
 
 // Ruta POST para registrar clientes
 api.post("/clientes/register", async (req, res) => {
@@ -1005,7 +1005,7 @@ api.get("/pedidos/admin/todos", authMiddleware, verificarAdmin, async (req, res)
     const pedidos = await obtenerTodosLosPedidos();
     res.json({ data: pedidos });
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener vetnas" })
+    res.status(500).json({ message: "Error al obtener ventas" })
   }
 });
 
