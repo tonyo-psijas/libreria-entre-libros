@@ -1,5 +1,6 @@
 import "./App.css";
 
+import { UserManagement } from "./views/UserManagement";
 import { NavbarComponent } from "./components/Navbar";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Home } from "./views/Home";
@@ -76,31 +77,27 @@ function App() {
           />
 
           <Route
-            path='/checkout'
+            path="/checkout"
             element={isAuthenticated ? <Checkout /> : <Navigate to="/login" />}
           />
 
           <Route
-            path='/pedido/:id_pedido'
-            element={isAuthenticated ? <DetallePedido /> : <Navigate to="/login" />}
+            path="/pedido/:id_pedido"
+            element={
+              isAuthenticated ? <DetallePedido /> : <Navigate to="/login" />
+            }
           />
 
           <Route
-            path='/historial-compras'
-            element={isAuthenticated ? <HistorialCompras /> : <Navigate to="/login" />}
+            path="/historial-compras"
+            element={
+              isAuthenticated ? <HistorialCompras /> : <Navigate to="/login" />
+            }
           />
-
-
 
           <Route
             path="/perfil"
-            element={
-              isAuthenticated ? (
-                <Profile />
-              ) : (
-                <Navigate to="/login" />
-              )
-            }
+            element={isAuthenticated ? <Profile /> : <Navigate to="/login" />}
           />
 
           <Route
@@ -130,7 +127,7 @@ function App() {
               )
             }
           />
-
+          <Route path="/gestion-de-usuarios" element={<UserManagement />} />
 
           <Route path="*" element={<h1>404 Not Found</h1>} />
         </Routes>
