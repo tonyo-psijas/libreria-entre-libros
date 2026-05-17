@@ -127,7 +127,17 @@ function App() {
               )
             }
           />
-          <Route path="/gestion-de-usuarios" element={<UserManagement />} />
+          
+          <Route
+            path="/gestion-de-usuarios"
+            element={
+              isAuthenticated && user?.rol === "admin" ? (
+                <UserManagement />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
 
           <Route path="*" element={<h1>404 Not Found</h1>} />
         </Routes>

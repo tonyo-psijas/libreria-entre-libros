@@ -153,7 +153,7 @@ export const UserManagement = () => {
             )}
 
             <div className="row g-3 mb-4">
-              <div className="col-12 col-sm-6">
+              <div className="col-12 col-sm-5">
                 <input
                   type="text"
                   className="form-control form-input"
@@ -162,7 +162,7 @@ export const UserManagement = () => {
                   onChange={(e) => setBusqueda(e.target.value)}
                 />
               </div>
-              <div className="col-12 col-sm-4">
+              <div className="col-12 col-sm-4 col-xl-5">
                 <select
                   className="form-select form-input"
                   value={filtroRol}
@@ -173,7 +173,7 @@ export const UserManagement = () => {
                   <option value="cliente">Clientes</option>
                 </select>
               </div>
-              <div className="col-12 col-sm-2">
+              <div className="col-12 col-sm-3 col-xl-2">
                 <button
                   className="btn boton-secundario w-100"
                   onClick={() => {
@@ -218,7 +218,7 @@ export const UserManagement = () => {
                           </span>
                         </td>
                         <td>
-                          <div className="d-flex gap-2">
+                          <div className="d-flex justify-content-between gap-2">
                             <a
                               className="link-editar"
                               style={{ cursor: "pointer" }}

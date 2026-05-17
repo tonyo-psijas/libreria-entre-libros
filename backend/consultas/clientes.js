@@ -88,8 +88,44 @@ const actualizarCliente = async (id_cliente, datos) => {
   return rows[0];
 }
 
+const obtenerTodosLosClientes = async () => {
+  const { rows } = await pool.query(`
+    SELECT id_cliente, nombre, email, rol, estado, fecha_registro
+    FROM cliente
+    ORDER BY fecha_registro DESC
+  `);
+  return rows;
+};
+
+const cambiarRolCliente = async (id_cliente, rol) => {
+  const { rows } = await pool.query(`
+    UPDATE cliente
+    SET rol = $1
+    WHERE id_cliente = $2
+    RETURNING id_cliente, nombre, email, rol
+  `, [rol, id_cliente]);
+
+  if (rows.length === 0) throw { code: 404, message: "Cliente no encontrado" };
+  return rows[0];
+};
+
+const eliminarCliente = async (id_cliente) => {
+  const { rows } = await pool.query(`
+    DELETE FROM cliente
+    WHERE id_cliente = $1
+    RETURNING id_cliente, nombre, email
+  `, [id_cliente]);
+
+  if (rows.length === 0) throw { code: 404, message: "Cliente no encontrado" };
+  return rows[0];
+};
+
+
 module.exports = {
   registrarCliente,
   loginCliente,
-  actualizarCliente
+  actualizarCliente,
+  obtenerTodosLosClientes,
+  cambiarRolCliente,
+  eliminarCliente,
 };

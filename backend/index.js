@@ -5,7 +5,14 @@ const pool = require("./database/db");
 const jwt = require("jsonwebtoken");
 const { authMiddleware, verificarAdmin } = require("./middlewares/auth");
 const { getHealth } = require("./database/db.js");
-const { registrarCliente, loginCliente, actualizarCliente } = require("./consultas/clientes.js");
+const {
+  registrarCliente,
+  loginCliente,
+  actualizarCliente,
+  obtenerTodosLosClientes,
+  cambiarRolCliente,
+  eliminarCliente } = require("./consultas/clientes.js");
+
 const { obtenerOCrearEditorial } = require("./consultas/editoriales");
 const { obtenerOCrearAutor } = require("./consultas/autores.js");
 const { getGeneros, obtenerOCrearGenero } = require("./consultas/generos.js");
@@ -163,6 +170,45 @@ api.put("/clientes/me", authMiddleware, async (req, res) => {
     res.status(error.code || 500).json({
       message: error.message,
     });
+  }
+});
+
+// GET /clientes — listar todos (solo admin)
+api.get("/clientes", authMiddleware, verificarAdmin, async (req, res) => {
+  try {
+    const clientes = await obtenerTodosLosClientes();
+    res.json({ data: clientes });
+  } catch (error) {
+    res.status(error.code || 500).json({ message: error.message });
+  }
+});
+
+// PUT /clientes/:id_cliente/rol — cambiar rol (solo admin)
+api.put("/clientes/:id_cliente/rol", authMiddleware, verificarAdmin, async (req, res) => {
+  const { id_cliente } = req.params;
+  const { rol } = req.body;
+
+  if (!["admin", "cliente"].includes(rol)) {
+    return res.status(400).json({ message: "Rol inválido" });
+  }
+
+  try {
+    const cliente = await cambiarRolCliente(id_cliente, rol);
+    res.json({ message: "Rol actualizado", data: cliente });
+  } catch (error) {
+    res.status(error.code || 500).json({ message: error.message });
+  }
+});
+
+// DELETE /clientes/:id_cliente — eliminar usuario (solo admin)
+api.delete("/clientes/:id_cliente", authMiddleware, verificarAdmin, async (req, res) => {
+  const { id_cliente } = req.params;
+
+  try {
+    const cliente = await eliminarCliente(id_cliente);
+    res.json({ message: "Usuario eliminado", data: cliente });
+  } catch (error) {
+    res.status(error.code || 500).json({ message: error.message });
   }
 });
 
