@@ -2,69 +2,49 @@ import React, { useState, useEffect } from "react";
 import { ProfileNavComponent } from "../components/ProfileNav";
 import { useUser } from "../context/UserContext";
 
-// MOCK DATA
-const MOCK_USUARIOS = [
-  {
-    id_cliente: 1,
-    nombre: "Antonio Admin",
-    email: "antonio@test.com",
-    rol: "admin",
-    estado: true,
-  },
-  {
-    id_cliente: 2,
-    nombre: "Stefania Carter",
-    email: "stefania@test.com",
-    rol: "admin",
-    estado: true,
-  },
-  {
-    id_cliente: 3,
-    nombre: "Orlando López",
-    email: "orlando@test.com",
-    rol: "admin",
-    estado: true,
-  },
-  {
-    id_cliente: 4,
-    nombre: "María González",
-    email: "maria@test.com",
-    rol: "usuario",
-    estado: true,
-  },
-  {
-    id_cliente: 5,
-    nombre: "Juan Pérez",
-    email: "juan@test.com",
-    rol: "usuario",
-    estado: true,
-  },
-];
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+const getToken = () => localStorage.getItem("token");
+const authHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${getToken()}`,
+});
 
 export const UserManagement = () => {
   const { user } = useUser();
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [filtroRol, setFiltroRol] = useState("todos");
   const [busqueda, setBusqueda] = useState("");
 
-  // Cargar usuarios con mock
-  const cargarUsuarios = () => {
+  const cargarUsuarios = async () => {
     setLoading(true);
-    setTimeout(() => {
-      setUsuarios(MOCK_USUARIOS);
+    setError("");
+    try {
+      const res = await fetch(`${BASE_URL}/clientes`, {
+        headers: authHeaders(),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setUsuarios(Array.isArray(json.data) ? json.data : []);
+      } else {
+        setError(json.message || "Error al cargar usuarios");
+      }
+    } catch (err) {
+      setError("Error de conexión con el servidor");
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   useEffect(() => {
     cargarUsuarios();
   }, []);
 
-  // Cambiar rol
-  const cambiarRol = (id_cliente, rolActual) => {
-    const nuevoRol = rolActual === "admin" ? "usuario" : "admin";
+  const cambiarRol = async (id_cliente, rolActual) => {
+    const nuevoRol = rolActual === "admin" ? "cliente" : "admin";
 
     if (
       !window.confirm(
@@ -73,18 +53,31 @@ export const UserManagement = () => {
     )
       return;
 
-    const nuevosUsuarios = usuarios.map((u) =>
-      u.id_cliente === id_cliente ? { ...u, rol: nuevoRol } : u,
-    );
-    setUsuarios(nuevosUsuarios);
-    setSuccess(
-      `Rol actualizado a ${nuevoRol === "admin" ? "Administrador" : "Usuario"}`,
-    );
-    setTimeout(() => setSuccess(""), 3000);
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/clientes/${id_cliente}/rol`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ rol: nuevoRol }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess(
+          `Rol actualizado a ${nuevoRol === "admin" ? "Administrador" : "Cliente"}`,
+        );
+        cargarUsuarios();
+        setTimeout(() => setSuccess(""), 3000);
+      } else {
+        setError(data.message || "Error al cambiar rol");
+      }
+    } catch (err) {
+      setError("Error de conexión");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Eliminar usuario
-  const eliminarUsuario = (id_cliente, nombre) => {
+  const eliminarUsuario = async (id_cliente, nombre) => {
     if (
       !window.confirm(
         `¿Eliminar permanentemente a "${nombre}"? Esta acción no se puede deshacer.`,
@@ -92,13 +85,27 @@ export const UserManagement = () => {
     )
       return;
 
-    const nuevosUsuarios = usuarios.filter((u) => u.id_cliente !== id_cliente);
-    setUsuarios(nuevosUsuarios);
-    setSuccess(`Usuario "${nombre}" eliminado`);
-    setTimeout(() => setSuccess(""), 3000);
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/clientes/${id_cliente}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess(`Usuario "${nombre}" eliminado`);
+        cargarUsuarios();
+        setTimeout(() => setSuccess(""), 3000);
+      } else {
+        setError(data.message || "Error al eliminar usuario");
+      }
+    } catch (err) {
+      setError("Error de conexión");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Filtrar usuarios
   const usuariosFiltrados = usuarios.filter((u) => {
     if (filtroRol !== "todos" && u.rol !== filtroRol) return false;
     if (busqueda) {
@@ -111,26 +118,23 @@ export const UserManagement = () => {
     return true;
   });
 
-  // Protección de ruta - temporalmente comentada para pruebas
-  // if (user?.rol !== "admin") {
-  //   return (
-  //     <div className="container py-5">
-  //       <div className="alert alert-danger">
-  //         Acceso denegado. Solo administradores pueden ver esta página.
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (user?.rol !== "admin") {
+    return (
+      <div className="container py-5">
+        <div className="alert alert-danger">
+          Acceso denegado. Solo administradores pueden ver esta página.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-5">
       <div className="row g-4">
-        {/* SIDEBAR */}
         <div className="col-12 col-md-3">
           <ProfileNavComponent />
         </div>
 
-        {/* CONTENIDO PRINCIPAL */}
         <div className="col-12 col-md-9">
           <div className="profile-content">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -142,8 +146,12 @@ export const UserManagement = () => {
                 <i className="fa-regular fa-circle-check"></i> {success}
               </div>
             )}
+            {error && (
+              <div className="alert alert-danger" role="alert">
+                {error}
+              </div>
+            )}
 
-            {/* Filtros */}
             <div className="row g-3 mb-4">
               <div className="col-12 col-sm-6">
                 <input
@@ -162,7 +170,7 @@ export const UserManagement = () => {
                 >
                   <option value="todos">Todos los usuarios</option>
                   <option value="admin">Administradores</option>
-                  <option value="usuario">Usuarios regulares</option>
+                  <option value="cliente">Clientes</option>
                 </select>
               </div>
               <div className="col-12 col-sm-2">
@@ -178,7 +186,6 @@ export const UserManagement = () => {
               </div>
             </div>
 
-            {/* Tabla */}
             {loading ? (
               <div className="text-center py-3">
                 <div className="spinner-border spinner-border-sm text-success"></div>
@@ -207,7 +214,7 @@ export const UserManagement = () => {
                           <span
                             className={`badge ${u.rol === "admin" ? "bg-danger" : "bg-secondary"}`}
                           >
-                            {u.rol === "admin" ? "Administrador" : "Usuario"}
+                            {u.rol === "admin" ? "Administrador" : "Cliente"}
                           </span>
                         </td>
                         <td>
