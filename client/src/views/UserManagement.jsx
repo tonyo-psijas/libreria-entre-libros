@@ -19,14 +19,21 @@ export const UserManagement = () => {
   const [filtroRol, setFiltroRol] = useState("todos");
   const [busqueda, setBusqueda] = useState("");
 
+  // PAGINACIÓN
+  const [paginaActual, setPaginaActual] = useState(1);
+  const USUARIOS_POR_PAGINA = 10;
+
   const cargarUsuarios = async () => {
     setLoading(true);
     setError("");
+
     try {
       const res = await fetch(`${BASE_URL}/clientes`, {
         headers: authHeaders(),
       });
+
       const json = await res.json();
+
       if (res.ok) {
         setUsuarios(Array.isArray(json.data) ? json.data : []);
       } else {
@@ -48,23 +55,33 @@ export const UserManagement = () => {
 
     if (
       !window.confirm(
-        `¿${nuevoRol === "admin" ? "Hacer administrador" : "Quitar permisos de administrador"} a este usuario?`,
+        `¿${
+          nuevoRol === "admin"
+            ? "Hacer administrador"
+            : "Quitar permisos de administrador"
+        } a este usuario?`
       )
     )
       return;
 
     setLoading(true);
+
     try {
       const res = await fetch(`${BASE_URL}/clientes/${id_cliente}/rol`, {
         method: "PUT",
         headers: authHeaders(),
         body: JSON.stringify({ rol: nuevoRol }),
       });
+
       const data = await res.json();
+
       if (res.ok) {
         setSuccess(
-          `Rol actualizado a ${nuevoRol === "admin" ? "Administrador" : "Cliente"}`,
+          `Rol actualizado a ${
+            nuevoRol === "admin" ? "Administrador" : "Cliente"
+          }`
         );
+
         cargarUsuarios();
         setTimeout(() => setSuccess(""), 3000);
       } else {
@@ -80,18 +97,21 @@ export const UserManagement = () => {
   const eliminarUsuario = async (id_cliente, nombre) => {
     if (
       !window.confirm(
-        `¿Eliminar permanentemente a "${nombre}"? Esta acción no se puede deshacer.`,
+        `¿Eliminar permanentemente a "${nombre}"? Esta acción no se puede deshacer.`
       )
     )
       return;
 
     setLoading(true);
+
     try {
       const res = await fetch(`${BASE_URL}/clientes/${id_cliente}`, {
         method: "DELETE",
         headers: authHeaders(),
       });
+
       const data = await res.json();
+
       if (res.ok) {
         setSuccess(`Usuario "${nombre}" eliminado`);
         cargarUsuarios();
@@ -108,15 +128,35 @@ export const UserManagement = () => {
 
   const usuariosFiltrados = usuarios.filter((u) => {
     if (filtroRol !== "todos" && u.rol !== filtroRol) return false;
+
     if (busqueda) {
       const termino = busqueda.toLowerCase();
+
       return (
         u.nombre?.toLowerCase().includes(termino) ||
         u.email?.toLowerCase().includes(termino)
       );
     }
+
     return true;
   });
+
+  // PAGINACIÓN
+  const totalPaginas = Math.ceil(
+    usuariosFiltrados.length / USUARIOS_POR_PAGINA
+  );
+
+  const indiceInicio =
+    (paginaActual - 1) * USUARIOS_POR_PAGINA;
+
+  const usuariosPaginados = usuariosFiltrados.slice(
+    indiceInicio,
+    indiceInicio + USUARIOS_POR_PAGINA
+  );
+
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda, filtroRol]);
 
   if (user?.rol !== "admin") {
     return (
@@ -138,14 +178,18 @@ export const UserManagement = () => {
         <div className="col-12 col-md-9">
           <div className="profile-content">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h4 className="fw-semibold mb-0">Gestión de usuarios</h4>
+              <h4 className="fw-semibold mb-0">
+                Gestión de usuarios
+              </h4>
             </div>
 
             {success && (
               <div className="alert alert-success" role="alert">
-                <i className="fa-regular fa-circle-check"></i> {success}
+                <i className="fa-regular fa-circle-check"></i>{" "}
+                {success}
               </div>
             )}
+
             {error && (
               <div className="alert alert-danger" role="alert">
                 {error}
@@ -162,17 +206,25 @@ export const UserManagement = () => {
                   onChange={(e) => setBusqueda(e.target.value)}
                 />
               </div>
+
               <div className="col-12 col-sm-4 col-xl-5">
                 <select
                   className="form-select form-input"
                   value={filtroRol}
                   onChange={(e) => setFiltroRol(e.target.value)}
                 >
-                  <option value="todos">Todos los usuarios</option>
-                  <option value="admin">Administradores</option>
-                  <option value="cliente">Clientes</option>
+                  <option value="todos">
+                    Todos los usuarios
+                  </option>
+                  <option value="admin">
+                    Administradores
+                  </option>
+                  <option value="cliente">
+                    Clientes
+                  </option>
                 </select>
               </div>
+
               <div className="col-12 col-sm-3 col-xl-2">
                 <button
                   className="btn boton-secundario w-100"
@@ -191,61 +243,115 @@ export const UserManagement = () => {
                 <div className="spinner-border spinner-border-sm text-success"></div>
               </div>
             ) : usuariosFiltrados.length === 0 ? (
-              <p className="text-secondary">No se encontraron usuarios</p>
+              <p className="text-secondary">
+                No se encontraron usuarios
+              </p>
             ) : (
-              <div className="table-responsive">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Nombre</th>
-                      <th>Email</th>
-                      <th>Rol</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {usuariosFiltrados.map((u) => (
-                      <tr key={u.id_cliente}>
-                        <td>{u.id_cliente}</td>
-                        <td>{u.nombre}</td>
-                        <td>{u.email}</td>
-                        <td>
-                          <span
-                            className={`badge ${u.rol === "admin" ? "bg-danger" : "bg-secondary"}`}
-                          >
-                            {u.rol === "admin" ? "Administrador" : "Cliente"}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="d-flex justify-content-between gap-2">
-                            <a
-                              className="link-editar"
-                              style={{ cursor: "pointer" }}
-                              onClick={() => cambiarRol(u.id_cliente, u.rol)}
-                            >
-                              <i className="fa-regular fa-pen-to-square"></i>
-                              {u.rol === "admin"
-                                ? " Quitar admin"
-                                : " Hacer admin"}
-                            </a>
-                            <a
-                              className="link-eliminar"
-                              style={{ cursor: "pointer" }}
-                              onClick={() =>
-                                eliminarUsuario(u.id_cliente, u.nombre)
-                              }
-                            >
-                              <i className="fa-regular fa-trash-can"></i>{" "}
-                              Eliminar
-                            </a>
-                          </div>
-                        </td>
+              <>
+                <div className="table-responsive">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+
+                    <tbody>
+                      {usuariosPaginados.map((u) => (
+                        <tr key={u.id_cliente}>
+                          <td>{u.id_cliente}</td>
+                          <td>{u.nombre}</td>
+                          <td>{u.email}</td>
+
+                          <td>
+                            <span
+                              className={`badge ${
+                                u.rol === "admin"
+                                  ? "bg-success"
+                                  : "bg-secondary"
+                              }`}
+                            >
+                              {u.rol === "admin"
+                                ? "Administrador"
+                                : "Cliente"}
+                            </span>
+                          </td>
+
+                          <td>
+                            <div className="d-flex justify-content-between gap-2">
+                              <a
+                                className="link-editar"
+                                style={{ cursor: "pointer" }}
+                                onClick={() =>
+                                  cambiarRol(
+                                    u.id_cliente,
+                                    u.rol
+                                  )
+                                }
+                              >
+                                <i className="fa-regular fa-pen-to-square"></i>
+                                {u.rol === "admin"
+                                  ? " Quitar admin"
+                                  : " Hacer admin"}
+                              </a>
+
+                              <a
+                                className="link-eliminar"
+                                style={{ cursor: "pointer" }}
+                                onClick={() =>
+                                  eliminarUsuario(
+                                    u.id_cliente,
+                                    u.nombre
+                                  )
+                                }
+                              >
+                                <i className="fa-regular fa-trash-can"></i>{" "}
+                                Eliminar
+                              </a>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* PAGINACIÓN */}
+                {totalPaginas > 1 && (
+                  <>
+
+                    <nav className="mt-2">
+                      <ul className="pagination justify-content-center">
+                        {[...Array(totalPaginas)].map(
+                          (_, i) => (
+                            <li
+                              key={i}
+                              className={`page-item ${
+                                paginaActual === i + 1
+                                  ? "active"
+                                  : ""
+                              }`}
+                            >
+                              <button
+                                className="page-link"
+                                onClick={() =>
+                                  setPaginaActual(i + 1)
+                                }
+                              >
+                                {i + 1}
+                              </button>
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    </nav>
+                  </>
+                )}
+              </>
             )}
           </div>
         </div>
