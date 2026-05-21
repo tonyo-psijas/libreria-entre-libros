@@ -1,20 +1,29 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import ProductCard from '../components/ProductCard'
+import { useSearchParams } from 'react-router-dom'
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000"
 const LIBROS_POR_PAGINA = 24
 const NOMBRE_COMICS = "Comics & Mangas"
 
 export const Gallery = () => {
+    const [searchParams, setSearchParams] = useSearchParams()
     const [libros, setLibros] = useState([])
     const [idsComics, setIdsComics] = useState(new Set())
     const [generos, setGeneros] = useState([])
     const [loading, setLoading] = useState(true)
 
-    const [busqueda, setBusqueda] = useState('')
+    const [busqueda, setBusqueda] = useState(searchParams.get('q') || '')
     const [ordenamiento, setOrdenamiento] = useState('recientes')
     const [generoSeleccionado, setGeneroSeleccionado] = useState('')
     const [paginaActual, setPaginaActual] = useState(1)
+
+    // Si el navbar navega con ?q=..., sincronizar el input de búsqueda
+    useEffect(() => {
+        const q = searchParams.get('q') || ''
+        setBusqueda(q)
+        setPaginaActual(1)
+    }, [searchParams])
 
     // Cargar géneros y IDs de comics en paralelo al montar
     useEffect(() => {
@@ -62,7 +71,6 @@ export const Gallery = () => {
 
                 // Excluir Comics & Mangas y libros sin imagen
                 setLibros(lista.filter(l => !idsComics.has(l.id_libro) && l.imagen))
-                console.log("Muestra de libros:", lista.slice(0, 3))
             } catch (error) {
                 console.error("Error al cargar libros:", error)
             } finally {
@@ -109,7 +117,16 @@ export const Gallery = () => {
     const indiceInicio = (paginaActual - 1) * LIBROS_POR_PAGINA
     const librosPaginados = librosFiltrados.slice(indiceInicio, indiceInicio + LIBROS_POR_PAGINA)
 
-    const handleBusqueda = (e) => { setBusqueda(e.target.value); setPaginaActual(1) }
+    const handleBusqueda = (e) => {
+        const val = e.target.value
+        setBusqueda(val)
+        setPaginaActual(1)
+        if (val.trim()) {
+            setSearchParams({ q: val.trim() })
+        } else {
+            setSearchParams({})
+        }
+    }
     const handleOrdenamiento = (e) => { setOrdenamiento(e.target.value); setPaginaActual(1) }
     const handleGenero = (e) => { setGeneroSeleccionado(e.target.value); setPaginaActual(1) }
 
@@ -186,7 +203,6 @@ export const Gallery = () => {
                                     precio={libro.precio_final ?? libro.precio}
                                     descuento={libro.descuento}
                                     precio_original={libro.precio}
-                                    esPreventa={libro.formato?.toLowerCase() === "preventa"}
                                 />
                             </div>
                         ))}

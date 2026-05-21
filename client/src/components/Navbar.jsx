@@ -1,18 +1,27 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React, { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/images/entre-libros-logo.png";
 import { useFavorites } from "../context/FavoritesContext";
 import { useCart } from "../context/CartContext";
-import { useUser } from "../context/UserContext"; // 👈 AGREGAR
+import { useUser } from "../context/UserContext";
 
 export const NavbarComponent = () => {
-  // 👈 ELIMINAR prop 'user'
   const { totalFavoritos } = useFavorites();
   const { totalItems } = useCart();
-  const { user, logout, isAuthenticated } = useUser(); // 👈 AGREGAR
+  const { user, logout, isAuthenticated } = useUser();
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleBuscar = (e) => {
+    e.preventDefault();
+    const termino = query.trim();
+    if (!termino) return;
+    navigate(`/libros?q=${encodeURIComponent(termino)}`);
+    setQuery("");
   };
 
   return (
@@ -27,14 +36,15 @@ export const NavbarComponent = () => {
 
           {/* SEARCHBAR (queda fuera del collapse) */}
           <div className="nav-search flex-grow-1 px-3 d-none d-md-block">
-            <form className="d-flex w-100 search-group" role="search">
+            <form className="d-flex w-100 search-group" role="search" onSubmit={handleBuscar}>
               <input
                 className="form-control nav-searchbar"
                 type="search"
-                placeholder="Busca por título, autor, SKU"
+                placeholder="Busca por título, autor o editorial"
                 aria-label="Search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
               />
-
               <button
                 className="btn boton-primario boton-search-navbar"
                 type="submit"
@@ -185,14 +195,15 @@ export const NavbarComponent = () => {
         <div className="container">
           {/* SEARCHBAR MOBILE */}
           <div className="nav-search my-3">
-            <form className="d-flex w-100 search-group" role="search">
+            <form className="d-flex w-100 search-group" role="search" onSubmit={handleBuscar}>
               <input
                 className="form-control nav-searchbar"
                 type="search"
                 placeholder="Busca por título, autor, SKU"
                 aria-label="Search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
               />
-
               <button
                 className="btn boton-primario boton-search-navbar"
                 type="submit"
