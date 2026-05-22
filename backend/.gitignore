@@ -6,6 +6,7 @@ npm-shrinkwrap.json
 *.gz
 .env
 datosPrueba.md
+reportes/
 
 # Yarn
 yarn-error.log

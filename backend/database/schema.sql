@@ -166,3 +166,17 @@ CREATE TABLE carrito_detalle (
   FOREIGN KEY (id_carrito) REFERENCES carrito(id_carrito) ON DELETE CASCADE,
   FOREIGN KEY (id_libro) REFERENCES libro(id_libro)
 );
+
+CREATE TABLE historial_admin (
+    id_historial SERIAL PRIMARY KEY,
+    id_admin INT NOT NULL,
+    nombre_admin VARCHAR(100) NOT NULL,
+    accion VARCHAR(100) NOT NULL,
+    detalle TEXT,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ruta VARCHAR(150),
+    ip VARCHAR(50),
+    
+    FOREIGN KEY (id_admin)
+    REFERENCES cliente(id_cliente)
+);
