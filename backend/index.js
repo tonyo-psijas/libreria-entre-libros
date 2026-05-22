@@ -78,6 +78,8 @@ const {
   obtenerHistorialAdmin,
 } = require("./consultas/historial_admin");
 
+const { obtenerHistorialVentas } = require("./consultas/historial_ventas");
+
 if (require.main === module) {
   getHealth();
 }
@@ -1440,6 +1442,139 @@ api.get(
 
       res.status(500).json({
         message: "Error interno al exportar historial administrativo",
+      });
+    }
+  },
+);
+
+// GET historial de ventas
+api.get(
+  "/historial-ventas",
+  authMiddleware,
+  verificarAdmin,
+  async (req, res) => {
+    const { desde, hasta, libro, genero } = req.query;
+
+    try {
+      const ventas = await obtenerHistorialVentas({
+        desde,
+        hasta,
+        libro,
+        genero,
+      });
+
+      res.json({
+        cantidad: ventas.length,
+        data: ventas,
+      });
+    } catch (error) {
+      console.error("Error en GET /historial-ventas:", error);
+
+      res.status(500).json({
+        message: "Error interno al obtener historial de ventas",
+      });
+    }
+  },
+);
+
+// GET exportar historial de ventas en Excel
+api.get(
+  "/historial-ventas/excel",
+  authMiddleware,
+  verificarAdmin,
+  async (req, res) => {
+    try {
+      const { desde, hasta, libro, genero } = req.query;
+
+      const ventas = await obtenerHistorialVentas({
+        desde,
+        hasta,
+        libro,
+        genero,
+      });
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Historial Ventas");
+
+      worksheet.columns = [
+        { header: "Pedido", key: "id_pedido", width: 10 },
+        { header: "Fecha", key: "fecha_pedido", width: 25 },
+        { header: "Estado", key: "estado", width: 18 },
+        { header: "Cliente", key: "cliente", width: 25 },
+        { header: "Email", key: "email", width: 30 },
+        { header: "ID Libro", key: "id_libro", width: 10 },
+        { header: "Libro", key: "libro", width: 35 },
+        { header: "Formato", key: "formato", width: 15 },
+        { header: "Géneros", key: "generos", width: 35 },
+        { header: "Cantidad", key: "cantidad", width: 12 },
+        { header: "Precio Unitario", key: "precio_unitario", width: 18 },
+        { header: "Subtotal", key: "subtotal", width: 18 },
+      ];
+
+      ventas.forEach((item) => {
+        worksheet.addRow({
+          id_pedido: item.id_pedido,
+          fecha_pedido: item.fecha_pedido,
+          estado: item.estado,
+          cliente: item.cliente,
+          email: item.email,
+          id_libro: item.id_libro,
+          libro: item.libro,
+          formato: item.formato,
+          generos: item.generos,
+          cantidad: item.cantidad,
+          precio_unitario: Number(item.precio_unitario),
+          subtotal: Number(item.subtotal),
+        });
+      });
+
+      const totalVentas = ventas.reduce(
+        (acc, item) => acc + Number(item.subtotal || 0),
+        0,
+      );
+
+      const filaTotal = worksheet.addRow({
+        cantidad: "TOTAL GENERAL",
+        subtotal: totalVentas,
+      });
+
+      filaTotal.font = { bold: true };
+
+      worksheet.getRow(1).font = { bold: true };
+
+      const fechaActual = new Date()
+        .toISOString()
+        .replace(/:/g, "-")
+        .replace(/\..+/, "");
+
+      const nombreArchivo = `historial_ventas_${fechaActual}.xlsx`;
+
+      const rutaArchivo = path.join(
+        __dirname,
+        "reportes",
+        "historial_ventas",
+        nombreArchivo,
+      );
+
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      );
+
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=${nombreArchivo}`,
+      );
+
+      await workbook.xlsx.writeFile(rutaArchivo);
+
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      console.error("Error en GET /historial-ventas/excel:", error);
+
+      res.status(500).json({
+        message: "Error interno al exportar historial de ventas",
       });
     }
   },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ProfileNavComponent } from "../components/ProfileNav";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -11,37 +11,37 @@ const authHeaders = () => ({
   Authorization: `Bearer ${getToken()}`,
 });
 
-export const HistorialVentas = () => {
-  const [ventas, setVentas] = useState([]);
+export const HistorialAdmin = () => {
+  const [historial, setHistorial] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
 
   const [filtros, setFiltros] = useState({
+    admin: "",
+    accion: "",
     desde: "",
     hasta: "",
-    libro: "",
-    genero: "",
   });
 
   const construirQuery = () => {
     const params = new URLSearchParams();
 
+    if (filtros.admin) params.append("admin", filtros.admin);
+    if (filtros.accion) params.append("accion", filtros.accion);
     if (filtros.desde) params.append("desde", filtros.desde);
     if (filtros.hasta) params.append("hasta", filtros.hasta);
-    if (filtros.libro) params.append("libro", filtros.libro);
-    if (filtros.genero) params.append("genero", filtros.genero);
 
     return params.toString();
   };
 
-  const cargarVentas = async () => {
+  const cargarHistorial = async () => {
     setLoading(true);
     setError("");
 
     try {
       const query = construirQuery();
-      const url = `${BASE_URL}/historial-ventas${query ? `?${query}` : ""}`;
+      const url = `${BASE_URL}/historial-admin${query ? `?${query}` : ""}`;
 
       const res = await fetch(url, {
         headers: authHeaders(),
@@ -49,15 +49,15 @@ export const HistorialVentas = () => {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || "Error al cargar historial de ventas.");
+        setError(data.message || "Error al cargar historial administrativo.");
         return;
       }
 
       const json = await res.json();
-      setVentas(Array.isArray(json.data) ? json.data : []);
+      setHistorial(Array.isArray(json.data) ? json.data : []);
       setPaginaActual(1);
     } catch (err) {
-      console.error("Error al cargar historial de ventas:", err);
+      console.error("Error al cargar historial administrativo:", err);
       setError("Error de conexión con el servidor.");
     } finally {
       setLoading(false);
@@ -65,7 +65,7 @@ export const HistorialVentas = () => {
   };
 
   useEffect(() => {
-    cargarVentas();
+    cargarHistorial();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -80,21 +80,21 @@ export const HistorialVentas = () => {
 
   const limpiarFiltros = () => {
     setFiltros({
+      admin: "",
+      accion: "",
       desde: "",
       hasta: "",
-      libro: "",
-      genero: "",
     });
 
     setTimeout(() => {
-      cargarVentas();
+      cargarHistorial();
     }, 0);
   };
 
   const exportarExcel = async () => {
     try {
       const query = construirQuery();
-      const url = `${BASE_URL}/historial-ventas/excel${query ? `?${query}` : ""}`;
+      const url = `${BASE_URL}/historial-admin/excel${query ? `?${query}` : ""}`;
 
       const res = await fetch(url, {
         headers: {
@@ -103,7 +103,7 @@ export const HistorialVentas = () => {
       });
 
       if (!res.ok) {
-        setError("Error al exportar historial de ventas.");
+        setError("Error al exportar historial administrativo.");
         return;
       }
 
@@ -112,7 +112,7 @@ export const HistorialVentas = () => {
 
       const link = document.createElement("a");
       link.href = urlBlob;
-      link.download = "historial_ventas.xlsx";
+      link.download = "historial_admin.xlsx";
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -124,26 +124,28 @@ export const HistorialVentas = () => {
     }
   };
 
-  const totalVentas = ventas.reduce(
-    (acc, item) => acc + Number(item.subtotal || 0),
-    0,
-  );
+  const accionesUnicas = new Set(historial.map((item) => item.accion)).size;
+  const adminsUnicos = new Set(historial.map((item) => item.nombre_admin)).size;
 
-  const totalLibros = ventas.reduce(
-    (acc, item) => acc + Number(item.cantidad || 0),
-    0,
-  );
-
-  const totalPaginas = Math.ceil(ventas.length / ITEMS_POR_PAGINA);
+  const totalPaginas = Math.ceil(historial.length / ITEMS_POR_PAGINA);
   const indiceInicio = (paginaActual - 1) * ITEMS_POR_PAGINA;
-  const ventasPaginadas = ventas.slice(
+  const historialPaginado = historial.slice(
     indiceInicio,
-    indiceInicio + ITEMS_POR_PAGINA,
+    indiceInicio + ITEMS_POR_PAGINA
   );
 
   const irAPagina = (pagina) => {
     setPaginaActual(pagina);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const formatearFecha = (fecha) => {
+    if (!fecha) return "Sin fecha";
+
+    return new Date(fecha).toLocaleString("es-CL", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
   };
 
   return (
@@ -157,16 +159,18 @@ export const HistorialVentas = () => {
           <div className="profile-content">
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
               <div>
-                <h4 className="fw-semibold mb-1">Historial de ventas</h4>
+                <h4 className="fw-semibold mb-1">
+                  Historial administrativo
+                </h4>
                 <p className="text-secondary mb-0">
-                  Reporte detallado por libro vendido
+                  Registro de actividades realizadas por administradores
                 </p>
               </div>
 
               <button
                 className="btn boton-primario"
                 onClick={exportarExcel}
-                disabled={ventas.length === 0}
+                disabled={historial.length === 0}
               >
                 <i className="fa-regular fa-file-excel me-2"></i>
                 Exportar Excel
@@ -174,6 +178,35 @@ export const HistorialVentas = () => {
             </div>
 
             <div className="row g-3 mb-4">
+              <div className="col-12 col-md-3">
+                <label className="form-label">Administrador</label>
+                <input
+                  type="text"
+                  name="admin"
+                  className="form-control"
+                  placeholder="Ej: orlando2"
+                  value={filtros.admin}
+                  onChange={handleFiltro}
+                />
+              </div>
+
+              <div className="col-12 col-md-3">
+                <label className="form-label">Acción</label>
+                <select
+                  name="accion"
+                  className="form-select"
+                  value={filtros.accion}
+                  onChange={handleFiltro}
+                >
+                  <option value="">Todas</option>
+                  <option value="CREAR_LIBRO">Crear libro</option>
+                  <option value="ACTUALIZAR_LIBRO">Actualizar libro</option>
+                  <option value="DESACTIVAR_LIBRO">Desactivar libro</option>
+                  <option value="CAMBIAR_ROL_CLIENTE">Cambiar rol cliente</option>
+                  <option value="DESACTIVAR_CLIENTE">Desactivar cliente</option>
+                </select>
+              </div>
+
               <div className="col-12 col-md-3">
                 <label className="form-label">Desde</label>
                 <input
@@ -196,66 +229,37 @@ export const HistorialVentas = () => {
                 />
               </div>
 
-              <div className="col-12 col-md-3">
-                <label className="form-label">Libro</label>
-                <input
-                  type="text"
-                  name="libro"
-                  className="form-control"
-                  placeholder="Ej: Spider-Man"
-                  value={filtros.libro}
-                  onChange={handleFiltro}
-                />
-              </div>
-
-              <div className="col-12 col-md-3">
-                <label className="form-label">Género</label>
-                <input
-                  type="text"
-                  name="genero"
-                  className="form-control"
-                  placeholder="Ej: Fantasía"
-                  value={filtros.genero}
-                  onChange={handleFiltro}
-                />
-              </div>
-
               <div className="col-12 d-flex gap-2 justify-content-end">
-                <button className="btn boton-primario" onClick={cargarVentas}>
+                <button className="btn boton-primario" onClick={cargarHistorial}>
                   Buscar
                 </button>
 
-                <button
-                  className="btn btn-outline-secondary"
-                  onClick={limpiarFiltros}
-                >
+                <button className="btn btn-outline-secondary" onClick={limpiarFiltros}>
                   Limpiar
                 </button>
               </div>
             </div>
 
-            {!loading && !error && ventas.length > 0 && (
+            {!loading && !error && historial.length > 0 && (
               <div className="row g-3 mb-4">
                 <div className="col-12 col-md-4">
                   <div className="border rounded-4 p-3">
-                    <p className="text-secondary mb-1">Total vendido</p>
-                    <h5 className="card-price mb-0">
-                      ${Number(totalVentas).toLocaleString("es-CL")}
-                    </h5>
-                  </div>
-                </div>
-
-                <div className="col-12 col-md-4">
-                  <div className="border rounded-4 p-3">
-                    <p className="text-secondary mb-1">Libros vendidos</p>
-                    <h5 className="mb-0">{totalLibros}</h5>
-                  </div>
-                </div>
-
-                <div className="col-12 col-md-4">
-                  <div className="border rounded-4 p-3">
                     <p className="text-secondary mb-1">Registros</p>
-                    <h5 className="mb-0">{ventas.length}</h5>
+                    <h5 className="mb-0">{historial.length}</h5>
+                  </div>
+                </div>
+
+                <div className="col-12 col-md-4">
+                  <div className="border rounded-4 p-3">
+                    <p className="text-secondary mb-1">Tipos de acción</p>
+                    <h5 className="mb-0">{accionesUnicas}</h5>
+                  </div>
+                </div>
+
+                <div className="col-12 col-md-4">
+                  <div className="border rounded-4 p-3">
+                    <p className="text-secondary mb-1">Administradores</p>
+                    <h5 className="mb-0">{adminsUnicos}</h5>
                   </div>
                 </div>
               </div>
@@ -269,13 +273,13 @@ export const HistorialVentas = () => {
               </div>
             ) : error ? (
               <div className="alert alert-danger">{error}</div>
-            ) : ventas.length === 0 ? (
+            ) : historial.length === 0 ? (
               <div className="text-center py-5">
                 <i
-                  className="fa-regular fa-chart-line fa-3x mb-3"
+                  className="fa-regular fa-clock-rotate-left fa-3x mb-3"
                   style={{ color: "#6B705C" }}
                 ></i>
-                <h5 className="fw-semibold">No hay ventas registradas</h5>
+                <h5 className="fw-semibold">No hay actividades registradas</h5>
                 <p className="text-secondary">
                   Intenta cambiar los filtros o revisa más tarde.
                 </p>
@@ -284,49 +288,48 @@ export const HistorialVentas = () => {
               <>
                 <p className="text-secondary mb-3">
                   Mostrando {indiceInicio + 1}–
-                  {Math.min(indiceInicio + ITEMS_POR_PAGINA, ventas.length)} de{" "}
-                  {ventas.length} registros
+                  {Math.min(indiceInicio + ITEMS_POR_PAGINA, historial.length)}{" "}
+                  de {historial.length} registros
                 </p>
 
                 <div className="table-responsive">
                   <table className="table align-middle">
                     <thead>
                       <tr>
-                        <th style={{ minWidth: "90px" }}>Pedido</th>
-                        <th style={{ minWidth: "95px" }}>Fecha</th>
-                        <th>Cliente</th>
-                        <th>Libro</th>
-                        <th>Género</th>
-                        <th>Cant.</th>
-                        <th>Subtotal</th>
+                        <th style={{ minWidth: "120px" }}>Fecha</th>
+                        <th style={{ minWidth: "180px" }}>Admin</th>
+                        <th style={{ minWidth: "160px" }}>Acción</th>
+                        <th style={{ minWidth: "260px" }}>Detalle</th>
+                        <th style={{ minWidth: "160px" }}>Ruta</th>
+                        <th style={{ minWidth: "150px" }}>IP</th>
                       </tr>
                     </thead>
 
                     <tbody>
-                      {ventasPaginadas.map((item, index) => (
-                        <tr key={`${item.id_pedido}-${item.id_libro}-${index}`}>
-                          <td>#{item.id_pedido}</td>
+                      {historialPaginado.map((item) => (
+                        <tr key={item.id_historial}>
+                          <td>{formatearFecha(item.fecha)}</td>
                           <td>
-                            {new Date(item.fecha_pedido).toLocaleDateString(
-                              "es-CL",
-                            )}
+                            <span className="fw-semibold">
+                              {item.nombre_admin}
+                            </span>
                           </td>
                           <td>
-                            <p className="mb-0 fw-semibold">{item.cliente}</p>
+                            <span
+                              className="badge"
+                              style={{ backgroundColor: "#4A5947" }}
+                            >
+                              {item.accion}
+                            </span>
+                          </td>
+                          <td>{item.detalle}</td>
+                          <td>
                             <small className="text-secondary">
-                              {item.email}
+                              {item.ruta}
                             </small>
                           </td>
                           <td>
-                            <p className="mb-0 fw-semibold">{item.libro}</p>
-                            <small className="text-secondary">
-                              {item.formato}
-                            </small>
-                          </td>
-                          <td>{item.generos || "Sin género"}</td>
-                          <td>{item.cantidad}</td>
-                          <td className="fw-semibold card-price">
-                            ${Number(item.subtotal).toLocaleString("es-CL")}
+                            <small className="text-secondary">{item.ip}</small>
                           </td>
                         </tr>
                       ))}
