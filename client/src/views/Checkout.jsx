@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useUser } from "../context/UserContext";
 import { useOrders } from "../context/OrderContext";
@@ -149,12 +149,12 @@ export const Checkout = () => {
                   <p className="text-secondary mb-2">
                     No tienes direcciones guardadas.
                   </p>
-                  <a
-                    href="/entre-libros/perfil"
-                    className="btn boton-secundario btn-sm"
-                  >
+
+                  <Link to="/perfil"
+                  className="btn boton-secundario btn-sm">
                     Agregar dirección en Mi Perfil
-                  </a>
+                  </Link>
+
                 </div>
               ) : (
                 <div className="d-flex flex-column gap-2">
