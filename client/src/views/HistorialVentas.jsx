@@ -22,6 +22,7 @@ export const HistorialVentas = () => {
     hasta: "",
     libro: "",
     genero: "",
+    formato: "",
   });
 
   const construirQuery = () => {
@@ -31,6 +32,7 @@ export const HistorialVentas = () => {
     if (filtros.hasta) params.append("hasta", filtros.hasta);
     if (filtros.libro) params.append("libro", filtros.libro);
     if (filtros.genero) params.append("genero", filtros.genero);
+    if (filtros.formato) params.append("formato", filtros.formato);
 
     return params.toString();
   };
@@ -84,6 +86,7 @@ export const HistorialVentas = () => {
       hasta: "",
       libro: "",
       genero: "",
+      formato: "",
     });
 
     setTimeout(() => {
@@ -218,6 +221,21 @@ export const HistorialVentas = () => {
                   value={filtros.genero}
                   onChange={handleFiltro}
                 />
+              </div>
+
+              <div className="col-12 col-md-3">
+                <label className="form-label">Formato</label>
+                <select
+                  name="formato"
+                  className="form-select"
+                  value={filtros.formato}
+                  onChange={handleFiltro}
+                >
+                  <option value="">Todos</option>
+                  <option value="fisico">Físico</option>
+                  <option value="digital">Digital</option>
+                  <option value="preventa">Preventa</option>
+                </select>
               </div>
 
               <div className="col-12 d-flex gap-2 justify-content-end">

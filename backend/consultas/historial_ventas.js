@@ -1,6 +1,6 @@
 const pool = require("../database/db");
 
-const obtenerHistorialVentas = async ({ desde, hasta, libro, genero } = {}) => {
+const obtenerHistorialVentas = async ({ desde, hasta, libro, genero, formato } = {}) => {
   const { rows } = await pool.query(
     `
     SELECT
@@ -30,6 +30,8 @@ const obtenerHistorialVentas = async ({ desde, hasta, libro, genero } = {}) => {
       ($3::TEXT IS NULL OR LOWER(l.titulo) LIKE LOWER('%' || $3 || '%'))
     AND
       ($4::TEXT IS NULL OR LOWER(g.nombre) LIKE LOWER('%' || $4 || '%'))
+    AND
+      ($5::TEXT IS NULL OR LOWER(l.formato) = LOWER($5))
     GROUP BY
       p.id_pedido,
       p.fecha,
@@ -43,7 +45,7 @@ const obtenerHistorialVentas = async ({ desde, hasta, libro, genero } = {}) => {
       dp.precio_unitario
     ORDER BY p.fecha DESC
     `,
-    [desde || null, hasta || null, libro || null, genero || null]
+    [desde || null, hasta || null, libro || null, genero || null, formato || null]
   );
 
   return rows;
