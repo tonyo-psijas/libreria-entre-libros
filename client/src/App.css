@@ -156,7 +156,7 @@ header button {
 
 .preventa-label {
   display: inline-block;
-  background-color: #FCB400;
+  background-color: #fcb400;
   color: white;
   font-size: 11px;
   font-weight: 600;
@@ -471,4 +471,9 @@ header .nav-link.user-greeting {
 /* Sobrescribe el color para el saludo del usuario */
 header .nav-link.user-greeting {
   color: #f7b220 !important;
+}
+
+textarea.form-control.form-input {
+  padding: 0.75rem 1rem;
+  min-height: 100px;
 }
