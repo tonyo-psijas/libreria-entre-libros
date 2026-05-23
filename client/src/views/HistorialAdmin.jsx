@@ -13,6 +13,7 @@ const authHeaders = () => ({
 
 export const HistorialAdmin = () => {
   const [historial, setHistorial] = useState([]);
+  const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
@@ -64,8 +65,25 @@ export const HistorialAdmin = () => {
     }
   };
 
+  const cargarAdmins = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/clientes?rol=admin`, {
+        headers: authHeaders(),
+      });
+
+      if (!res.ok) return;
+
+      const json = await res.json();
+
+      setAdmins(Array.isArray(json.data) ? json.data : []);
+    } catch (error) {
+      console.error("Error al cargar administradores:", error);
+    }
+  };
+
   useEffect(() => {
     cargarHistorial();
+    cargarAdmins();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -126,12 +144,15 @@ export const HistorialAdmin = () => {
 
   const accionesUnicas = new Set(historial.map((item) => item.accion)).size;
   const adminsUnicos = new Set(historial.map((item) => item.nombre_admin)).size;
+  const listaAdministradores = [
+    ...new Set(historial.map((item) => item.nombre_admin).filter(Boolean)),
+  ];
 
   const totalPaginas = Math.ceil(historial.length / ITEMS_POR_PAGINA);
   const indiceInicio = (paginaActual - 1) * ITEMS_POR_PAGINA;
   const historialPaginado = historial.slice(
     indiceInicio,
-    indiceInicio + ITEMS_POR_PAGINA
+    indiceInicio + ITEMS_POR_PAGINA,
   );
 
   const irAPagina = (pagina) => {
@@ -159,9 +180,7 @@ export const HistorialAdmin = () => {
           <div className="profile-content">
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
               <div>
-                <h4 className="fw-semibold mb-1">
-                  Historial administrativo
-                </h4>
+                <h4 className="fw-semibold mb-1">Historial administrativo</h4>
                 <p className="text-secondary mb-0">
                   Registro de actividades realizadas por administradores
                 </p>
@@ -180,14 +199,26 @@ export const HistorialAdmin = () => {
             <div className="row g-3 mb-4">
               <div className="col-12 col-md-3">
                 <label className="form-label">Administrador</label>
-                <input
-                  type="text"
+                <select
                   name="admin"
-                  className="form-control"
-                  placeholder="Ej: orlando2"
+                  className="form-select"
                   value={filtros.admin}
                   onChange={handleFiltro}
-                />
+                >
+                  <option value="">Todos</option>
+
+                  {admins.map((admin) => (
+                    <option key={admin.id_cliente} value={admin.email}>
+                      {admin.nombre} — {admin.email}
+                    </option>
+                  ))}
+
+                  {listaAdministradores.map((admin) => (
+                    <option key={admin} value={admin}>
+                      {admin}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="col-12 col-md-3">
@@ -202,7 +233,9 @@ export const HistorialAdmin = () => {
                   <option value="CREAR_LIBRO">Crear libro</option>
                   <option value="ACTUALIZAR_LIBRO">Actualizar libro</option>
                   <option value="DESACTIVAR_LIBRO">Desactivar libro</option>
-                  <option value="CAMBIAR_ROL_CLIENTE">Cambiar rol cliente</option>
+                  <option value="CAMBIAR_ROL_CLIENTE">
+                    Cambiar rol cliente
+                  </option>
                   <option value="DESACTIVAR_CLIENTE">Desactivar cliente</option>
                 </select>
               </div>
@@ -230,11 +263,17 @@ export const HistorialAdmin = () => {
               </div>
 
               <div className="col-12 d-flex gap-2 justify-content-end">
-                <button className="btn boton-primario" onClick={cargarHistorial}>
+                <button
+                  className="btn boton-primario"
+                  onClick={cargarHistorial}
+                >
                   Buscar
                 </button>
 
-                <button className="btn btn-outline-secondary" onClick={limpiarFiltros}>
+                <button
+                  className="btn btn-outline-secondary"
+                  onClick={limpiarFiltros}
+                >
                   Limpiar
                 </button>
               </div>
