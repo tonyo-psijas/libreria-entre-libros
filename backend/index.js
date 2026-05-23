@@ -316,7 +316,10 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
     const libroOpenLibrary = await buscarLibroOpenLibrary(isbn);
 
     if (libroOpenLibrary) {
-      if (libroOpenLibrary.idioma !== "spa") {
+      if (
+        libroOpenLibrary.idioma === "eng" ||
+        libroOpenLibrary.idioma === "en"
+      ) {
         libroOpenLibrary.titulo = await traducirTexto(libroOpenLibrary.titulo);
         libroOpenLibrary.descripcion = await traducirTexto(
           libroOpenLibrary.descripcion,
@@ -328,6 +331,9 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
           ),
         );
       }
+
+      libroOpenLibrary.titulo =
+        libroOpenLibrary.titulo || libroOpenLibrary.title || "Sin título";
 
       return res.json({
         origen: "open_library",

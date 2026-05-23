@@ -12,7 +12,7 @@ const normalizarLibro = (libro) => {
         imagen: libro.imageLinks?.thumbnail || null,
         idioma: libro.language || "unknown",
         editorial: libro.publisher || null,
-        formato: "Físico"
+        formato: "fisico"
     };
 };
 
