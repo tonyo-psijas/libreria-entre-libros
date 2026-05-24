@@ -18,6 +18,7 @@ import { Checkout } from "./views/Checkout";
 import { DetallePedido } from "./views/DetallePedido";
 import { HistorialCompras } from "./views/HistorialCompras";
 import { HistorialVentas } from "./views/HistorialVentas";
+import { HistorialAdmin } from "./views/HistorialAdmin";
 
 import Login from "./views/Login";
 import Registro from "./views/Registro";
@@ -135,6 +136,17 @@ function App() {
             element={
               isAuthenticated && user?.rol === "admin" ? (
                 <UserManagement />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+
+          <Route
+            path="/historial-admin"
+            element={
+              isAuthenticated && user?.rol === "admin" ? (
+                <HistorialAdmin />
               ) : (
                 <Navigate to="/login" />
               )
