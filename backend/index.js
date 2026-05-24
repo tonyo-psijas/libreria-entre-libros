@@ -235,7 +235,6 @@ api.delete(
 
 //Ruta Get para obtener todos los libros activos
 api.get("/libros", async (req, res) => {
-  console.log("GET /libros");
   try {
     const libros = await obtenerLibros();
     res.json(libros);
@@ -250,7 +249,6 @@ api.get("/libros", async (req, res) => {
 
 // Ruta GET para buscar libros del Navbar del frontend
 api.get("/libros/buscar", async (req, res) => {
-  console.log("GET /libros/buscar", req.query);
   const { q } = req.query;
 
   try {
@@ -277,7 +275,6 @@ api.get("/libros/buscar", async (req, res) => {
 
 // Ruta GET para filtrar libros por título, autor o género
 api.get("/libros/filtros", async (req, res) => {
-  console.log("GET /libros/filtros", req.query);
   const { titulo, autor, genero } = req.query;
 
   try {
@@ -298,7 +295,6 @@ api.get("/libros/filtros", async (req, res) => {
 
 //ruta Get para buscar libros por ISBN en el formulario de registro de libros por admin
 api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
-  console.log("GET /libros/buscar-isbn", req.params);
   const { isbn } = req.params;
 
   try {
@@ -374,8 +370,7 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
 
 // Ruta GET para obtener un libro por ID
 api.get("/libros/:id", async (req, res) => {
-  console.log("GET /libros/:id", req.params);
-  const { id } = req.params;
+    const { id } = req.params;
 
   try {
     const libro = await obtenerLibroById(id);
@@ -397,7 +392,6 @@ api.get("/libros/:id", async (req, res) => {
 
 // Ruta POST para crear un nuevo libro
 api.post("/libros", authMiddleware, verificarAdmin, async (req, res) => {
-  console.log("POST /libros", req.body);
   try {
     const {
       titulo,
@@ -578,8 +572,7 @@ api.put(
   authMiddleware,
   verificarAdmin,
   async (req, res) => {
-    console.log("PUT /libros/:id/desactivar", req.params);
-    const { id } = req.params;
+      const { id } = req.params;
 
     try {
       const libroDesactivado = await desactivarLibro(id);
@@ -616,7 +609,6 @@ api.put(
 
 // Ruta GET /carrito
 api.get("/carrito", authMiddleware, async (req, res) => {
-  console.log("GET /carrito", req.params);
   const id_cliente = req.user.id_cliente;
 
   try {
@@ -640,7 +632,6 @@ api.get("/carrito", authMiddleware, async (req, res) => {
 
 // Ruta POST /carrito (agregar libro al carrito)
 api.post("/carrito", authMiddleware, async (req, res) => {
-  //console.log("POST /carrito", req.body);
   const { id_libro, cantidad = 1 } = req.body;
   const id_cliente = req.user.id_cliente;
 
@@ -674,11 +665,6 @@ api.post("/carrito", authMiddleware, async (req, res) => {
 
 // Ruta PUT /carrito (actualizar cantidad de un libro en el carrito)
 api.put("/carrito/:id_libro", authMiddleware, async (req, res) => {
-  console.log(
-    "PUT /carrito/:id_cliente/libros/:id_libro",
-    req.params,
-    req.body,
-  );
   const id_cliente = req.user.id_cliente;
   const { id_libro } = req.params;
   const { cantidad } = req.body;
@@ -712,7 +698,7 @@ api.put("/carrito/:id_libro", authMiddleware, async (req, res) => {
 
 // Ruta DELETE /carrito (eliminar un libro del carrito)
 api.delete("/carrito/:id_libro", authMiddleware, async (req, res) => {
-  console.log("DELETE /carrito/:id_cliente/libros/:id_libro", req.params);
+
   const id_cliente = req.user.id_cliente;
   const { id_libro } = req.params;
 
@@ -740,7 +726,6 @@ api.delete("/carrito/:id_libro", authMiddleware, async (req, res) => {
 
 // Ruta DELETE /carrito (vaciar carrito completo) o hacer pedido
 api.delete("/carrito", authMiddleware, async (req, res) => {
-  console.log("DELETE /carrito", req.params);
   const id_cliente = req.user.id_cliente;
 
   try {
@@ -761,8 +746,6 @@ api.delete("/carrito", authMiddleware, async (req, res) => {
 // ruta GET /favoritos (obtener lista de favoritos)
 api.get("/favoritos", authMiddleware, async (req, res) => {
   const id_cliente = req.user.id_cliente;
-  console.log("GET /favoritos", req.params);
-
   try {
     const favoritos = await obtenerFavoritos(id_cliente);
 
@@ -782,7 +765,6 @@ api.get("/favoritos", authMiddleware, async (req, res) => {
 
 // ruta POST /favoritos/ (agregar libro a favoritos)
 api.post("/favoritos", authMiddleware, async (req, res) => {
-  console.log("POST /favoritos", req.params, req.body);
   const id_cliente = req.user.id_cliente;
   const { id_libro } = req.body;
 
@@ -817,7 +799,6 @@ api.post("/favoritos", authMiddleware, async (req, res) => {
 
 // ruta DELETE /favoritos (eliminar libro de favoritos)
 api.delete("/favoritos", authMiddleware, async (req, res) => {
-  console.log("DELETE /favoritos", req.params);
   const id_cliente = req.user.id_cliente;
   const { id_libro } = req.body;
 
@@ -866,7 +847,6 @@ api.get("/generos", async (req, res) => {
 api.get("/preventas", async (req, res) => {
   try {
     const Preventas = await obtenerPreventas();
-    console.log("Preventas encontradas:", Preventas.length);
 
     res.json({
       cantidad: Preventas.length,
@@ -883,8 +863,6 @@ api.get("/preventas", async (req, res) => {
 
 // Ruta GET direcciones de un cliente
 api.get("/direcciones", authMiddleware, async (req, res) => {
-  console.log("GET /direcciones/:id_cliente", req.params);
-
   const id_cliente = req.user.id_cliente;
 
   try {
@@ -906,12 +884,7 @@ api.get("/direcciones", authMiddleware, async (req, res) => {
 
 // Ruta POST crear dirección
 api.post("/direcciones", authMiddleware, async (req, res) => {
-  console.log("POST /direcciones", {
-    params: req.params,
-    body: req.body,
-  });
-
-  const id_cliente = req.user.id_cliente;
+    const id_cliente = req.user.id_cliente;
 
   try {
     const { alias, destinatario, telefono, pais, ciudad, calle, numero } =
@@ -950,12 +923,7 @@ api.post("/direcciones", authMiddleware, async (req, res) => {
 
 // Ruta PUT actualizar dirección
 api.put("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
-  console.log("PUT /direcciones/:id_direccion", {
-    params: req.params,
-    body: req.body,
-  });
-
-  const { id_direccion } = req.params;
+    const { id_direccion } = req.params;
 
   try {
     const direccionActualizada = await actualizarDireccion(
@@ -985,9 +953,7 @@ api.put("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
 
 // Ruta DELETE eliminar dirección
 api.delete("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
-  console.log("DELETE /direcciones/:id_direccion", req.params);
-
-  const { id_direccion } = req.params;
+    const { id_direccion } = req.params;
 
   try {
     const direccionEliminada = await eliminarDireccion(id_direccion);
@@ -1014,9 +980,7 @@ api.delete("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
 
 // Ruta GET empresas de envío
 api.get("/empresas-envio", async (req, res) => {
-  console.log("GET /empresas-envio");
-
-  try {
+   try {
     const empresas = await obtenerEmpresasEnvio();
 
     res.json({
@@ -1039,9 +1003,7 @@ api.post(
   authMiddleware,
   verificarAdmin,
   async (req, res) => {
-    console.log("POST /empresas-envio", req.body);
-
-    try {
+        try {
       const { nombre, telefono } = req.body;
 
       if (!nombre) {
@@ -1071,11 +1033,7 @@ api.post(
 );
 
 api.post("/pedidos", authMiddleware, async (req, res) => {
-  console.log("POST /pedidos", {
-    body: req.body,
-  });
-
-  const id_cliente = req.user.id_cliente;
+    const id_cliente = req.user.id_cliente;
 
   const { id_direccion, id_empresa_envio, id_metodo_pago } = req.body;
 
@@ -1111,9 +1069,7 @@ api.post("/pedidos", authMiddleware, async (req, res) => {
 });
 
 api.get("/pedidos", authMiddleware, async (req, res) => {
-  console.log("GET /pedidos", req.params);
-
-  const id_cliente = req.user.id_cliente;
+   const id_cliente = req.user.id_cliente;
 
   try {
     const pedidos = await obtenerPedidosCliente(id_cliente);
@@ -1160,9 +1116,7 @@ api.get("/pedidos/resumen/:id_pedido", authMiddleware, async (req, res) => {
 });
 
 api.get("/pedidos/detalle/:id_pedido", authMiddleware, async (req, res) => {
-  console.log("GET /pedidos/detalle/:id_pedido", req.params);
-
-  const { id_pedido } = req.params;
+   const { id_pedido } = req.params;
 
   try {
     const detalle = await obtenerDetallePedido(id_pedido);
