@@ -4,7 +4,7 @@ const crearPedidoDesdeCarrito = async (
   id_cliente,
   id_direccion,
   id_empresa_envio,
-  id_metodo_pago
+  id_metodo_pago,
 ) => {
   const carritoQuery = await pool.query(
     `
@@ -22,7 +22,7 @@ const crearPedidoDesdeCarrito = async (
     WHERE c.id_cliente = $1
     AND l.activo = true
     `,
-    [id_cliente]
+    [id_cliente],
   );
 
   const carrito = carritoQuery.rows;
@@ -35,9 +35,9 @@ const crearPedidoDesdeCarrito = async (
   }
 
   for (const item of carrito) {
-    const esPreventas = item.formato?.toLowerCase() === "Preventas";
+    const esPreventa = item.formato?.trim().toLowerCase() === "preventa";
 
-    if (!esPreventas && item.cantidad > item.stock) {
+    if (!esPreventa && item.cantidad > item.stock) {
       throw {
         code: 400,
         message: `Stock insuficiente para libro ${item.id_libro}`,
@@ -47,7 +47,7 @@ const crearPedidoDesdeCarrito = async (
 
   const total = carrito.reduce(
     (acc, item) => acc + item.precio_final * item.cantidad,
-    0
+    0,
   );
 
   const pedidoResult = await pool.query(
@@ -61,7 +61,7 @@ const crearPedidoDesdeCarrito = async (
     VALUES ($1, $2, $3, 'pendiente')
     RETURNING *
     `,
-    [id_cliente, id_direccion, total]
+    [id_cliente, id_direccion, total],
   );
 
   const pedido = pedidoResult.rows[0];
@@ -86,19 +86,19 @@ const crearPedidoDesdeCarrito = async (
         item.cantidad,
         item.precio_final,
         subtotal,
-      ]
+      ],
     );
 
-    const esPreventas = item.formato?.toLowerCase() === "Preventas";
+    const esPreventa = item.formato?.trim().toLowerCase() === "preventa";
 
-    if (!esPreventas) {
+    if (!esPreventa) {
       await pool.query(
         `
         UPDATE libro
         SET stock = stock - $1
         WHERE id_libro = $2
         `,
-        [item.cantidad, item.id_libro]
+        [item.cantidad, item.id_libro],
       );
     }
   }
@@ -112,7 +112,7 @@ const crearPedidoDesdeCarrito = async (
     )
     VALUES ($1, $2, 'pendiente')
     `,
-    [pedido.id_pedido, id_empresa_envio]
+    [pedido.id_pedido, id_empresa_envio],
   );
 
   await pool.query(
@@ -125,7 +125,7 @@ const crearPedidoDesdeCarrito = async (
     )
     VALUES ($1, $2, $3, 'pendiente')
     `,
-    [pedido.id_pedido, id_metodo_pago, total]
+    [pedido.id_pedido, id_metodo_pago, total],
   );
 
   await pool.query(
@@ -137,7 +137,7 @@ const crearPedidoDesdeCarrito = async (
       WHERE id_cliente = $1
     )
     `,
-    [id_cliente]
+    [id_cliente],
   );
 
   return pedido;
@@ -155,7 +155,7 @@ const obtenerPedidosCliente = async (id_cliente) => {
     WHERE id_cliente = $1
     ORDER BY fecha DESC
     `,
-    [id_cliente]
+    [id_cliente],
   );
 
   return rows;
@@ -174,7 +174,7 @@ const obtenerDetallePedido = async (id_pedido) => {
     JOIN libro l ON dp.id_libro = l.id_libro
     WHERE dp.id_pedido = $1
     `,
-    [id_pedido]
+    [id_pedido],
   );
 
   return rows;
@@ -199,7 +199,8 @@ const obtenerTodosLosPedidos = async () => {
 };
 
 const obtenerResumenPedido = async (id_pedido) => {
-  const { rows } = await pool.query(`
+  const { rows } = await pool.query(
+    `
     SELECT
       p.id_pedido,
       p.fecha,
@@ -216,7 +217,9 @@ const obtenerResumenPedido = async (id_pedido) => {
     LEFT JOIN pago pa ON pa.id_pedido = p.id_pedido
     LEFT JOIN metodo_pago mp ON mp.id_metodo_pago = pa.id_metodo_pago
     WHERE p.id_pedido = $1
-  `, [id_pedido]);
+  `,
+    [id_pedido],
+  );
 
   return rows[0];
 };
