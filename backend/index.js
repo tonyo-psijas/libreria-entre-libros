@@ -36,6 +36,7 @@ const {
   agregarAutorLibro,
   agregarGeneroLibro,
   obtenerPreventas,
+  actualizarLibroPorIsbn,
 } = require("./consultas/libros.js");
 const {
   obtenerCarrito,
@@ -370,7 +371,7 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
 
 // Ruta GET para obtener un libro por ID
 api.get("/libros/:id", async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
   try {
     const libro = await obtenerLibroById(id);
@@ -430,8 +431,32 @@ api.post("/libros", authMiddleware, verificarAdmin, async (req, res) => {
     const libroExistente = await obtenerLibroByIsbn(isbn);
 
     if (libroExistente) {
-      return res.status(400).json({
-        message: "Ya existe un libro registrado con ese ISBN",
+      if (libroExistente.activo) {
+        return res.status(400).json({
+          message: "Ya existe un libro activo registrado con ese ISBN",
+        });
+      }
+
+      const libroReactivado = await actualizarLibroPorIsbn(
+        isbn,
+        precio,
+        stock,
+        descuento,
+        formato,
+      );
+
+      await registrarActividadAdmin({
+        id_admin: req.user.id_cliente,
+        nombre_admin: req.user.email,
+        accion: "REACTIVAR_LIBRO",
+        detalle: `Libro reactivado: ${libroExistente.titulo}`,
+        ruta: req.originalUrl,
+        ip: req.ip,
+      });
+
+      return res.json({
+        message: "Libro reactivado y actualizado con éxito",
+        data: libroReactivado,
       });
     }
 
@@ -572,7 +597,7 @@ api.put(
   authMiddleware,
   verificarAdmin,
   async (req, res) => {
-      const { id } = req.params;
+    const { id } = req.params;
 
     try {
       const libroDesactivado = await desactivarLibro(id);
@@ -698,7 +723,6 @@ api.put("/carrito/:id_libro", authMiddleware, async (req, res) => {
 
 // Ruta DELETE /carrito (eliminar un libro del carrito)
 api.delete("/carrito/:id_libro", authMiddleware, async (req, res) => {
-
   const id_cliente = req.user.id_cliente;
   const { id_libro } = req.params;
 
@@ -884,7 +908,7 @@ api.get("/direcciones", authMiddleware, async (req, res) => {
 
 // Ruta POST crear dirección
 api.post("/direcciones", authMiddleware, async (req, res) => {
-    const id_cliente = req.user.id_cliente;
+  const id_cliente = req.user.id_cliente;
 
   try {
     const { alias, destinatario, telefono, pais, ciudad, calle, numero } =
@@ -923,7 +947,7 @@ api.post("/direcciones", authMiddleware, async (req, res) => {
 
 // Ruta PUT actualizar dirección
 api.put("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
-    const { id_direccion } = req.params;
+  const { id_direccion } = req.params;
 
   try {
     const direccionActualizada = await actualizarDireccion(
@@ -953,7 +977,7 @@ api.put("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
 
 // Ruta DELETE eliminar dirección
 api.delete("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
-    const { id_direccion } = req.params;
+  const { id_direccion } = req.params;
 
   try {
     const direccionEliminada = await eliminarDireccion(id_direccion);
@@ -980,7 +1004,7 @@ api.delete("/direcciones/:id_direccion", authMiddleware, async (req, res) => {
 
 // Ruta GET empresas de envío
 api.get("/empresas-envio", async (req, res) => {
-   try {
+  try {
     const empresas = await obtenerEmpresasEnvio();
 
     res.json({
@@ -1003,7 +1027,7 @@ api.post(
   authMiddleware,
   verificarAdmin,
   async (req, res) => {
-        try {
+    try {
       const { nombre, telefono } = req.body;
 
       if (!nombre) {
@@ -1033,7 +1057,7 @@ api.post(
 );
 
 api.post("/pedidos", authMiddleware, async (req, res) => {
-    const id_cliente = req.user.id_cliente;
+  const id_cliente = req.user.id_cliente;
 
   const { id_direccion, id_empresa_envio, id_metodo_pago } = req.body;
 
@@ -1069,7 +1093,7 @@ api.post("/pedidos", authMiddleware, async (req, res) => {
 });
 
 api.get("/pedidos", authMiddleware, async (req, res) => {
-   const id_cliente = req.user.id_cliente;
+  const id_cliente = req.user.id_cliente;
 
   try {
     const pedidos = await obtenerPedidosCliente(id_cliente);
@@ -1116,7 +1140,7 @@ api.get("/pedidos/resumen/:id_pedido", authMiddleware, async (req, res) => {
 });
 
 api.get("/pedidos/detalle/:id_pedido", authMiddleware, async (req, res) => {
-   const { id_pedido } = req.params;
+  const { id_pedido } = req.params;
 
   try {
     const detalle = await obtenerDetallePedido(id_pedido);
