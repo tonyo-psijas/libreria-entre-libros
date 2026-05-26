@@ -335,6 +335,8 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
       libroOpenLibrary.titulo =
         libroOpenLibrary.titulo || libroOpenLibrary.title || "Sin título";
 
+      libroOpenLibrary.debug_version = "openlibrary-fix-26-mayo";
+
       return res.json({
         origen: "open_library",
         traducido: libroOpenLibrary.idioma !== "spa",
