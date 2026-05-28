@@ -571,7 +571,9 @@ api.put(
   async (req, res) => {
     const { id } = req.params;
     const { activo } = req.body;
-
+    
+    console.log("1 - Entró a la ruta");
+    
     try {
       if (typeof activo !== "boolean") {
         return res.status(400).json({
@@ -579,13 +581,21 @@ api.put(
         });
       }
 
+
+console.log("2 - id:", id);
+console.log("3 - activo:", activo);
+
       const libroActualizado = await cambiarEstadoLibro(id, activo);
 
+      console.log("4 - libroActualizado:", libroActualizado);
+      
       if (!libroActualizado) {
         return res.status(404).json({
           message: "Libro no encontrado",
         });
       }
+
+      console.log("5 - Antes de registrar actividad");
 
       await registrarActividadAdmin({
         id_admin: req.user.id_cliente,
@@ -597,6 +607,8 @@ api.put(
         ruta: req.originalUrl,
         ip: req.ip,
       });
+
+      console.log("6 - Después de registrar actividad");
 
       res.json({
         message: activo
