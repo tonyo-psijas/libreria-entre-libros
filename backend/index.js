@@ -26,16 +26,17 @@ const fs = require("fs");
 const {
   obtenerLibros,
   obtenerLibroById,
-  updateDescuento,
-  filtrarLibros,
   obtenerLibroByIsbn,
+  obtenerLibrosAdmin,
+  filtrarLibros,
   buscarLibros,
   crearLibro,
-  desactivarLibro,
   actualizarLibro,
   agregarAutorLibro,
   agregarGeneroLibro,
-  obtenerPreventas,
+  obtenerPreventa,
+  cambiarEstadoLibro,
+  recibirPreventa,
 } = require("./consultas/libros.js");
 const {
   obtenerCarrito,
@@ -159,7 +160,6 @@ api.post("/clientes/login", async (req, res) => {
   }
 });
 
-//RUTA POST para actualizar perfil del cliente autenticado
 // PUT /clientes/me — actualizar perfil del cliente autenticado
 api.put("/clientes/me", authMiddleware, async (req, res) => {
   const id_cliente = req.user.id_cliente;
@@ -183,38 +183,6 @@ api.put("/clientes/me", authMiddleware, async (req, res) => {
     });
   }
 });
-
-// GET /clientes — listar todos (solo admin)
-// api.get("/clientes", authMiddleware, verificarAdmin, async (req, res) => {
-//   try {
-//     const clientes = await obtenerTodosLosClientes();
-//     res.json({ data: clientes });
-//   } catch (error) {
-//     res.status(error.code || 500).json({ message: error.message });
-//   }
-// });
-
-// PUT /clientes/:id_cliente/rol — cambiar rol (solo admin)
-// api.put(
-//   "/clientes/:id_cliente/rol",
-//   authMiddleware,
-//   verificarAdmin,
-//   async (req, res) => {
-//     const { id_cliente } = req.params;
-//     const { rol } = req.body;
-
-//     if (!["admin", "cliente"].includes(rol)) {
-//       return res.status(400).json({ message: "Rol inválido" });
-//     }
-
-//     try {
-//       const cliente = await cambiarRolCliente(id_cliente, rol);
-//       res.json({ message: "Rol actualizado", data: cliente });
-//     } catch (error) {
-//       res.status(error.code || 500).json({ message: error.message });
-//     }
-//   },
-// );
 
 // DELETE /clientes/:id_cliente — eliminar usuario (solo admin)
 api.delete(
@@ -373,6 +341,27 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
     });
   }
 });
+
+api.get(
+  "/libros/admin/todos",
+  authMiddleware,
+  verificarAdmin,
+  async (req, res) => {
+    try {
+      const libros = await obtenerLibrosAdmin();
+
+      res.json({
+        cantidad: libros.length,
+        data: libros,
+      });
+    } catch (error) {
+      console.error("Error en GET /libros/admin/todos:", error);
+      res.status(500).json({
+        message: "Error interno al obtener libros admin",
+      });
+    }
+  },
+);
 
 // Ruta GET para obtener un libro por ID
 api.get("/libros/:id", async (req, res) => {
@@ -574,19 +563,25 @@ api.put("/libros/:id", authMiddleware, verificarAdmin, async (req, res) => {
   }
 });
 
-// Ruta PUT ppor :id para cambiar activo de true a false
+// Ruta PUT por :id para cambiar l.activo de true a false y viceversa
 api.put(
-  "/libros/:id/desactivar",
+  "/libros/:id/estado",
   authMiddleware,
   verificarAdmin,
   async (req, res) => {
-    console.log("PUT /libros/:id/desactivar", req.params);
     const { id } = req.params;
+    const { activo } = req.body;
 
     try {
-      const libroDesactivado = await desactivarLibro(id);
+      if (typeof activo !== "boolean") {
+        return res.status(400).json({
+          message: "El campo activo debe ser true o false",
+        });
+      }
 
-      if (!libroDesactivado) {
+      const libroActualizado = await cambiarEstadoLibro(id, activo);
+
+      if (!libroActualizado) {
         return res.status(404).json({
           message: "Libro no encontrado",
         });
@@ -595,22 +590,24 @@ api.put(
       await registrarActividadAdmin({
         id_admin: req.user.id_cliente,
         nombre_admin: req.user.email,
-        accion: "DESACTIVAR_LIBRO",
-        detalle: `Libro desactivado: ${libroDesactivado.titulo}`,
+        accion: activo ? "ACTIVAR_LIBRO" : "DESACTIVAR_LIBRO",
+        detalle: activo
+          ? `Libro activado: ${libroActualizado.titulo}`
+          : `Libro desactivado: ${libroActualizado.titulo}`,
         ruta: req.originalUrl,
         ip: req.ip,
       });
 
       res.json({
-        message: "Libro desactivado con exito",
-        data: libroDesactivado,
+        message: activo
+          ? "Libro activado correctamente"
+          : "Libro desactivado correctamente",
+        data: libroActualizado,
       });
     } catch (error) {
-      console.error("Error en PUT /libros/:id/desactivar:", error);
-
-      res.status(error.code || 500).json({
-        error: error.code,
-        message: error.message,
+      console.error("Error en PUT /libros/:id/estado:", error);
+      res.status(500).json({
+        message: "Error interno al cambiar estado del libro",
       });
     }
   },
@@ -864,24 +861,65 @@ api.get("/generos", async (req, res) => {
   }
 });
 
-// Ruta GET /Preventas
-api.get("/preventas", async (req, res) => {
+// Ruta GET /Preventa
+api.get("/preventa", async (req, res) => {
   try {
-    const Preventas = await obtenerPreventas();
-    console.log("Preventas encontradas:", Preventas.length);
+    const preventa = await obtenerPreventa();
 
     res.json({
-      cantidad: Preventas.length,
-      data: Preventas,
+      cantidad: preventa.length,
+      data: preventa,
     });
   } catch (error) {
-    console.error("Error en GET /Preventas:", error);
+    console.error("Error en GET /Preventa:", error);
     res.status(500).json({
       error: error.code,
       message: error.message,
     });
   }
 });
+
+// Ruta PUT para recibir preventa (actualizar stock y descuento)
+api.put(
+  "/libros/:id/recibir-preventa",
+  authMiddleware,
+  verificarAdmin,
+  async (req, res) => {
+    const { id } = req.params;
+    const { stock_llegado, descuento = 0 } = req.body;
+
+    try {
+      if (stock_llegado === undefined || stock_llegado < 0) {
+        return res.status(400).json({
+          message: "El stock recibido es obligatorio y no puede ser negativo",
+        });
+      }
+
+      if (descuento < 0 || descuento > 100) {
+        return res.status(400).json({
+          message: "El descuento debe estar entre 0 y 100",
+        });
+      }
+
+      const resultado = await recibirPreventa(id, stock_llegado, descuento);
+
+      if (!resultado) {
+        return res.status(404).json({
+          message: "Libro no encontrado",
+        });
+      }
+
+      res.json({
+        message: "Preventa actualizada correctamente",
+        data: resultado,
+      });
+    } catch (error) {
+      res.status(error.code || 500).json({
+        message: error.message || "Error interno al recibir preventa",
+      });
+    }
+  },
+);
 
 // Ruta GET direcciones de un cliente
 api.get("/direcciones", authMiddleware, async (req, res) => {

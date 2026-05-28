@@ -69,11 +69,20 @@ export const Catalogo = () => {
 
   const cargarLibros = async (q = "") => {
     setLoading(true);
+
     try {
-      const params = q ? `?titulo=${encodeURIComponent(q)}` : "";
-      const res = await fetch(`${BASE_URL}/libros/filtros${params}`);
+      const res = await authFetch(`${BASE_URL}/libros/admin/todos`);
       const json = await res.json();
-      setLibros(Array.isArray(json) ? json : (json.data ?? []));
+
+      const data = Array.isArray(json) ? json : (json.data ?? []);
+
+      const filtrados = q
+        ? data.filter((libro) =>
+            libro.titulo?.toLowerCase().includes(q.toLowerCase()),
+          )
+        : data;
+
+      setLibros(filtrados);
     } catch (error) {
       console.error("Error al cargar libros:", error);
     } finally {
@@ -182,17 +191,29 @@ export const Catalogo = () => {
     }
   };
 
-  // ── DESACTIVAR ───────────────────────────────────────────
-  const handleDesactivar = async (libro) => {
-    if (!confirm(`¿Desactivar "${libro.titulo}"? No aparecerá en la tienda.`))
-      return;
+  // ── ACTIVAR Y DESACTIVAR LIBRO ─────
+  const handleCambiarEstado = async (libro) => {
+    const nuevoEstado = !libro.activo;
+
+    const mensaje = nuevoEstado
+      ? `¿Activar "${libro.titulo}"?`
+      : `¿Desactivar "${libro.titulo}"? No aparecerá en la tienda.`;
+
+    if (!confirm(mensaje)) return;
+
     try {
       const res = await authFetch(
-        `${BASE_URL}/libros/${libro.id_libro}/desactivar`,
-        { method: "PUT" },
+        `${BASE_URL}/libros/${libro.id_libro}/estado`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ activo: nuevoEstado }),
+        },
       );
+
       const data = await res.json();
+
       if (!res.ok) throw new Error(data.message);
+
       cargarLibros(busqueda);
     } catch (error) {
       alert(`❌ ${error.message}`);
@@ -590,10 +611,17 @@ export const Catalogo = () => {
                         <i className="fa-regular fa-pen-to-square"></i> Editar
                       </button>
                       <button
-                        className="link-eliminar btn btn-sm"
-                        onClick={() => handleDesactivar(libro)}
+                        className={`btn btn-sm ${
+                          libro.activo ? "link-eliminar" : "btn-success"
+                        }`}
+                        onClick={() => handleCambiarEstado(libro)}
                       >
-                        <i className="fa-solid fa-trash-can"></i> Desactivar
+                        <i
+                          className={`fa-solid ${
+                            libro.activo ? "fa-trash-can" : "fa-rotate-left"
+                          }`}
+                        ></i>{" "}
+                        {libro.activo ? "Desactivar" : "Activar"}
                       </button>
                     </div>
                   </div>

@@ -70,7 +70,7 @@ function App() {
           <Route path="/libros" element={<Gallery />} />
           <Route path="/promociones" element={<Promociones />} />
           <Route path="/comics-&-mangas" element={<ComicsMangas />} />
-          <Route path="/preventas" element={<Preventas />} />
+          <Route path="/preventa" element={<Preventas />} />
           <Route path="/contacto" element={<Contacto />} />
 
           {/* 🟡 RUTAS PROTEGIDAS (requieren login) */}
