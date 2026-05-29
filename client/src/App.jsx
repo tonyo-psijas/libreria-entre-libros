@@ -19,6 +19,7 @@ import { DetallePedido } from "./views/DetallePedido";
 import { HistorialCompras } from "./views/HistorialCompras";
 import { HistorialVentas } from "./views/HistorialVentas";
 import { HistorialAdmin } from "./views/HistorialAdmin";
+import { HistorialMovimientos } from "./views/HistorialMovimientos";
 
 import Login from "./views/Login";
 import Registro from "./views/Registro";
@@ -153,6 +154,16 @@ function App() {
             }
           />
 
+          <Route
+            path="/historial-movimientos"
+            element={
+              isAuthenticated && user?.rol === "admin" ? (
+                <HistorialMovimientos />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
           <Route path="*" element={<h1>404 Not Found</h1>} />
         </Routes>
       </main>

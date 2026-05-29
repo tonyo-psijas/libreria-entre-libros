@@ -9,9 +9,6 @@ const {
   registrarCliente,
   loginCliente,
   actualizarCliente,
-  //obtenerTodosLosClientes,
-  //cambiarRolCliente,
-  //eliminarCliente,
 } = require("./consultas/clientes.js");
 
 const { obtenerOCrearEditorial } = require("./consultas/editoriales");
@@ -80,6 +77,8 @@ const {
 } = require("./consultas/historial_admin");
 
 const { obtenerHistorialVentas } = require("./consultas/historial_ventas");
+
+const { crearMovimientoStock, obtenerMovimientoStock } = require("./consultas/movimientoStock.js");
 
 if (require.main === module) {
   getHealth();
@@ -571,9 +570,7 @@ api.put(
   async (req, res) => {
     const { id } = req.params;
     const { activo } = req.body;
-    
-    console.log("1 - Entró a la ruta");
-    
+
     try {
       if (typeof activo !== "boolean") {
         return res.status(400).json({
@@ -581,21 +578,13 @@ api.put(
         });
       }
 
-
-console.log("2 - id:", id);
-console.log("3 - activo:", activo);
-
       const libroActualizado = await cambiarEstadoLibro(id, activo);
 
-      console.log("4 - libroActualizado:", libroActualizado);
-      
       if (!libroActualizado) {
         return res.status(404).json({
           message: "Libro no encontrado",
         });
       }
-
-      console.log("5 - Antes de registrar actividad");
 
       await registrarActividadAdmin({
         id_admin: req.user.id_cliente,
@@ -608,8 +597,6 @@ console.log("3 - activo:", activo);
         ip: req.ip,
       });
 
-      console.log("6 - Después de registrar actividad");
-
       res.json({
         message: activo
           ? "Libro activado correctamente"
@@ -620,6 +607,90 @@ console.log("3 - activo:", activo);
       console.error("Error en PUT /libros/:id/estado:", error);
       res.status(500).json({
         message: "Error interno al cambiar estado del libro",
+      });
+    }
+  },
+);
+
+// Ruta POST para Ingreso y Egreso de libros
+api.post(
+  "/stock/movimientos",
+  authMiddleware,
+  verificarAdmin,
+  async (req, res) => {
+    try {
+      const { id_libro, tipo, motivo, referencia, cantidad, observacion } =
+        req.body;
+
+      if (!id_libro || !tipo || !motivo || !cantidad) {
+        return res.status(400).json({
+          message: "id_libro, tipo, motivo y cantidad son obligatorios",
+        });
+      }
+
+      if (!["ingreso", "egreso"].includes(tipo)) {
+        return res.status(400).json({
+          message: "El tipo debe ser ingreso o egreso",
+        });
+      }
+
+      if (cantidad <= 0) {
+        return res.status(400).json({
+          message: "La cantidad debe ser mayor a 0",
+        });
+      }
+
+      const resultado = await crearMovimientoStock({
+        id_libro,
+        id_admin: req.user.id_cliente,
+        tipo,
+        motivo,
+        referencia,
+        cantidad,
+        observacion,
+      });
+
+      await registrarActividadAdmin({
+        id_admin: req.user.id_cliente,
+        nombre_admin: req.user.email,
+        accion: tipo === "ingreso" ? "INGRESO_STOCK" : "EGRESO_STOCK",
+        detalle: `${tipo.toUpperCase()} de stock. Libro ID ${id_libro}. Cantidad: ${cantidad}. Motivo: ${motivo}`,
+        ruta: req.originalUrl,
+        ip: req.ip,
+      });
+
+      res.status(201).json({
+        message: "Movimiento de stock registrado correctamente",
+        data: resultado,
+      });
+    } catch (error) {
+      console.error("Error en POST /stock/movimientos:", error);
+
+      res.status(error.code || 500).json({
+        message: error.message || "Error interno al registrar movimiento",
+      });
+    }
+  },
+);
+
+// Ruta GET para obtener movimientos de stock
+api.get(
+  "/stock/movimientos",
+  authMiddleware,
+  verificarAdmin,
+  async (req, res) => {
+    try {
+      const movimientos = await obtenerMovimientoStock();
+
+      res.json({
+        cantidad: movimientos.length,
+        data: movimientos,
+      });
+    } catch (error) {
+      console.error("Error en GET /stock/movimientos:", error);
+
+      res.status(500).json({
+        message: "Error interno al obtener movimientos de stock",
       });
     }
   },
@@ -892,46 +963,46 @@ api.get("/preventa", async (req, res) => {
 });
 
 // Ruta PUT para recibir preventa (actualizar stock y descuento)
-api.put(
-  "/libros/:id/recibir-preventa",
-  authMiddleware,
-  verificarAdmin,
-  async (req, res) => {
-    const { id } = req.params;
-    const { stock_llegado, descuento = 0 } = req.body;
+// api.put(
+//   "/libros/:id/recibir-preventa",
+//   authMiddleware,
+//   verificarAdmin,
+//   async (req, res) => {
+//     const { id } = req.params;
+//     const { stock_llegado, descuento = 0 } = req.body;
 
-    try {
-      if (stock_llegado === undefined || stock_llegado < 0) {
-        return res.status(400).json({
-          message: "El stock recibido es obligatorio y no puede ser negativo",
-        });
-      }
+//     try {
+//       if (stock_llegado === undefined || stock_llegado < 0) {
+//         return res.status(400).json({
+//           message: "El stock recibido es obligatorio y no puede ser negativo",
+//         });
+//       }
 
-      if (descuento < 0 || descuento > 100) {
-        return res.status(400).json({
-          message: "El descuento debe estar entre 0 y 100",
-        });
-      }
+//       if (descuento < 0 || descuento > 100) {
+//         return res.status(400).json({
+//           message: "El descuento debe estar entre 0 y 100",
+//         });
+//       }
 
-      const resultado = await recibirPreventa(id, stock_llegado, descuento);
+//       const resultado = await recibirPreventa(id, stock_llegado, descuento);
 
-      if (!resultado) {
-        return res.status(404).json({
-          message: "Libro no encontrado",
-        });
-      }
+//       if (!resultado) {
+//         return res.status(404).json({
+//           message: "Libro no encontrado",
+//         });
+//       }
 
-      res.json({
-        message: "Preventa actualizada correctamente",
-        data: resultado,
-      });
-    } catch (error) {
-      res.status(error.code || 500).json({
-        message: error.message || "Error interno al recibir preventa",
-      });
-    }
-  },
-);
+//       res.json({
+//         message: "Preventa actualizada correctamente",
+//         data: resultado,
+//       });
+//     } catch (error) {
+//       res.status(error.code || 500).json({
+//         message: error.message || "Error interno al recibir preventa",
+//       });
+//     }
+//   },
+// );
 
 // Ruta GET direcciones de un cliente
 api.get("/direcciones", authMiddleware, async (req, res) => {
