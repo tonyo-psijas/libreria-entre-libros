@@ -2,28 +2,35 @@ const pool = require("../database/db");
 
 // Obtener o crear carrito del cliente
 const obtenerOCrearCarrito = async (id_cliente) => {
-    const { rows } = await pool.query(`
+  const { rows } = await pool.query(
+    `
         SELECT id_carrito
         FROM carrito
         WHERE id_cliente = $1
-    `, [id_cliente]);
+    `,
+    [id_cliente],
+  );
 
-    if (rows.length > 0) {
-        return rows[0].id_carrito;
-    }
+  if (rows.length > 0) {
+    return rows[0].id_carrito;
+  }
 
-    const result = await pool.query(`
+  const result = await pool.query(
+    `
         INSERT INTO carrito (id_cliente)
         VALUES ($1)
         RETURNING id_carrito
-    `, [id_cliente]);
+    `,
+    [id_cliente],
+  );
 
-    return result.rows[0].id_carrito;
+  return result.rows[0].id_carrito;
 };
 
 // Ver carrito del cliente
 const obtenerCarrito = async (id_cliente) => {
-    const { rows } = await pool.query(`
+  const { rows } = await pool.query(
+    `
         SELECT 
             cd.id_carrito_detalle,
             l.id_libro,
@@ -40,18 +47,23 @@ const obtenerCarrito = async (id_cliente) => {
         WHERE c.id_cliente = $1
         AND l.activo = true
         ORDER BY cd.id_carrito_detalle ASC
-    `, [id_cliente]);
+    `,
+    [id_cliente],
+  );
 
-    return rows;
+  return rows;
 };
 
 // Validar stock antes de agregar el libro al carrito
 const validarStockLibro = async (id_libro, cantidadSolicitada) => {
-  const { rows } = await pool.query(`
+  const { rows } = await pool.query(
+    `
     SELECT id_libro, titulo, stock, formato, activo
     FROM libro
     WHERE id_libro = $1
-  `, [id_libro]);
+  `,
+    [id_libro],
+  );
 
   if (rows.length === 0) {
     throw {
@@ -69,9 +81,9 @@ const validarStockLibro = async (id_libro, cantidadSolicitada) => {
     };
   }
 
-  const esPreventass = libro.formato?.toLowerCase() === "Preventas";
+  const esPreventa = libro.formato?.toLowerCase() === "preventa";
 
-  if (!esPreventass && cantidadSolicitada > libro.stock) {
+  if (!esPreventa && cantidadSolicitada > libro.stock) {
     throw {
       code: 400,
       message: `Stock insuficiente. Disponible: ${libro.stock}`,
@@ -85,11 +97,14 @@ const validarStockLibro = async (id_libro, cantidadSolicitada) => {
 const agregarLibroCarrito = async (id_cliente, id_libro, cantidad = 1) => {
   const id_carrito = await obtenerOCrearCarrito(id_cliente);
 
-  const { rows } = await pool.query(`
+  const { rows } = await pool.query(
+    `
     SELECT id_carrito_detalle, cantidad
     FROM carrito_detalle
     WHERE id_carrito = $1 AND id_libro = $2
-  `, [id_carrito, id_libro]);
+  `,
+    [id_carrito, id_libro],
+  );
 
   const cantidadActual = rows.length > 0 ? rows[0].cantidad : 0;
   const cantidadFinal = cantidadActual + cantidad;
@@ -97,102 +112,120 @@ const agregarLibroCarrito = async (id_cliente, id_libro, cantidad = 1) => {
   await validarStockLibro(id_libro, cantidadFinal);
 
   if (rows.length > 0) {
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       UPDATE carrito_detalle
       SET cantidad = cantidad + $1
       WHERE id_carrito = $2 AND id_libro = $3
       RETURNING *
-    `, [cantidad, id_carrito, id_libro]);
+    `,
+      [cantidad, id_carrito, id_libro],
+    );
 
     return result.rows[0];
   }
 
-  const result = await pool.query(`
+  const result = await pool.query(
+    `
     INSERT INTO carrito_detalle (id_carrito, id_libro, cantidad)
     VALUES ($1, $2, $3)
     RETURNING *
-  `, [id_carrito, id_libro, cantidad]);
+  `,
+    [id_carrito, id_libro, cantidad],
+  );
 
   return result.rows[0];
 };
 
 // Actualizar cantidad
 const actualizarCantidadCarrito = async (id_cliente, id_libro, cantidad) => {
-    const id_carrito = await obtenerOCrearCarrito(id_cliente);
+  const id_carrito = await obtenerOCrearCarrito(id_cliente);
 
-    if (cantidad <= 0) {
-        const result = await pool.query(`
+  if (cantidad <= 0) {
+    const result = await pool.query(
+      `
             DELETE FROM carrito_detalle
             WHERE id_carrito = $1 AND id_libro = $2
             RETURNING *
-        `, [id_carrito, id_libro]);
+        `,
+      [id_carrito, id_libro],
+    );
 
-     if (result.rows.length === 0) {
-    throw {
-      code: 404,
-      message: "Libro no encontrado en el carrito"
-    };
-  }
-  
-        return result.rows[0];
+    if (result.rows.length === 0) {
+      throw {
+        code: 404,
+        message: "Libro no encontrado en el carrito",
+      };
     }
 
-    await validarStockLibro(id_libro, cantidad);
+    return result.rows[0];
+  }
 
-    const { rows } = await pool.query(`
+  await validarStockLibro(id_libro, cantidad);
+
+  const { rows } = await pool.query(
+    `
         UPDATE carrito_detalle
         SET cantidad = $1
         WHERE id_carrito = $2 AND id_libro = $3
         RETURNING *
-    `, [cantidad, id_carrito, id_libro]);
-    
-    if (rows.length === 0) {
-        throw {
-            code: 404,
-            message: "Libro no encontrado en el carrito"
-        };
-    }
+    `,
+    [cantidad, id_carrito, id_libro],
+  );
 
-    return rows[0];
+  if (rows.length === 0) {
+    throw {
+      code: 404,
+      message: "Libro no encontrado en el carrito",
+    };
+  }
+
+  return rows[0];
 };
 
 // Eliminar un libro del carrito
 const eliminarLibroCarrito = async (id_cliente, id_libro) => {
-    const id_carrito = await obtenerOCrearCarrito(id_cliente);
+  const id_carrito = await obtenerOCrearCarrito(id_cliente);
 
-    const { rows } = await pool.query(`
+  const { rows } = await pool.query(
+    `
         DELETE FROM carrito_detalle
         WHERE id_carrito = $1 AND id_libro = $2
         RETURNING *
-    `, [id_carrito, id_libro]);
+    `,
+    [id_carrito, id_libro],
+  );
 
-    if (rows.length === 0) {
-  throw {
-    code: 404,
-    message: "Libro no encontrado en el carrito"
-  };
-}
-    return rows[0];
+  if (rows.length === 0) {
+    throw {
+      code: 404,
+      message: "Libro no encontrado en el carrito",
+    };
+  }
+  return rows[0];
 };
 
 // Vaciar carrito
 const vaciarCarrito = async (id_cliente) => {
-    const id_carrito = await obtenerOCrearCarrito(id_cliente);
+  const id_carrito = await obtenerOCrearCarrito(id_cliente);
 
-    await pool.query(`
+  await pool.query(
+    `
         DELETE FROM carrito_detalle
         WHERE id_carrito = $1
-    `, [id_carrito]);
+    `,
+    [id_carrito],
+  );
 
-    return true;
+  return true;
 };
 
 module.exports = {
-    obtenerOCrearCarrito,
-    obtenerCarrito,
-    validarStockLibro,
-    agregarLibroCarrito,
-    actualizarCantidadCarrito,
-    eliminarLibroCarrito,
-    vaciarCarrito
+  obtenerOCrearCarrito,
+  obtenerCarrito,
+  validarStockLibro,
+  agregarLibroCarrito,
+  actualizarCantidadCarrito,
+  eliminarLibroCarrito,
+  vaciarCarrito,
 };

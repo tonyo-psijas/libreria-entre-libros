@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ProfileNavComponent } from "../components/ProfileNav";
+import { useNavigate } from "react-router-dom";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const LIBROS_POR_PAGINA = 6;
@@ -52,6 +53,7 @@ export const Catalogo = () => {
   const [errorIsbn, setErrorIsbn] = useState("");
   const [formIsbn, setFormIsbn] = useState({ ...FORM_LIBRO_VACIO });
   const [guardandoIsbn, setGuardandoIsbn] = useState(false);
+  const navigate = useNavigate();
 
   const [formManual, setFormManual] = useState({ ...FORM_LIBRO_VACIO });
   const [guardandoManual, setGuardandoManual] = useState(false);
@@ -463,10 +465,12 @@ export const Catalogo = () => {
         <label className="form-label">Stock *</label>
         <input
           type="number"
+          name="stock"
+          value={formEditar.stock}
+          readOnly
           className="form-control form-input"
-          value={form.stock}
-          onChange={(e) => setForm((p) => ({ ...p, stock: e.target.value }))}
         />
+        ℹ️ El stock se administra desde Catálogo → Stock.
       </div>
 
       <div className="col-6">
@@ -523,13 +527,23 @@ export const Catalogo = () => {
                     <i className="fa-regular fa-magnifying-glass"></i>
                   </button>
                 </form>
-                <button
-                  className="btn boton-primario"
-                  onClick={() => setMostrarModalAgregar(true)}
-                >
-                  <span className="d-none d-lg-inline">Agregar item</span>{" "}
-                  <i className="fa-regular fa-plus"></i>
-                </button>
+                <div className="d-flex gap-2">
+                  <button
+                    className="btn boton-primario"
+                    onClick={() => setMostrarModalAgregar(true)}
+                  >
+                    <span className="d-none d-lg-inline">Agregar item</span>{" "}
+                    <i className="fa-regular fa-plus"></i>
+                  </button>
+
+                  <button
+                    className="btn boton-primario"
+                    onClick={() => navigate("/movimiento-stock")}
+                  >
+                    <span className="d-none d-lg-inline">Stock</span>{" "}
+                    <i className="fa-regular fa-boxes-stacked"></i>
+                  </button>
+                </div>
               </div>
             </div>
 

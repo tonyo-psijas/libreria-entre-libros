@@ -33,6 +33,8 @@ import ToastCarrito from "./components/ToastCarrito";
 import { useUser } from "./context/UserContext";
 import { Contacto } from "./views/Contacto";
 
+import { MovimientoStock } from "./views/MovimientoStock";
+
 function App() {
   const { user, isAuthenticated, loading } = useUser();
 
@@ -133,10 +135,10 @@ function App() {
           />
 
           <Route
-            path="/gestion-de-usuarios"
+            path="/historial-admin"
             element={
               isAuthenticated && user?.rol === "admin" ? (
-                <UserManagement />
+                <HistorialAdmin />
               ) : (
                 <Navigate to="/login" />
               )
@@ -144,10 +146,21 @@ function App() {
           />
 
           <Route
-            path="/historial-admin"
+            path="/movimiento-stock"
             element={
               isAuthenticated && user?.rol === "admin" ? (
-                <HistorialAdmin />
+                <MovimientoStock />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+
+          <Route
+            path="/gestion-de-usuarios"
+            element={
+              isAuthenticated && user?.rol === "admin" ? (
+                <UserManagement />
               ) : (
                 <Navigate to="/login" />
               )
