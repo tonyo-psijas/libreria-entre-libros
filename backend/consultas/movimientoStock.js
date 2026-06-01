@@ -147,9 +147,46 @@ const crearMovimientoStock = async ({
   }
 };
 
-// Para ruta GET
-const obtenerMovimientoStock = async () => {
-  const { rows } = await pool.query(`
+// Para ruta GET para obtener movimientos con filtros opcionales
+const obtenerMovimientoStock = async ({
+  desde,
+  hasta,
+  tipo,
+  motivo,
+  libro,
+} = {}) => {
+  const values = [];
+  const conditions = [];
+
+  if (desde) {
+    values.push(desde);
+    conditions.push(`ms.fecha_movimiento::date >= $${values.length}`);
+  }
+
+  if (hasta) {
+    values.push(hasta);
+    conditions.push(`ms.fecha_movimiento::date <= $${values.length}`);
+  }
+
+  if (tipo) {
+    values.push(tipo);
+    conditions.push(`ms.tipo = $${values.length}`);
+  }
+
+  if (motivo) {
+    values.push(motivo);
+    conditions.push(`ms.motivo = $${values.length}`);
+  }
+
+  if (libro) {
+    values.push(`%${libro}%`);
+    conditions.push(`l.titulo ILIKE $${values.length}`);
+  }
+
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const { rows } = await pool.query(
+    `
     SELECT
       ms.id_movimiento,
       ms.fecha_movimiento,
@@ -168,8 +205,11 @@ const obtenerMovimientoStock = async () => {
       ON ms.id_libro = l.id_libro
     LEFT JOIN cliente c
       ON ms.id_admin = c.id_cliente
+    ${where}
     ORDER BY ms.fecha_movimiento DESC
-  `);
+  `,
+    values,
+  );
 
   return rows;
 };

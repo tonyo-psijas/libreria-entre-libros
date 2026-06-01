@@ -78,7 +78,10 @@ const {
 
 const { obtenerHistorialVentas } = require("./consultas/historial_ventas");
 
-const { crearMovimientoStock, obtenerMovimientoStock } = require("./consultas/movimientoStock.js");
+const {
+  crearMovimientoStock,
+  obtenerMovimientoStock,
+} = require("./consultas/movimientoStock.js");
 
 if (require.main === module) {
   getHealth();
@@ -1706,6 +1709,98 @@ api.get(
 
       res.status(500).json({
         message: "Error interno al exportar historial de ventas",
+      });
+    }
+  },
+);
+
+// GET exportar historial de movimientos en Excel
+api.get(
+  "/stock/movimientos/excel",
+  authMiddleware,
+  verificarAdmin,
+  async (req, res) => {
+    try {
+      const { desde, hasta, tipo, motivo, libro } = req.query;
+
+      const movimientos = await obtenerMovimientoStock({
+        desde,
+        hasta,
+        tipo,
+        motivo,
+        libro,
+      });
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Historial Movimientos");
+
+      worksheet.columns = [
+        { header: "ID Movimiento", key: "id_movimiento", width: 15 },
+        { header: "Fecha", key: "fecha_movimiento", width: 25 },
+        { header: "ID Libro", key: "id_libro", width: 10 },
+        { header: "Libro", key: "titulo", width: 35 },
+        { header: "Tipo", key: "tipo", width: 15 },
+        { header: "Motivo", key: "motivo", width: 20 },
+        { header: "Referencia", key: "referencia", width: 20 },
+        { header: "Cantidad", key: "cantidad", width: 12 },
+        { header: "Stock Anterior", key: "stock_anterior", width: 18 },
+        { header: "Stock Nuevo", key: "stock_nuevo", width: 18 },
+        { header: "Administrador", key: "administrador", width: 25 },
+        { header: "Observación", key: "observacion", width: 40 },
+      ];
+
+      movimientos.forEach((mov) => {
+        worksheet.addRow({
+          id_movimiento: mov.id_movimiento,
+          fecha_movimiento: mov.fecha_movimiento,
+          id_libro: mov.id_libro,
+          titulo: mov.titulo,
+          tipo: mov.tipo,
+          motivo: mov.motivo,
+          referencia: mov.referencia,
+          cantidad: mov.cantidad,
+          stock_anterior: mov.stock_anterior,
+          stock_nuevo: mov.stock_nuevo,
+          administrador: mov.administrador,
+          observacion: mov.observacion,
+        });
+      });
+
+      worksheet.getRow(1).font = { bold: true };
+
+      const fechaActual = new Date()
+        .toISOString()
+        .replace(/:/g, "-")
+        .replace(/\..+/, "");
+
+      const nombreArchivo = `historial_movimientos_${fechaActual}.xlsx`;
+
+      const rutaArchivo = path.join(
+        __dirname,
+        "reportes",
+        "historial_movimientos",
+        nombreArchivo,
+      );
+
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      );
+
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=${nombreArchivo}`,
+      );
+
+      await workbook.xlsx.writeFile(rutaArchivo);
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      console.error("Error en GET /stock/movimientos/excel:", error);
+
+      res.status(500).json({
+        message: "Error interno al exportar historial de movimientos",
+        error: error.message,
       });
     }
   },

@@ -125,7 +125,7 @@ export const Catalogo = () => {
     descripcion: form.descripcion,
     imagen: form.imagen,
     precio: Number(form.precio),
-    stock: Number(form.stock),
+    stock: 0, // El stock se maneja por separado en Movimiento de Stock
     descuento: Number(form.descuento),
     editorial: form.editorial,
     fecha_publicacion: form.fecha_publicacion || null,
@@ -292,8 +292,8 @@ export const Catalogo = () => {
 
   // ── AGREGAR MANUAL ───────────────────────────────────────
   const handleGuardarManual = async () => {
-    if (!formManual.titulo || !formManual.precio || !formManual.stock) {
-      setMensajeManual("❌ Título, precio y stock son obligatorios.");
+    if (!formManual.titulo || !formManual.precio) {
+      setMensajeManual("❌ Título y precio son obligatorios.");
       return;
     }
     setGuardandoManual(true);
@@ -466,7 +466,7 @@ export const Catalogo = () => {
         <input
           type="number"
           name="stock"
-          value={formEditar.stock}
+          value={form.stock}
           readOnly
           className="form-control form-input"
         />
@@ -844,10 +844,7 @@ export const Catalogo = () => {
                         className="btn boton-primario"
                         onClick={handleGuardarIsbn}
                         disabled={
-                          guardandoIsbn ||
-                          !formIsbn.titulo ||
-                          !formIsbn.precio ||
-                          formIsbn.stock === ""
+                          guardandoIsbn || !formIsbn.titulo || !formIsbn.precio
                         }
                       >
                         {guardandoIsbn ? "Guardando..." : "Agregar al catálogo"}

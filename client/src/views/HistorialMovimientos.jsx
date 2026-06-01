@@ -3,6 +3,7 @@ import { ProfileNavComponent } from "../components/ProfileNav";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
+const getToken = () => localStorage.getItem("token");
 const authFetch = (url, options = {}) => {
   const token = localStorage.getItem("token");
 
@@ -19,6 +20,7 @@ const authFetch = (url, options = {}) => {
 export const HistorialMovimientos = () => {
   const [movimientos, setMovimientos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [filtroTipo, setFiltroTipo] = useState("");
   const [filtroMotivo, setFiltroMotivo] = useState("");
@@ -71,6 +73,52 @@ export const HistorialMovimientos = () => {
       coincideHasta
     );
   });
+
+  const construirQuery = () => {
+    const params = new URLSearchParams();
+
+    if (fechaDesde) params.append("desde", fechaDesde);
+    if (fechaHasta) params.append("hasta", fechaHasta);
+    if (filtroTipo) params.append("tipo", filtroTipo);
+    if (filtroMotivo) params.append("motivo", filtroMotivo);
+    if (busquedaLibro) params.append("libro", busquedaLibro);
+
+    return params.toString();
+  };
+
+  const exportarExcel = async () => {
+    try {
+      const query = construirQuery();
+      const url = `${BASE_URL}/stock/movimientos/excel${query ? `?${query}` : ""}`;
+
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      });
+
+      if (!res.ok) {
+        setError("Error al exportar historial de movimientos.");
+        return;
+      }
+
+      const blob = await res.blob();
+      const urlBlob = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = urlBlob;
+      link.download = "historial_movimientos.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(urlBlob);
+    } catch (err) {
+      console.error("Error al exportar Excel:", err);
+      setError("Error de conexión al exportar Excel.");
+    }
+  };
+
   return (
     <div className="container py-5">
       <div className="row g-4">
@@ -80,7 +128,24 @@ export const HistorialMovimientos = () => {
 
         <div className="col-12 col-md-9">
           <div className="profile-content">
-            <h4 className="fw-semibold mb-3">Historial de movimientos</h4>
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+              <div>
+                <h4 className="fw-semibold mb-1">Historial de movimientos</h4>
+
+                <p className="text-secondary mb-0">
+                  Reporte de ingresos y egresos de inventario
+                </p>
+              </div>
+
+              <button
+                className="btn boton-primario"
+                onClick={exportarExcel}
+                disabled={movimientosFiltrados.length === 0}
+              >
+                <i className="fa-regular fa-file-excel me-2"></i>
+                Exportar Excel
+              </button>
+            </div>
 
             <div className="row g-3 mb-4">
               <div className="col-12 col-md-3">
@@ -154,6 +219,12 @@ export const HistorialMovimientos = () => {
                   )}
                 </select>
               </div>
+              <p className="text-secondary mb-3">
+                Mostrando <strong>{movimientosFiltrados.length}</strong> de{" "}
+                <strong>{movimientos.length}</strong> movimientos
+              </p>
+
+              {error && <div className="alert alert-danger">{error}</div>}
 
               <div className="col-12">
                 <label className="form-label">Buscar libro</label>

@@ -148,6 +148,7 @@ const obtenerLibrosAdmin = async () => {
 };
 
 // RUTA POST /libros (crear nuevo libro)
+// RUTA POST /libros (crear nuevo libro)
 const crearLibro = async (libro) => {
   const {
     titulo,
@@ -155,7 +156,7 @@ const crearLibro = async (libro) => {
     descripcion,
     precio,
     descuento = 0,
-    formato,
+    formato = "fisico",
     stock,
     id_editorial,
     fecha_publicacion,
@@ -163,14 +164,22 @@ const crearLibro = async (libro) => {
     imagen,
   } = libro;
 
+  const formatoFinal = formato?.toLowerCase() || "fisico";
+  const stockFinal = 0;
+
+  // Logica para ingresar un libro a la base de datos:
+  // preventa nace activa para venderse sin stock
+  // físico nace inactivo hasta que se ingrese stock por catalogo/stock
+  const activoFinal = formatoFinal === "preventa";
+
   const { rows } = await pool.query(
     `
-        INSERT INTO libro (
-            titulo, isbn, descripcion, precio, descuento, formato,
-            stock, id_editorial, fecha_publicacion, numero_paginas, imagen
-        )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-        RETURNING *
+      INSERT INTO libro (
+        titulo, isbn, descripcion, precio, descuento, formato,
+        stock, activo, id_editorial, fecha_publicacion, numero_paginas, imagen
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+      RETURNING *
     `,
     [
       titulo,
@@ -178,8 +187,9 @@ const crearLibro = async (libro) => {
       descripcion,
       precio,
       descuento,
-      formato,
-      stock,
+      formatoFinal,
+      stockFinal,
+      activoFinal,
       id_editorial,
       fecha_publicacion,
       numero_paginas,
@@ -344,11 +354,14 @@ const obtenerPreventa = async () => {
 
 // Ruta PUT /libros/preventa/recibir/:id_libro para recibir stock de un libro en preventa
 const recibirPreventa = async (id_libro, stock_llegado, descuento = 0) => {
-  const { rows: libroRows } = await pool.query(`
+  const { rows: libroRows } = await pool.query(
+    `
     SELECT id_libro, titulo, formato
     FROM libro
     WHERE id_libro = $1
-  `, [id_libro]);
+  `,
+    [id_libro],
+  );
 
   if (libroRows.length === 0) return null;
 
@@ -361,22 +374,25 @@ const recibirPreventa = async (id_libro, stock_llegado, descuento = 0) => {
     };
   }
 
-  const { rows: vendidosRows } = await pool.query(`
+  const { rows: vendidosRows } = await pool.query(
+    `
     SELECT COALESCE(SUM(dp.cantidad), 0)::INT AS vendidos
     FROM detalle_pedido dp
     JOIN pedido p ON dp.id_pedido = p.id_pedido
     WHERE dp.id_libro = $1
-  `, [id_libro]);
+  `,
+    [id_libro],
+  );
 
   const vendidosPreventa = Number(vendidosRows[0].vendidos);
   const stockLlegado = Number(stock_llegado);
 
   const stockFinal = Math.max(stockLlegado - vendidosPreventa, 0);
 
-  const nuevoFormato =
-    stockLlegado > vendidosPreventa ? "fisico" : "preventa";
+  const nuevoFormato = stockLlegado > vendidosPreventa ? "fisico" : "preventa";
 
-  const { rows } = await pool.query(`
+  const { rows } = await pool.query(
+    `
     UPDATE libro
     SET
       stock = $1,
@@ -385,7 +401,9 @@ const recibirPreventa = async (id_libro, stock_llegado, descuento = 0) => {
       activo = true
     WHERE id_libro = $4
     RETURNING *
-  `, [stockFinal, descuento, nuevoFormato, id_libro]);
+  `,
+    [stockFinal, descuento, nuevoFormato, id_libro],
+  );
 
   return {
     libro: rows[0],

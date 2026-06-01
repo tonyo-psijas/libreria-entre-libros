@@ -78,6 +78,15 @@ export const MovimientoStock = () => {
       return;
     }
 
+    if (!referencia.trim()) {
+      alert(
+        tipo === "ingreso"
+          ? "Debes ingresar el N° de O/C o traslado."
+          : "Debes ingresar una referencia para el egreso.",
+      );
+      return;
+    }
+
     try {
       setGuardandoId("todos");
 
@@ -256,7 +265,8 @@ export const MovimientoStock = () => {
                   className="form-control form-input"
                   value={referencia}
                   onChange={(e) => setReferencia(e.target.value)}
-                  placeholder={tipo === "ingreso" ? "OC-001" : "Opcional"}
+                  placeholder={tipo === "ingreso" ? "OC-001" : "Ej: MERMA-001"}
+                  required
                 />
               </div>
               <div className="mt-3">
