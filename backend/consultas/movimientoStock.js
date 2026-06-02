@@ -38,32 +38,69 @@ const crearMovimientoStock = async ({
 
     if (tipo === "ingreso") {
       if (libro.formato?.toLowerCase() === "preventa") {
-        const { rows: vendidosRows } = await client.query(
+        let cantidadDisponible = stockAnterior + Number(cantidad);
+
+        const { rows: preventasPendientes } = await client.query(
           `
-          SELECT COALESCE(SUM(dp.cantidad), 0)::INT AS vendidos
-          FROM detalle_pedido dp
-          JOIN pedido p ON dp.id_pedido = p.id_pedido
-          WHERE dp.id_libro = $1
-        `,
+      SELECT
+        dp.id_detalle,
+        dp.cantidad,
+        p.fecha,
+        p.id_pedido
+      FROM detalle_pedido dp
+      JOIN pedido p ON dp.id_pedido = p.id_pedido
+      WHERE dp.id_libro = $1
+      AND dp.tipo_venta = 'preventa'
+      AND dp.estado_preventa = 'pendiente'
+      ORDER BY p.fecha ASC, p.id_pedido ASC
+      `,
           [id_libro],
         );
 
-        const vendidosPreventa = Number(vendidosRows[0].vendidos);
-        const stockFinalPreventa = Number(cantidad) - vendidosPreventa;
+        for (const preventa of preventasPendientes) {
+          const cantidadPedida = Number(preventa.cantidad);
 
-        stockNuevo = Math.max(stockFinalPreventa, 0);
+          if (cantidadPedida <= cantidadDisponible) {
+            await client.query(
+              `
+          UPDATE detalle_pedido
+          SET estado_preventa = 'cubierta'
+          WHERE id_detalle = $1
+          `,
+              [preventa.id_detalle],
+            );
 
-        const nuevoFormato =
-          Number(cantidad) > vendidosPreventa ? "fisico" : "preventa";
+            cantidadDisponible -= cantidadPedida;
+          }
+        }
 
+        stockNuevo = cantidadDisponible;
+
+        const { rows: pendientesRows } = await client.query(
+          `
+      SELECT COUNT(*)::INT AS pendientes
+      FROM detalle_pedido
+      WHERE id_libro = $1
+      AND tipo_venta = 'preventa'
+      AND estado_preventa = 'pendiente'
+      `,
+          [id_libro],
+        );
+
+        const pendientes = Number(pendientesRows[0].pendientes);
+
+        const nuevoFormato = pendientes === 0 ? "fisico" : "preventa";
         const nuevoDescuento = nuevoFormato === "fisico" ? 0 : libro.descuento;
 
         await client.query(
           `
-          UPDATE libro
-          SET stock = $1, formato = $2, descuento = $3,activo = true
-          WHERE id_libro = $4
-        `,
+      UPDATE libro
+      SET stock = $1,
+          formato = $2,
+          descuento = $3,
+          activo = true
+      WHERE id_libro = $4
+      `,
           [stockNuevo, nuevoFormato, nuevoDescuento, id_libro],
         );
       } else {
@@ -71,10 +108,10 @@ const crearMovimientoStock = async ({
 
         await client.query(
           `
-          UPDATE libro
-          SET stock = $1, activo = true
-          WHERE id_libro = $2
-        `,
+      UPDATE libro
+      SET stock = $1, activo = true
+      WHERE id_libro = $2
+      `,
           [stockNuevo, id_libro],
         );
       }

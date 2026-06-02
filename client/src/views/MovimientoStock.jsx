@@ -63,7 +63,7 @@ export const MovimientoStock = () => {
 
   const registrarMovimientos = async () => {
     const movimientos = Object.entries(cantidades)
-      .filter(([_, cantidad]) => Number(cantidad) > 0)
+      .filter(([, cantidad]) => Number(cantidad) > 0)
       .map(([id_libro, cantidad]) => ({
         id_libro: Number(id_libro),
         tipo,

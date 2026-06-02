@@ -117,6 +117,8 @@ CREATE TABLE detalle_pedido (
   cantidad INT NOT NULL,
   precio_unitario DECIMAL(10,2) NOT NULL,
   subtotal DECIMAL(10,2) NOT NULL,
+  tipo_venta VARCHAR(20),
+  estado_preventa VARCHAR(20),
 
   FOREIGN KEY (id_pedido) REFERENCES pedido(id_pedido) ON DELETE CASCADE,
   FOREIGN KEY (id_libro) REFERENCES libro(id_libro)

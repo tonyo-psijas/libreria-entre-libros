@@ -1196,6 +1196,7 @@ api.post(
   },
 );
 
+// Ruta Post crear pedido desde carrito
 api.post("/pedidos", authMiddleware, async (req, res) => {
   console.log("POST /pedidos", {
     body: req.body,
