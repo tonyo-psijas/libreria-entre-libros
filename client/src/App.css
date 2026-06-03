@@ -481,3 +481,14 @@ textarea.form-control.form-input {
   padding: 0.75rem 1rem;
   min-height: 100px;
 }
+.boton-registro {
+  background-color: #e37217;
+  color: white !important;
+  font-weight: 300;
+  border-radius: 50px;
+  padding-inline: 1.5rem;
+}
+
+.boton-registro:hover {
+  background-color: #c55a0e;
+}
