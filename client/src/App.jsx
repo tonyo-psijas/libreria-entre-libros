@@ -31,6 +31,10 @@ import ToastCarrito from "./components/ToastCarrito";
 
 import { useUser } from "./context/UserContext";
 import { Contacto } from "./views/Contacto";
+import { Terminos } from "./views/Terminos";
+import { Privacidad } from "./views/Privacidad";
+import { Despacho } from "./views/Despacho";
+import { AtencionCliente } from "./views/AtencionCliente";
 
 function App() {
   const { user, isAuthenticated, loading } = useUser();
@@ -72,6 +76,10 @@ function App() {
           <Route path="/comics-&-mangas" element={<ComicsMangas />} />
           <Route path="/preventas" element={<Preventas />} />
           <Route path="/contacto" element={<Contacto />} />
+          <Route path="/terminos" element={<Terminos />} />
+          <Route path="/privacidad" element={<Privacidad />} />
+          <Route path="/despacho" element={<Despacho />} />
+          <Route path="/atencion-cliente" element={<AtencionCliente />} />
 
           {/* 🟡 RUTAS PROTEGIDAS (requieren login) */}
           <Route
