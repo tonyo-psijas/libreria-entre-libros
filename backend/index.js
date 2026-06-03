@@ -1549,12 +1549,12 @@ api.get(
 
       const nombreArchivo = `historial_admin_${fechaActual}.xlsx`;
 
-      const rutaArchivo = path.join(
-        __dirname,
-        "reportes",
-        "historial_admin",
-        nombreArchivo,
-      );
+      // const rutaArchivo = path.join(
+      //   __dirname,
+      //   "reportes",
+      //   "historial_admin",
+      //   nombreArchivo,
+      // );
 
       res.setHeader(
         "Content-Type",
@@ -1566,7 +1566,7 @@ api.get(
         `attachment; filename=${nombreArchivo}`,
       );
 
-      await workbook.xlsx.writeFile(rutaArchivo);
+      //await workbook.xlsx.writeFile(rutaArchivo);
 
       await workbook.xlsx.write(res);
       res.end();
@@ -1684,12 +1684,12 @@ api.get(
 
       const nombreArchivo = `historial_ventas_${fechaActual}.xlsx`;
 
-      const rutaArchivo = path.join(
-        __dirname,
-        "reportes",
-        "historial_ventas",
-        nombreArchivo,
-      );
+      // const rutaArchivo = path.join(
+      //   __dirname,
+      //   "reportes",
+      //   "historial_ventas",
+      //   nombreArchivo,
+      // );
 
       res.setHeader(
         "Content-Type",
@@ -1701,7 +1701,7 @@ api.get(
         `attachment; filename=${nombreArchivo}`,
       );
 
-      await workbook.xlsx.writeFile(rutaArchivo);
+      //await workbook.xlsx.writeFile(rutaArchivo);
 
       await workbook.xlsx.write(res);
       res.end();
@@ -1776,12 +1776,12 @@ api.get(
 
       const nombreArchivo = `historial_movimientos_${fechaActual}.xlsx`;
 
-      const rutaArchivo = path.join(
-        __dirname,
-        "reportes",
-        "historial_movimientos",
-        nombreArchivo,
-      );
+      // const rutaArchivo = path.join(
+      //   __dirname,
+      //   "reportes",
+      //   "historial_movimientos",
+      //   nombreArchivo,
+      // );
 
       res.setHeader(
         "Content-Type",
@@ -1793,7 +1793,7 @@ api.get(
         `attachment; filename=${nombreArchivo}`,
       );
 
-      await workbook.xlsx.writeFile(rutaArchivo);
+      //await workbook.xlsx.writeFile(rutaArchivo);
       await workbook.xlsx.write(res);
       res.end();
     } catch (error) {
