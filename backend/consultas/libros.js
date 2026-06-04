@@ -36,6 +36,7 @@ const filtrarLibros = async ({ titulo, autor, genero }) => {
             TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
             l.imagen,
             l.stock,
+            l.activo,
             e.nombre AS editorial,
             STRING_AGG(DISTINCT a.nombre, ', ') AS autores
         FROM libro l
@@ -120,19 +121,30 @@ const obtenerLibroById = async (id) => {
   return rows[0];
 };
 
-// 🔹 PUT /libros/:id (actualizar descuento)
-const updateDescuento = async (id, descuento) => {
-  const { rows } = await pool.query(
-    `
-        UPDATE libro
-        SET descuento = $1
-        WHERE id_libro = $2
-        RETURNING *
-    `,
-    [descuento, id],
-  );
+// Ruta GET /libros/admin obtener todos los libros por un admin, incluyendo inactivos
+const obtenerLibrosAdmin = async () => {
+  const { rows } = await pool.query(`
+    SELECT 
+      l.id_libro,
+      l.titulo,
+      l.precio,
+      l.descuento,
+      l.formato,
+      l.stock,
+      l.activo,
+      TRUNC(l.precio * (1 - l.descuento / 100.0), 0)::INT AS precio_final,
+      l.imagen,
+      e.nombre AS editorial,
+      STRING_AGG(DISTINCT a.nombre, ', ') AS autores
+    FROM libro l
+    LEFT JOIN editorial e ON l.id_editorial = e.id_editorial
+    LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
+    LEFT JOIN autor a ON la.id_autor = a.id_autor
+    GROUP BY l.id_libro, e.nombre
+    ORDER BY l.activo DESC, l.titulo ASC
+  `);
 
-  return rows[0];
+  return rows;
 };
 
 // RUTA POST /libros (crear nuevo libro)
@@ -143,7 +155,7 @@ const crearLibro = async (libro) => {
     descripcion,
     precio,
     descuento = 0,
-    formato,
+    formato = "fisico",
     stock,
     id_editorial,
     fecha_publicacion,
@@ -151,14 +163,22 @@ const crearLibro = async (libro) => {
     imagen,
   } = libro;
 
+  const formatoFinal = formato?.toLowerCase() || "fisico";
+  const stockFinal = 0;
+
+  // Logica para ingresar un libro a la base de datos:
+  // preventa nace activa para venderse sin stock
+  // físico nace inactivo hasta que se ingrese stock por catalogo/stock
+  const activoFinal = formatoFinal === "preventa";
+
   const { rows } = await pool.query(
     `
-        INSERT INTO libro (
-            titulo, isbn, descripcion, precio, descuento, formato,
-            stock, id_editorial, fecha_publicacion, numero_paginas, imagen
-        )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-        RETURNING *
+      INSERT INTO libro (
+        titulo, isbn, descripcion, precio, descuento, formato,
+        stock, activo, id_editorial, fecha_publicacion, numero_paginas, imagen
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+      RETURNING *
     `,
     [
       titulo,
@@ -166,8 +186,9 @@ const crearLibro = async (libro) => {
       descripcion,
       precio,
       descuento,
-      formato,
-      stock,
+      formatoFinal,
+      stockFinal,
+      activoFinal,
       id_editorial,
       fecha_publicacion,
       numero_paginas,
@@ -213,58 +234,32 @@ const actualizarLibroPorIsbn = async (
     UPDATE libro
     SET 
       precio = $1,
-      stock = stock + $2,
+      stock = $2,
       descuento = $3,
       formato = COALESCE($4, formato),
       activo = true
     WHERE isbn = $5
     RETURNING *
-  `,
+    `,
     [precio, stock, descuento, formato || null, isbn],
   );
 
   return rows[0];
 };
 
-const desactivarLibro = async (id) => {
+// ACTIVAR / DESACTIVAR LIBRO
+const cambiarEstadoLibro = async (id, activo) => {
   const { rows } = await pool.query(
     `
-        SELECT id_libro, titulo, stock, activo
-        FROM libro 
-        WHERE id_libro = $1
+    UPDATE libro
+    SET activo = $1
+    WHERE id_libro = $2
+    RETURNING *
     `,
-    [id],
+    [activo, id],
   );
 
-  if (rows.length === 0) return null;
-
-  const libro = rows[0];
-
-  if (libro.activo === false) {
-    throw {
-      code: 400,
-      message: "El libro ha sido desactivado con exito",
-    };
-  }
-
-  if (libro.stock > 0) {
-    throw {
-      code: 400,
-      message: `No se puede desactivar un libro con stock disponible: ${libro.stock} unidades. Actualice el stock y vuelva a ejecutar la desactivación.`,
-    };
-  }
-
-  const result = await pool.query(
-    `
-        UPDATE libro
-        SET activo = false
-        WHERE id_libro = $1
-        RETURNING *
-    `,
-    [id],
-  );
-
-  return result.rows[0];
+  return rows[0];
 };
 
 const actualizarLibro = async (id, datos) => {
@@ -338,6 +333,7 @@ const buscarLibros = async (q) => {
 
 // RUTA GET /libros/Preventas
 const obtenerPreventas = async () => {
+
   const { rows } = await pool.query(`
       SELECT
         l.id_libro,
@@ -366,11 +362,11 @@ const obtenerPreventas = async () => {
 module.exports = {
   obtenerLibros,
   obtenerLibroById,
-  updateDescuento,
+  obtenerLibrosAdmin,
   actualizarLibro,
   crearLibro,
   actualizarLibroPorIsbn,
-  desactivarLibro,
+  cambiarEstadoLibro,
   filtrarLibros,
   obtenerLibroByIsbn,
   buscarLibros,

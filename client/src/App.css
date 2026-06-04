@@ -250,6 +250,14 @@ header button {
   font-size: medium;
 }
 
+.link-activar,
+.link-activar i {
+  text-decoration: none;
+  color: green;
+  font-weight: 500;
+  font-size: medium;
+}
+
 .link-editar:hover,
 .link-eliminar:hover {
   text-decoration: underline;

@@ -35,6 +35,7 @@ const crearPedidoDesdeCarrito = async (
   }
 
   for (const item of carrito) {
+
     const esPreventa = item.formato?.trim().toLowerCase() === "preventa";
 
     if (!esPreventa && item.cantidad > item.stock) {
@@ -68,36 +69,48 @@ const crearPedidoDesdeCarrito = async (
 
   for (const item of carrito) {
     const subtotal = item.precio_final * item.cantidad;
+    const esPreventa = item.formato?.toLowerCase() === "preventa";
+    const hayStockPreventa =
+      esPreventa && Number(item.stock) >= Number(item.cantidad);
+
+    const tipoVenta = esPreventa ? "preventa" : "fisico";
+    const estadoPreventa = esPreventa
+      ? hayStockPreventa
+        ? "cubierta"
+        : "pendiente"
+      : null;
 
     await pool.query(
       `
-      INSERT INTO detalle_pedido (
-        id_pedido,
-        id_libro,
-        cantidad,
-        precio_unitario,
-        subtotal
-      )
-      VALUES ($1, $2, $3, $4, $5)
-      `,
+       INSERT INTO detalle_pedido (
+    id_pedido,
+    id_libro,
+    cantidad,
+    precio_unitario,
+    subtotal,
+    tipo_venta,
+    estado_preventa
+  )
+  VALUES ($1, $2, $3, $4, $5, $6, $7)
+  `,
       [
         pedido.id_pedido,
         item.id_libro,
         item.cantidad,
         item.precio_final,
         subtotal,
+        tipoVenta,
+        estadoPreventa,
       ],
     );
 
-    const esPreventa = item.formato?.trim().toLowerCase() === "preventa";
-
-    if (!esPreventa) {
+    if (!esPreventa || hayStockPreventa) {
       await pool.query(
         `
-        UPDATE libro
-        SET stock = stock - $1
-        WHERE id_libro = $2
-        `,
+    UPDATE libro
+    SET stock = stock - $1
+    WHERE id_libro = $2
+    `,
         [item.cantidad, item.id_libro],
       );
     }

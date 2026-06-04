@@ -19,6 +19,7 @@ import { DetallePedido } from "./views/DetallePedido";
 import { HistorialCompras } from "./views/HistorialCompras";
 import { HistorialVentas } from "./views/HistorialVentas";
 import { HistorialAdmin } from "./views/HistorialAdmin";
+import { HistorialMovimientos } from "./views/HistorialMovimientos";
 
 import Login from "./views/Login";
 import Registro from "./views/Registro";
@@ -35,6 +36,8 @@ import { Terminos } from "./views/Terminos";
 import { Privacidad } from "./views/Privacidad";
 import { Despacho } from "./views/Despacho";
 import { AtencionCliente } from "./views/AtencionCliente";
+
+import { MovimientoStock } from "./views/MovimientoStock";
 
 function App() {
   const { user, isAuthenticated, loading } = useUser();
@@ -74,7 +77,7 @@ function App() {
           <Route path="/libros" element={<Gallery />} />
           <Route path="/promociones" element={<Promociones />} />
           <Route path="/comics-&-mangas" element={<ComicsMangas />} />
-          <Route path="/preventas" element={<Preventas />} />
+          <Route path="/preventa" element={<Preventas />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/terminos" element={<Terminos />} />
           <Route path="/privacidad" element={<Privacidad />} />
@@ -140,6 +143,28 @@ function App() {
           />
 
           <Route
+            path="/historial-admin"
+            element={
+              isAuthenticated && user?.rol === "admin" ? (
+                <HistorialAdmin />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+
+          <Route
+            path="/movimiento-stock"
+            element={
+              isAuthenticated && user?.rol === "admin" ? (
+                <MovimientoStock />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+
+          <Route
             path="/gestion-de-usuarios"
             element={
               isAuthenticated && user?.rol === "admin" ? (
@@ -151,16 +176,15 @@ function App() {
           />
 
           <Route
-            path="/historial-admin"
+            path="/historial-movimientos"
             element={
               isAuthenticated && user?.rol === "admin" ? (
-                <HistorialAdmin />
+                <HistorialMovimientos />
               ) : (
                 <Navigate to="/login" />
               )
             }
           />
-
           <Route path="*" element={<h1>404 Not Found</h1>} />
         </Routes>
       </main>

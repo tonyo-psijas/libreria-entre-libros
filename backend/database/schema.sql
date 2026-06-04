@@ -117,6 +117,8 @@ CREATE TABLE detalle_pedido (
   cantidad INT NOT NULL,
   precio_unitario DECIMAL(10,2) NOT NULL,
   subtotal DECIMAL(10,2) NOT NULL,
+  tipo_venta VARCHAR(20),
+  estado_preventa VARCHAR(20),
 
   FOREIGN KEY (id_pedido) REFERENCES pedido(id_pedido) ON DELETE CASCADE,
   FOREIGN KEY (id_libro) REFERENCES libro(id_libro)
@@ -179,4 +181,20 @@ CREATE TABLE historial_admin (
     
     FOREIGN KEY (id_admin)
     REFERENCES cliente(id_cliente)
+);
+
+CREATE TABLE movimiento_stock (
+  id_movimiento SERIAL PRIMARY KEY,
+
+  id_libro INT NOT NULL REFERENCES libro(id_libro),
+  id_admin INT REFERENCES cliente(id_cliente),
+
+  tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('ingreso', 'egreso')),
+  motivo VARCHAR(50) NOT NULL,
+  referencia VARCHAR(100),
+  cantidad INT NOT NULL CHECK (cantidad > 0),
+  stock_anterior INT NOT NULL,
+  stock_nuevo INT NOT NULL,
+  observacion TEXT,
+  fecha_movimiento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

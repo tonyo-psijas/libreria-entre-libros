@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ProfileNavComponent } from "../components/ProfileNav";
+import { useNavigate } from "react-router-dom";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const LIBROS_POR_PAGINA = 6;
@@ -52,6 +53,7 @@ export const Catalogo = () => {
   const [errorIsbn, setErrorIsbn] = useState("");
   const [formIsbn, setFormIsbn] = useState({ ...FORM_LIBRO_VACIO });
   const [guardandoIsbn, setGuardandoIsbn] = useState(false);
+  const navigate = useNavigate();
 
   const [formManual, setFormManual] = useState({ ...FORM_LIBRO_VACIO });
   const [guardandoManual, setGuardandoManual] = useState(false);
@@ -69,11 +71,20 @@ export const Catalogo = () => {
 
   const cargarLibros = async (q = "") => {
     setLoading(true);
+
     try {
-      const params = q ? `?titulo=${encodeURIComponent(q)}` : "";
-      const res = await fetch(`${BASE_URL}/libros/filtros${params}`);
+      const res = await authFetch(`${BASE_URL}/libros/admin/todos`);
       const json = await res.json();
-      setLibros(Array.isArray(json) ? json : (json.data ?? []));
+
+      const data = Array.isArray(json) ? json : (json.data ?? []);
+
+      const filtrados = q
+        ? data.filter((libro) =>
+            libro.titulo?.toLowerCase().includes(q.toLowerCase()),
+          )
+        : data;
+
+      setLibros(filtrados);
     } catch (error) {
       console.error("Error al cargar libros:", error);
     } finally {
@@ -114,7 +125,7 @@ export const Catalogo = () => {
     descripcion: form.descripcion,
     imagen: form.imagen,
     precio: Number(form.precio),
-    stock: Number(form.stock),
+    stock: 0, // El stock se maneja por separado en Movimiento de Stock
     descuento: Number(form.descuento),
     editorial: form.editorial,
     fecha_publicacion: form.fecha_publicacion || null,
@@ -182,17 +193,29 @@ export const Catalogo = () => {
     }
   };
 
-  // ── DESACTIVAR ───────────────────────────────────────────
-  const handleDesactivar = async (libro) => {
-    if (!confirm(`¿Desactivar "${libro.titulo}"? No aparecerá en la tienda.`))
-      return;
+  // ── ACTIVAR Y DESACTIVAR LIBRO ─────
+  const handleCambiarEstado = async (libro) => {
+    const nuevoEstado = !libro.activo;
+
+    const mensaje = nuevoEstado
+      ? `¿Activar "${libro.titulo}"?`
+      : `¿Desactivar "${libro.titulo}"? No aparecerá en la tienda.`;
+
+    if (!confirm(mensaje)) return;
+
     try {
       const res = await authFetch(
-        `${BASE_URL}/libros/${libro.id_libro}/desactivar`,
-        { method: "PUT" },
+        `${BASE_URL}/libros/${libro.id_libro}/estado`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ activo: nuevoEstado }),
+        },
       );
+
       const data = await res.json();
+
       if (!res.ok) throw new Error(data.message);
+
       cargarLibros(busqueda);
     } catch (error) {
       alert(`❌ ${error.message}`);
@@ -269,8 +292,8 @@ export const Catalogo = () => {
 
   // ── AGREGAR MANUAL ───────────────────────────────────────
   const handleGuardarManual = async () => {
-    if (!formManual.titulo || !formManual.precio || !formManual.stock) {
-      setMensajeManual("❌ Título, precio y stock son obligatorios.");
+    if (!formManual.titulo || !formManual.precio) {
+      setMensajeManual("❌ Título y precio son obligatorios.");
       return;
     }
     setGuardandoManual(true);
@@ -442,10 +465,12 @@ export const Catalogo = () => {
         <label className="form-label">Stock *</label>
         <input
           type="number"
-          className="form-control form-input"
+          name="stock"
           value={form.stock}
-          onChange={(e) => setForm((p) => ({ ...p, stock: e.target.value }))}
+          readOnly
+          className="form-control form-input"
         />
+        ℹ️ El stock se administra desde Catálogo → Stock.
       </div>
 
       <div className="col-6">
@@ -501,13 +526,23 @@ export const Catalogo = () => {
                     <i className="fa-regular fa-magnifying-glass"></i>
                   </button>
                 </form>
-                <button
-                  className="btn boton-primario"
-                  onClick={() => setMostrarModalAgregar(true)}
-                >
-                  <span className="d-none d-lg-inline">Agregar item</span>{" "}
-                  <i className="fa-regular fa-plus"></i>
-                </button>
+                <div className="d-flex gap-2">
+                  <button
+                    className="btn boton-primario"
+                    onClick={() => setMostrarModalAgregar(true)}
+                  >
+                    <span className="d-none d-lg-inline">Agregar item</span>{" "}
+                    <i className="fa-regular fa-plus"></i>
+                  </button>
+
+                  <button
+                    className="btn boton-primario"
+                    onClick={() => navigate("/movimiento-stock")}
+                  >
+                    <span className="d-none d-lg-inline">Stock</span>{" "}
+                    <i className="fa-regular fa-boxes-stacked"></i>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -589,10 +624,17 @@ export const Catalogo = () => {
                         <i className="fa-regular fa-pen-to-square"></i> Editar
                       </button>
                       <button
-                        className="link-eliminar btn btn-sm"
-                        onClick={() => handleDesactivar(libro)}
+                        className={`btn btn-sm ${
+                          libro.activo ? "link-eliminar" : "btn-success"
+                        }`}
+                        onClick={() => handleCambiarEstado(libro)}
                       >
-                        <i className="fa-solid fa-trash-can"></i> Desactivar
+                        <i
+                          className={`fa-solid ${
+                            libro.activo ? "fa-trash-can" : "fa-rotate-left"
+                          }`}
+                        ></i>{" "}
+                        {libro.activo ? "Desactivar" : "Activar"}
                       </button>
                     </div>
                   </div>
@@ -823,10 +865,7 @@ export const Catalogo = () => {
                         className="btn boton-primario"
                         onClick={handleGuardarIsbn}
                         disabled={
-                          guardandoIsbn ||
-                          !formIsbn.titulo ||
-                          !formIsbn.precio ||
-                          formIsbn.stock === ""
+                          guardandoIsbn || !formIsbn.titulo || !formIsbn.precio
                         }
                         style={{
                           opacity: guardandoIsbn ? 0.8 : 1,

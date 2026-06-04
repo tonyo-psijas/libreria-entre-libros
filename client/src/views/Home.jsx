@@ -18,7 +18,7 @@ export const Home = () => {
                 const [resLibros, resComics, resPreventas] = await Promise.all([
                     fetch(`${BASE_URL}/libros/filtros`),
                     fetch(`${BASE_URL}/libros/filtros?genero=${encodeURIComponent('Comics & Mangas')}`),
-                    fetch(`${BASE_URL}/preventas`)
+                    fetch(`${BASE_URL}/preventa`)
                 ])
 
                 const jsonLibros = await resLibros.json()

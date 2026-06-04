@@ -16,6 +16,7 @@ export const ProfileNavComponent = () => {
   const linksAdmin = [
     { to: "/historial-ventas", label: "Historial de ventas" },
     { to: "/historial-admin", label: "Historial admin" },
+    { to: "/historial-movimientos", label: "Historial de movimientos" },
     { to: "/catalogo", label: "Catálogo" },
     { to: "/gestion-de-usuarios", label: "Gestión de usuarios" },
   ];

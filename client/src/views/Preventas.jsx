@@ -15,7 +15,7 @@ export const Preventas = () => {
         setLoading(true)
 
         try {
-            const res = await fetch(`${BASE_URL}/preventas`)
+            const res = await fetch(`${BASE_URL}/preventa`)
             const json = await res.json()
             const lista = Array.isArray(json) ? json : (json.data ?? [])
 

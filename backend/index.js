@@ -9,9 +9,6 @@ const {
   registrarCliente,
   loginCliente,
   actualizarCliente,
-  //obtenerTodosLosClientes,
-  //cambiarRolCliente,
-  //eliminarCliente,
 } = require("./consultas/clientes.js");
 
 const { obtenerOCrearEditorial } = require("./consultas/editoriales");
@@ -26,16 +23,16 @@ const fs = require("fs");
 const {
   obtenerLibros,
   obtenerLibroById,
-  updateDescuento,
-  filtrarLibros,
   obtenerLibroByIsbn,
+  obtenerLibrosAdmin,
+  filtrarLibros,
   buscarLibros,
   crearLibro,
-  desactivarLibro,
   actualizarLibro,
   agregarAutorLibro,
   agregarGeneroLibro,
   obtenerPreventas,
+  cambiarEstadoLibro,
   actualizarLibroPorIsbn,
 } = require("./consultas/libros.js");
 const {
@@ -80,6 +77,11 @@ const {
 } = require("./consultas/historial_admin");
 
 const { obtenerHistorialVentas } = require("./consultas/historial_ventas");
+
+const {
+  crearMovimientoStock,
+  obtenerMovimientoStock,
+} = require("./consultas/movimientoStock.js");
 
 if (require.main === module) {
   getHealth();
@@ -160,7 +162,6 @@ api.post("/clientes/login", async (req, res) => {
   }
 });
 
-//RUTA POST para actualizar perfil del cliente autenticado
 // PUT /clientes/me — actualizar perfil del cliente autenticado
 api.put("/clientes/me", authMiddleware, async (req, res) => {
   const id_cliente = req.user.id_cliente;
@@ -184,38 +185,6 @@ api.put("/clientes/me", authMiddleware, async (req, res) => {
     });
   }
 });
-
-// GET /clientes — listar todos (solo admin)
-// api.get("/clientes", authMiddleware, verificarAdmin, async (req, res) => {
-//   try {
-//     const clientes = await obtenerTodosLosClientes();
-//     res.json({ data: clientes });
-//   } catch (error) {
-//     res.status(error.code || 500).json({ message: error.message });
-//   }
-// });
-
-// PUT /clientes/:id_cliente/rol — cambiar rol (solo admin)
-// api.put(
-//   "/clientes/:id_cliente/rol",
-//   authMiddleware,
-//   verificarAdmin,
-//   async (req, res) => {
-//     const { id_cliente } = req.params;
-//     const { rol } = req.body;
-
-//     if (!["admin", "cliente"].includes(rol)) {
-//       return res.status(400).json({ message: "Rol inválido" });
-//     }
-
-//     try {
-//       const cliente = await cambiarRolCliente(id_cliente, rol);
-//       res.json({ message: "Rol actualizado", data: cliente });
-//     } catch (error) {
-//       res.status(error.code || 500).json({ message: error.message });
-//     }
-//   },
-// );
 
 // DELETE /clientes/:id_cliente — eliminar usuario (solo admin)
 api.delete(
@@ -332,6 +301,8 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
       libroOpenLibrary.titulo =
         libroOpenLibrary.titulo || libroOpenLibrary.title || "Sin título";
 
+      libroOpenLibrary.debug_version = "openlibrary-fix-26-mayo";
+
       return res.json({
         origen: "open_library",
         traducido: libroOpenLibrary.idioma !== "spa",
@@ -368,6 +339,27 @@ api.get("/libros/buscar-isbn/:isbn", async (req, res) => {
     });
   }
 });
+
+api.get(
+  "/libros/admin/todos",
+  authMiddleware,
+  verificarAdmin,
+  async (req, res) => {
+    try {
+      const libros = await obtenerLibrosAdmin();
+
+      res.json({
+        cantidad: libros.length,
+        data: libros,
+      });
+    } catch (error) {
+      console.error("Error en GET /libros/admin/todos:", error);
+      res.status(500).json({
+        message: "Error interno al obtener libros admin",
+      });
+    }
+  },
+);
 
 // Ruta GET para obtener un libro por ID
 api.get("/libros/:id", async (req, res) => {
@@ -591,18 +583,25 @@ api.put("/libros/:id", authMiddleware, verificarAdmin, async (req, res) => {
   }
 });
 
-// Ruta PUT ppor :id para cambiar activo de true a false
+// Ruta PUT por :id para cambiar l.activo de true a false y viceversa
 api.put(
-  "/libros/:id/desactivar",
+  "/libros/:id/estado",
   authMiddleware,
   verificarAdmin,
   async (req, res) => {
     const { id } = req.params;
+    const { activo } = req.body;
 
     try {
-      const libroDesactivado = await desactivarLibro(id);
+      if (typeof activo !== "boolean") {
+        return res.status(400).json({
+          message: "El campo activo debe ser true o false",
+        });
+      }
 
-      if (!libroDesactivado) {
+      const libroActualizado = await cambiarEstadoLibro(id, activo);
+
+      if (!libroActualizado) {
         return res.status(404).json({
           message: "Libro no encontrado",
         });
@@ -611,22 +610,108 @@ api.put(
       await registrarActividadAdmin({
         id_admin: req.user.id_cliente,
         nombre_admin: req.user.email,
-        accion: "DESACTIVAR_LIBRO",
-        detalle: `Libro desactivado: ${libroDesactivado.titulo}`,
+        accion: activo ? "ACTIVAR_LIBRO" : "DESACTIVAR_LIBRO",
+        detalle: activo
+          ? `Libro activado: ${libroActualizado.titulo}`
+          : `Libro desactivado: ${libroActualizado.titulo}`,
         ruta: req.originalUrl,
         ip: req.ip,
       });
 
       res.json({
-        message: "Libro desactivado con exito",
-        data: libroDesactivado,
+        message: activo
+          ? "Libro activado correctamente"
+          : "Libro desactivado correctamente",
+        data: libroActualizado,
       });
     } catch (error) {
-      console.error("Error en PUT /libros/:id/desactivar:", error);
+      console.error("Error en PUT /libros/:id/estado:", error);
+      res.status(500).json({
+        message: "Error interno al cambiar estado del libro",
+      });
+    }
+  },
+);
+
+// Ruta POST para Ingreso y Egreso de libros
+api.post(
+  "/stock/movimientos",
+  authMiddleware,
+  verificarAdmin,
+  async (req, res) => {
+    try {
+      const { id_libro, tipo, motivo, referencia, cantidad, observacion } =
+        req.body;
+
+      if (!id_libro || !tipo || !motivo || !cantidad) {
+        return res.status(400).json({
+          message: "id_libro, tipo, motivo y cantidad son obligatorios",
+        });
+      }
+
+      if (!["ingreso", "egreso"].includes(tipo)) {
+        return res.status(400).json({
+          message: "El tipo debe ser ingreso o egreso",
+        });
+      }
+
+      if (cantidad <= 0) {
+        return res.status(400).json({
+          message: "La cantidad debe ser mayor a 0",
+        });
+      }
+
+      const resultado = await crearMovimientoStock({
+        id_libro,
+        id_admin: req.user.id_cliente,
+        tipo,
+        motivo,
+        referencia,
+        cantidad,
+        observacion,
+      });
+
+      await registrarActividadAdmin({
+        id_admin: req.user.id_cliente,
+        nombre_admin: req.user.email,
+        accion: tipo === "ingreso" ? "INGRESO_STOCK" : "EGRESO_STOCK",
+        detalle: `${tipo.toUpperCase()} de stock. Libro ID ${id_libro}. Cantidad: ${cantidad}. Motivo: ${motivo}`,
+        ruta: req.originalUrl,
+        ip: req.ip,
+      });
+
+      res.status(201).json({
+        message: "Movimiento de stock registrado correctamente",
+        data: resultado,
+      });
+    } catch (error) {
+      console.error("Error en POST /stock/movimientos:", error);
 
       res.status(error.code || 500).json({
-        error: error.code,
-        message: error.message,
+        message: error.message || "Error interno al registrar movimiento",
+      });
+    }
+  },
+);
+
+// Ruta GET para obtener movimientos de stock
+api.get(
+  "/stock/movimientos",
+  authMiddleware,
+  verificarAdmin,
+  async (req, res) => {
+    try {
+      const movimientos = await obtenerMovimientoStock();
+
+      res.json({
+        cantidad: movimientos.length,
+        data: movimientos,
+      });
+    } catch (error) {
+      console.error("Error en GET /stock/movimientos:", error);
+
+      res.status(500).json({
+        message: "Error interno al obtener movimientos de stock",
       });
     }
   },
@@ -867,23 +952,66 @@ api.get("/generos", async (req, res) => {
   }
 });
 
-// Ruta GET /Preventas
-api.get("/preventas", async (req, res) => {
+// Ruta GET /Preventa
+api.get("/preventa", async (req, res) => {
   try {
-    const Preventas = await obtenerPreventas();
+    
+    const preventa = await obtenerPreventas();
 
     res.json({
-      cantidad: Preventas.length,
-      data: Preventas,
+      cantidad: preventa.length,
+      data: preventa,
     });
   } catch (error) {
-    console.error("Error en GET /Preventas:", error);
+    console.error("Error en GET /preventa:", error);
+
     res.status(500).json({
-      error: error.code,
-      message: error.message,
+      message: "Error interno al obtener preventas",
     });
   }
 });
+
+// Ruta PUT para recibir preventa (actualizar stock y descuento)
+// api.put(
+//   "/libros/:id/recibir-preventa",
+//   authMiddleware,
+//   verificarAdmin,
+//   async (req, res) => {
+//     const { id } = req.params;
+//     const { stock_llegado, descuento = 0 } = req.body;
+
+//     try {
+//       if (stock_llegado === undefined || stock_llegado < 0) {
+//         return res.status(400).json({
+//           message: "El stock recibido es obligatorio y no puede ser negativo",
+//         });
+//       }
+
+//       if (descuento < 0 || descuento > 100) {
+//         return res.status(400).json({
+//           message: "El descuento debe estar entre 0 y 100",
+//         });
+//       }
+
+//       const resultado = await recibirPreventa(id, stock_llegado, descuento);
+
+//       if (!resultado) {
+//         return res.status(404).json({
+//           message: "Libro no encontrado",
+//         });
+//       }
+
+//       res.json({
+//         message: "Preventa actualizada correctamente",
+//         data: resultado,
+//       });
+//     } catch (error) {
+//       res.status(error.code || 500).json({
+//         message: error.message || "Error interno al recibir preventa",
+//       });
+//     }
+//   },
+// );
 
 // Ruta GET direcciones de un cliente
 api.get("/direcciones", authMiddleware, async (req, res) => {
@@ -1056,6 +1184,7 @@ api.post(
   },
 );
 
+// Ruta Post crear pedido desde carrito
 api.post("/pedidos", authMiddleware, async (req, res) => {
   const id_cliente = req.user.id_cliente;
 
@@ -1400,12 +1529,12 @@ api.get(
 
       const nombreArchivo = `historial_admin_${fechaActual}.xlsx`;
 
-      const rutaArchivo = path.join(
-        __dirname,
-        "reportes",
-        "historial_admin",
-        nombreArchivo,
-      );
+      // const rutaArchivo = path.join(
+      //   __dirname,
+      //   "reportes",
+      //   "historial_admin",
+      //   nombreArchivo,
+      // );
 
       res.setHeader(
         "Content-Type",
@@ -1417,7 +1546,7 @@ api.get(
         `attachment; filename=${nombreArchivo}`,
       );
 
-      await workbook.xlsx.writeFile(rutaArchivo);
+      //await workbook.xlsx.writeFile(rutaArchivo);
 
       await workbook.xlsx.write(res);
       res.end();
@@ -1535,12 +1664,12 @@ api.get(
 
       const nombreArchivo = `historial_ventas_${fechaActual}.xlsx`;
 
-      const rutaArchivo = path.join(
-        __dirname,
-        "reportes",
-        "historial_ventas",
-        nombreArchivo,
-      );
+      // const rutaArchivo = path.join(
+      //   __dirname,
+      //   "reportes",
+      //   "historial_ventas",
+      //   nombreArchivo,
+      // );
 
       res.setHeader(
         "Content-Type",
@@ -1552,7 +1681,7 @@ api.get(
         `attachment; filename=${nombreArchivo}`,
       );
 
-      await workbook.xlsx.writeFile(rutaArchivo);
+      //await workbook.xlsx.writeFile(rutaArchivo);
 
       await workbook.xlsx.write(res);
       res.end();
@@ -1561,6 +1690,98 @@ api.get(
 
       res.status(500).json({
         message: "Error interno al exportar historial de ventas",
+      });
+    }
+  },
+);
+
+// GET exportar historial de movimientos en Excel
+api.get(
+  "/stock/movimientos/excel",
+  authMiddleware,
+  verificarAdmin,
+  async (req, res) => {
+    try {
+      const { desde, hasta, tipo, motivo, libro } = req.query;
+
+      const movimientos = await obtenerMovimientoStock({
+        desde,
+        hasta,
+        tipo,
+        motivo,
+        libro,
+      });
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Historial Movimientos");
+
+      worksheet.columns = [
+        { header: "ID Movimiento", key: "id_movimiento", width: 15 },
+        { header: "Fecha", key: "fecha_movimiento", width: 25 },
+        { header: "ID Libro", key: "id_libro", width: 10 },
+        { header: "Libro", key: "titulo", width: 35 },
+        { header: "Tipo", key: "tipo", width: 15 },
+        { header: "Motivo", key: "motivo", width: 20 },
+        { header: "Referencia", key: "referencia", width: 20 },
+        { header: "Cantidad", key: "cantidad", width: 12 },
+        { header: "Stock Anterior", key: "stock_anterior", width: 18 },
+        { header: "Stock Nuevo", key: "stock_nuevo", width: 18 },
+        { header: "Administrador", key: "administrador", width: 25 },
+        { header: "Observación", key: "observacion", width: 40 },
+      ];
+
+      movimientos.forEach((mov) => {
+        worksheet.addRow({
+          id_movimiento: mov.id_movimiento,
+          fecha_movimiento: mov.fecha_movimiento,
+          id_libro: mov.id_libro,
+          titulo: mov.titulo,
+          tipo: mov.tipo,
+          motivo: mov.motivo,
+          referencia: mov.referencia,
+          cantidad: mov.cantidad,
+          stock_anterior: mov.stock_anterior,
+          stock_nuevo: mov.stock_nuevo,
+          administrador: mov.administrador,
+          observacion: mov.observacion,
+        });
+      });
+
+      worksheet.getRow(1).font = { bold: true };
+
+      const fechaActual = new Date()
+        .toISOString()
+        .replace(/:/g, "-")
+        .replace(/\..+/, "");
+
+      const nombreArchivo = `historial_movimientos_${fechaActual}.xlsx`;
+
+      // const rutaArchivo = path.join(
+      //   __dirname,
+      //   "reportes",
+      //   "historial_movimientos",
+      //   nombreArchivo,
+      // );
+
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      );
+
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=${nombreArchivo}`,
+      );
+
+      //await workbook.xlsx.writeFile(rutaArchivo);
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      console.error("Error en GET /stock/movimientos/excel:", error);
+
+      res.status(500).json({
+        message: "Error interno al exportar historial de movimientos",
+        error: error.message,
       });
     }
   },
