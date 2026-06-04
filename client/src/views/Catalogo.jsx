@@ -458,7 +458,6 @@ export const Catalogo = () => {
           value={form.descuento}
           onChange={(e) => {
             const valor = e.target.value;
-
             setForm((p) => ({
               ...p,
               descuento:
@@ -730,7 +729,7 @@ export const Catalogo = () => {
               </li>
             </ul>
 
-            {/* TAB ISBN */}
+            {/* TAB ISBN con spinner en búsqueda y en agregar */}
             {tabAgregar === "isbn" && (
               <>
                 <div className="d-flex gap-2 mb-3">
@@ -741,18 +740,43 @@ export const Catalogo = () => {
                     value={isbn}
                     onChange={(e) => setIsbn(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleBuscarIsbn()}
+                    disabled={buscandoIsbn}
                   />
-
                   <button
                     className="btn boton-primario"
                     onClick={handleBuscarIsbn}
                     disabled={buscandoIsbn}
+                    style={{ minWidth: "100px" }}
                   >
-                    {buscandoIsbn ? "..." : "Buscar"}
+                    {buscandoIsbn ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        Buscando...
+                      </>
+                    ) : (
+                      "Buscar"
+                    )}
                   </button>
                 </div>
 
                 {errorIsbn && <p className="text-danger mb-3">{errorIsbn}</p>}
+
+                {buscandoIsbn && !libroBuscado && !errorIsbn && (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-success" role="status">
+                      <span className="visually-hidden">
+                        Cargando información del libro...
+                      </span>
+                    </div>
+                    <p className="text-secondary mt-2">
+                      Consultando fuentes externas...
+                    </p>
+                  </div>
+                )}
 
                 {libroBuscado && (
                   <>
@@ -774,18 +798,15 @@ export const Catalogo = () => {
                           }}
                         />
                       )}
-
                       <div>
                         <p className="fw-semibold mb-0">
                           {formIsbn.titulo || "Sin título"}
                         </p>
-
                         {formIsbn.autores && (
                           <p className="text-secondary mb-1">
                             {formIsbn.autores}
                           </p>
                         )}
-
                         <span
                           className="badge"
                           style={{ backgroundColor: "#6B705C" }}
@@ -807,10 +828,28 @@ export const Catalogo = () => {
                           !formIsbn.precio ||
                           formIsbn.stock === ""
                         }
+                        style={{
+                          opacity: guardandoIsbn ? 0.8 : 1,
+                          backgroundColor: "#4a5947",
+                          color: "white",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                        }}
                       >
-                        {guardandoIsbn ? "Guardando..." : "Agregar al catálogo"}
+                        {guardandoIsbn ? (
+                          <>
+                            <span
+                              className="spinner-border spinner-border-sm"
+                              role="status"
+                              aria-hidden="true"
+                            ></span>
+                            Agregando...
+                          </>
+                        ) : (
+                          "Agregar al catálogo"
+                        )}
                       </button>
-
                       <button
                         className="btn boton-secundario"
                         onClick={cerrarModalAgregar}
@@ -822,7 +861,8 @@ export const Catalogo = () => {
                 )}
               </>
             )}
-            {/* TAB MANUAL */}
+
+            {/* TAB MANUAL con spinner en agregar */}
             {tabAgregar === "manual" && (
               <>
                 {renderCamposLibro(formManual, setFormManual)}
@@ -832,8 +872,27 @@ export const Catalogo = () => {
                     className="btn boton-primario"
                     onClick={handleGuardarManual}
                     disabled={guardandoManual}
+                    style={{
+                      opacity: guardandoManual ? 0.8 : 1,
+                      backgroundColor: "#4a5947",
+                      color: "white",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
                   >
-                    {guardandoManual ? "Guardando..." : "Agregar al catálogo"}
+                    {guardandoManual ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        Agregando...
+                      </>
+                    ) : (
+                      "Agregar al catálogo"
+                    )}
                   </button>
                   <button
                     className="btn boton-secundario"
