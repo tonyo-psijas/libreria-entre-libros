@@ -104,9 +104,6 @@ const crearPedidoDesdeCarrito = async (
       ],
     );
 
-    //const esPreventa = item.formato?.toLowerCase() === "preventa";
-    const esPreventa = item.formato?.trim().toLowerCase() === "preventa";
-
     if (!esPreventa || hayStockPreventa) {
       await pool.query(
         `

@@ -145,7 +145,7 @@ const obtenerLibrosAdmin = async () => {
   `);
 
   return rows;
-},
+};
 
 // RUTA POST /libros (crear nuevo libro)
 const crearLibro = async (libro) => {
