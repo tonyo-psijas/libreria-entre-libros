@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import logo from "../assets/images/entre-libros-logo.png";
 import { useFavorites } from "../context/FavoritesContext";
 import { useCart } from "../context/CartContext";
@@ -11,9 +11,14 @@ export const NavbarComponent = () => {
   const { user, logout, isAuthenticated } = useUser();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = () => {
-    logout();
+    setIsLoggingOut(true);
+    setTimeout(() => {
+      logout();
+      setIsLoggingOut(false);
+    }, 500);
   };
 
   const handleBuscar = (e) => {
@@ -36,7 +41,11 @@ export const NavbarComponent = () => {
 
           {/* SEARCHBAR (queda fuera del collapse) */}
           <div className="nav-search flex-grow-1 px-3 d-none d-md-block">
-            <form className="d-flex w-100 search-group" role="search" onSubmit={handleBuscar}>
+            <form
+              className="d-flex w-100 search-group"
+              role="search"
+              onSubmit={handleBuscar}
+            >
               <input
                 className="form-control nav-searchbar"
                 type="search"
@@ -67,51 +76,62 @@ export const NavbarComponent = () => {
             <span className="navbar-toggler-icon"></span>
           </button>
 
-          {/* LOGIN / REGISTER DESKTOP */}
+          {/* LOGIN / REGISTER / USER MENU DESKTOP */}
           <ul className="navbar-nav d-none d-md-flex flex-row align-items-center gap-3">
             {!isAuthenticated ? (
               <>
                 <li className="nav-item">
-                  <NavLink to="/login" className="nav-link">
-                    INGRESAR
-                  </NavLink>
+                  <Link to="/login" className="btn boton-secundario px-3 py-1">
+                    Ingresar
+                  </Link>
                 </li>
 
                 <li className="nav-item">
-                  <NavLink to="/registro" className="nav-link">
-                    CREAR CUENTA
-                  </NavLink>
+                  <Link to="/registro" className="btn boton-registro px-3 py-1">
+                    Crear Cuenta
+                  </Link>
                 </li>
               </>
             ) : (
               <>
-                {/* 👈 NOMBRE DEL USUARIO Y BOTÓN CERRAR SESIÓN */}
+                {/* SALUDO */}
                 <li className="nav-item">
                   <span className="nav-link user-greeting">
                     Hola, {user?.nombre || user?.email?.split("@")[0]}
                   </span>
                 </li>
+
+                {/* CERRAR SESIÓN - BOTÓN CON LOADING */}
                 <li className="nav-item">
                   <button
                     onClick={handleLogout}
-                    className="btn btn-link nav-link"
-                    style={{
-                      color: "#2B3528",
-                      cursor: "pointer",
-                      textDecoration: "none",
-                    }}
+                    className="btn boton-secundario px-3 py-1"
+                    disabled={isLoggingOut}
                   >
-                    CERRAR SESIÓN
+                    {isLoggingOut ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        Saliendo...
+                      </>
+                    ) : (
+                      "Cerrar Sesión"
+                    )}
                   </button>
                 </li>
 
+                {/* MI CUENTA - Link en lugar de NavLink */}
                 <li className="nav-item">
-                  <NavLink to="/perfil" className="nav-link boton-micuenta">
-                    MI CUENTA <i className="fa-light fa-user fs-5"></i>
-                  </NavLink>
+                  <Link to="/perfil" className="btn boton-primario px-3 py-1">
+                    Mi Cuenta <i className="fa-light fa-user fs-5 ms-1"></i>
+                  </Link>
                 </li>
 
-                <ul className="d-flex list-unstyled">
+                {/* FAVORITOS Y CARRITO */}
+                <ul className="d-flex list-unstyled align-items-center gap-2">
                   <li className="nav-item">
                     <NavLink
                       to="/favoritos"
@@ -131,7 +151,6 @@ export const NavbarComponent = () => {
                       to="/carrito"
                       className="nav-link boton-carrito position-relative"
                     >
-                      {" "}
                       <i className="fa-light fa-basket-shopping fs-5"></i>
                       {totalItems > 0 && (
                         <span className="carrito-badge">{totalItems}</span>
@@ -195,7 +214,11 @@ export const NavbarComponent = () => {
         <div className="container">
           {/* SEARCHBAR MOBILE */}
           <div className="nav-search my-3">
-            <form className="d-flex w-100 search-group" role="search" onSubmit={handleBuscar}>
+            <form
+              className="d-flex w-100 search-group"
+              role="search"
+              onSubmit={handleBuscar}
+            >
               <input
                 className="form-control nav-searchbar"
                 type="search"
@@ -213,25 +236,25 @@ export const NavbarComponent = () => {
             </form>
           </div>
 
-          {/* LOGIN / REGISTER MOBILE */}
+          {/* LOGIN / REGISTER / USER MENU MOBILE */}
           <ul className="navbar-nav mb-3">
             {!isAuthenticated ? (
               <>
-                <li className="nav-item">
-                  <NavLink to="/login" className="nav-link">
-                    INGRESAR
-                  </NavLink>
+                <li className="nav-item mb-2">
+                  <Link to="/login" className="btn boton-secundario w-100">
+                    Ingresar
+                  </Link>
                 </li>
 
                 <li className="nav-item">
-                  <NavLink to="/registro" className="nav-link">
-                    CREAR CUENTA
-                  </NavLink>
+                  <Link to="/registro" className="btn boton-registro w-100">
+                    Crear Cuenta
+                  </Link>
                 </li>
               </>
             ) : (
               <>
-                {/* 👈 NOMBRE Y CERRAR SESIÓN EN MOBILE */}
+                {/* SALUDO */}
                 <li className="nav-item">
                   <span
                     className="nav-link"
@@ -240,31 +263,41 @@ export const NavbarComponent = () => {
                     Hola, {user?.nombre || user?.email?.split("@")[0]}
                   </span>
                 </li>
-                <li className="nav-item">
+
+                {/* CERRAR SESIÓN - BOTÓN CON LOADING */}
+                <li className="nav-item mb-2">
                   <button
                     onClick={handleLogout}
-                    className="btn btn-link nav-link"
-                    style={{
-                      color: "#2B3528",
-                      cursor: "pointer",
-                      textDecoration: "none",
-                    }}
+                    className="btn boton-secundario w-100"
+                    disabled={isLoggingOut}
                   >
-                    CERRAR SESIÓN
+                    {isLoggingOut ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        Saliendo...
+                      </>
+                    ) : (
+                      "Cerrar Sesión"
+                    )}
                   </button>
                 </li>
 
-                <li className="nav-item">
-                  <NavLink to="/perfil" className="nav-link boton-micuenta">
-                    MI CUENTA <i className="fa-light fa-user fs-5"></i>
-                  </NavLink>
+                {/* MI CUENTA - Link en lugar de NavLink */}
+                <li className="nav-item mb-2">
+                  <Link to="/perfil" className="btn boton-primario w-100">
+                    MI CUENTA <i className="fa-light fa-user fs-5 ms-1"></i>
+                  </Link>
                 </li>
 
+                {/* FAVORITOS */}
                 <li className="nav-item">
                   <NavLink to="/favoritos" className="nav-link boton-favoritos">
                     FAVORITOS{" "}
                     <i className="fa-sharp fa-light fa-heart fs-5 position-relative">
-                      {" "}
                       {totalFavoritos > 0 && (
                         <span className="favoritos-badge-mobile">
                           {totalFavoritos}
@@ -274,11 +307,11 @@ export const NavbarComponent = () => {
                   </NavLink>
                 </li>
 
+                {/* CARRITO */}
                 <li className="nav-item">
                   <NavLink to="/carrito" className="nav-link boton-carrito">
                     CARRITO{" "}
                     <i className="fa-light fa-basket-shopping fs-5 position-relative">
-                      {" "}
                       {totalItems > 0 && (
                         <span className="carrito-badge-mobile">
                           {totalItems}
@@ -293,7 +326,7 @@ export const NavbarComponent = () => {
 
           <hr className="divider" />
 
-          {/* NAVLINKS INFERIORES */}
+          {/* NAVLINKS INFERIORES MOBILE */}
           <ul className="navbar-nav pb-3">
             <li className="nav-item">
               <NavLink to="/" className="nav-link">

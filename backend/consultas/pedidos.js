@@ -35,7 +35,8 @@ const crearPedidoDesdeCarrito = async (
   }
 
   for (const item of carrito) {
-    const esPreventa = item.formato?.toLowerCase() === "preventa";
+
+    const esPreventa = item.formato?.trim().toLowerCase() === "preventa";
 
     if (!esPreventa && item.cantidad > item.stock) {
       throw {
@@ -104,6 +105,7 @@ const crearPedidoDesdeCarrito = async (
     );
 
     //const esPreventa = item.formato?.toLowerCase() === "preventa";
+    const esPreventa = item.formato?.trim().toLowerCase() === "preventa";
 
     if (!esPreventa || hayStockPreventa) {
       await pool.query(

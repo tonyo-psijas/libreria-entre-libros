@@ -81,7 +81,7 @@ const validarStockLibro = async (id_libro, cantidadSolicitada) => {
     };
   }
 
-  const esPreventa = libro.formato?.toLowerCase() === "preventa";
+  const esPreventa = libro.formato?.trim().toLowerCase() === "preventa";
 
   if (!esPreventa && cantidadSolicitada > libro.stock) {
     throw {

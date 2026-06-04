@@ -145,9 +145,8 @@ const obtenerLibrosAdmin = async () => {
   `);
 
   return rows;
-};
+},
 
-// RUTA POST /libros (crear nuevo libro)
 // RUTA POST /libros (crear nuevo libro)
 const crearLibro = async (libro) => {
   const {
@@ -223,19 +222,26 @@ const agregarGeneroLibro = async (id_libro, id_genero) => {
 };
 
 // RUTA PUT /libros/isbn/:isbn (actualizar libro por ISBN)
-const actualizarLibroPorIsbn = async (isbn, precio, stock, descuento) => {
+const actualizarLibroPorIsbn = async (
+  isbn,
+  precio,
+  stock,
+  descuento,
+  formato,
+) => {
   const { rows } = await pool.query(
     `
-        UPDATE libro
-        SET 
-            precio = $1,
-            stock = $2,
-            descuento = $3,
-            activo = true
-        WHERE isbn = $4
-        RETURNING *
+    UPDATE libro
+    SET 
+      precio = $1,
+      stock = $2,
+      descuento = $3,
+      formato = COALESCE($4, formato),
+      activo = true
+    WHERE isbn = $5
+    RETURNING *
     `,
-    [precio, stock, descuento, isbn],
+    [precio, stock, descuento, formato || null, isbn],
   );
 
   return rows[0];
@@ -245,10 +251,10 @@ const actualizarLibroPorIsbn = async (isbn, precio, stock, descuento) => {
 const cambiarEstadoLibro = async (id, activo) => {
   const { rows } = await pool.query(
     `
-        UPDATE libro
-        SET activo = $1
-        WHERE id_libro = $2
-        RETURNING *
+    UPDATE libro
+    SET activo = $1
+    WHERE id_libro = $2
+    RETURNING *
     `,
     [activo, id],
   );
@@ -325,8 +331,9 @@ const buscarLibros = async (q) => {
   return rows;
 };
 
-// RUTA GET /libros/Preventa
-const obtenerPreventa = async () => {
+// RUTA GET /libros/Preventas
+const obtenerPreventas = async () => {
+
   const { rows } = await pool.query(`
       SELECT
         l.id_libro,
@@ -352,68 +359,6 @@ const obtenerPreventa = async () => {
   return rows;
 };
 
-// Ruta PUT /libros/preventa/recibir/:id_libro para recibir stock de un libro en preventa
-const recibirPreventa = async (id_libro, stock_llegado, descuento = 0) => {
-  const { rows: libroRows } = await pool.query(
-    `
-    SELECT id_libro, titulo, formato
-    FROM libro
-    WHERE id_libro = $1
-  `,
-    [id_libro],
-  );
-
-  if (libroRows.length === 0) return null;
-
-  const libro = libroRows[0];
-
-  if (libro.formato?.toLowerCase() !== "preventa") {
-    throw {
-      code: 400,
-      message: "Este libro no está en preventa",
-    };
-  }
-
-  const { rows: vendidosRows } = await pool.query(
-    `
-    SELECT COALESCE(SUM(dp.cantidad), 0)::INT AS vendidos
-    FROM detalle_pedido dp
-    JOIN pedido p ON dp.id_pedido = p.id_pedido
-    WHERE dp.id_libro = $1
-  `,
-    [id_libro],
-  );
-
-  const vendidosPreventa = Number(vendidosRows[0].vendidos);
-  const stockLlegado = Number(stock_llegado);
-
-  const stockFinal = Math.max(stockLlegado - vendidosPreventa, 0);
-
-  const nuevoFormato = stockLlegado > vendidosPreventa ? "fisico" : "preventa";
-
-  const { rows } = await pool.query(
-    `
-    UPDATE libro
-    SET
-      stock = $1,
-      descuento = $2,
-      formato = $3,
-      activo = true
-    WHERE id_libro = $4
-    RETURNING *
-  `,
-    [stockFinal, descuento, nuevoFormato, id_libro],
-  );
-
-  return {
-    libro: rows[0],
-    stock_llegado: stockLlegado,
-    vendidos_preventa: vendidosPreventa,
-    stock_final: stockFinal,
-    formato_final: nuevoFormato,
-  };
-};
-
 module.exports = {
   obtenerLibros,
   obtenerLibroById,
@@ -425,8 +370,7 @@ module.exports = {
   filtrarLibros,
   obtenerLibroByIsbn,
   buscarLibros,
-  obtenerPreventa,
-  recibirPreventa,
+  obtenerPreventas,
   agregarAutorLibro,
   agregarGeneroLibro,
 };
